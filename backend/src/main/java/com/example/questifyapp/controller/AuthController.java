@@ -1,0 +1,70 @@
+package com.example.questifyapp.controller;
+
+import com.example.questifyapp.dto.LoginRequest;
+import com.example.questifyapp.dto.SignupRequest;
+import com.example.questifyapp.entity.Role;
+import com.example.questifyapp.entity.User;
+import com.example.questifyapp.repository.RoleRepository;
+import com.example.questifyapp.repository.UserRepository;
+import com.example.questifyapp.security.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    @PostMapping("/test")
+    public ResponseEntity<?> authenticate() {
+        return ResponseEntity.ok("User registered successfully!");
+    }
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser( @RequestBody SignupRequest signUpRequest) {
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+            return ResponseEntity.badRequest().body("Error: Username is already taken!");
+        }
+
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+        }
+
+        User user = new User(
+                signUpRequest.getUsername(),
+                signUpRequest.getEmail(),
+                encoder.encode(signUpRequest.getPassword())
+        );
+
+        Set<Role> roles = new HashSet<>();
+        Role userRole = roleRepository.findByName(Role.ERole.ROLE_STUDENT)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        roles.add(userRole);
+        user.setRoles(roles);
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok("User registered successfully!");
+    }
+}
