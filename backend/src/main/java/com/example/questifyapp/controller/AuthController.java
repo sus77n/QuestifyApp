@@ -1,10 +1,7 @@
 package com.example.questifyapp.controller;
 
-import com.example.questifyapp.dto.LoginRequest;
 import com.example.questifyapp.dto.SignupRequest;
-import com.example.questifyapp.entity.Role;
 import com.example.questifyapp.entity.User;
-import com.example.questifyapp.repository.RoleRepository;
 import com.example.questifyapp.repository.UserRepository;
 import com.example.questifyapp.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -27,9 +21,6 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    RoleRepository roleRepository;
 
     @Autowired
     PasswordEncoder encoder;
@@ -54,14 +45,9 @@ public class AuthController {
         User user = new User(
                 signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword())
+                encoder.encode(signUpRequest.getPassword()),
+                "ROLE_STUDENT"
         );
-
-        Set<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName(Role.ERole.ROLE_STUDENT)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-        roles.add(userRole);
-        user.setRoles(roles);
 
         userRepository.save(user);
 

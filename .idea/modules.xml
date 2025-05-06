@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/questifyapp.iml" filepath="$PROJECT_DIR$/.idea/questifyapp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/QuestifyApp.iml" filepath="$PROJECT_DIR$/.idea/QuestifyApp.iml" />
     </modules>
   </component>
 </project>
