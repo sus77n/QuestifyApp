@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,6 +40,16 @@ public class Exercise {
     @JoinColumn(name = "lesson_id", nullable = false)
     @JsonBackReference
     private Lesson lesson;
+
+    @OneToMany(
+            mappedBy = "exercise",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonManagedReference
+    private List<Option> options = new ArrayList<>();
+
 
     public Exercise(String question, String answer, String type) {
         this.question = question;
