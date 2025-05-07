@@ -33,8 +33,8 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
-    @GetMapping("/{code}")
-    public ResponseEntity<Course> getCourseById(@PathVariable Integer id) {
+    @GetMapping("/{Coursecode}")
+    public ResponseEntity<Course> getCourseByCoursecode(@PathVariable Integer id) {
         Course course = courseService.getCourseById(id);
         if (course == null) {
             return ResponseEntity.notFound().build();
