@@ -19,4 +19,21 @@ public class CourseService {
     public Course getCourseById(int id) {
         return courseRepository.findById(id).get();
     }
+
+    public Course getCourseByCourseCode(String courseCode) {
+        List<Course> courses = getAllCourses();
+
+        for (Course course : courses) {
+            if (course.getCourseCode().equalsIgnoreCase(courseCode)) {
+                return course;
+            }
+        }
+
+        return null;
+    }
+
+    public List<Course> searchCourses(String searchTerm) {
+        return courseRepository.searchCoursesByNameOrCode(searchTerm);
+    }
+
 }
