@@ -5,10 +5,7 @@ import com.example.questifyapp.repository.CourseRepository;
 import com.example.questifyapp.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -33,12 +30,13 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
-    @GetMapping("/{Coursecode}")
-    public ResponseEntity<Course> getCourseByCoursecode(@PathVariable Integer id) {
-        Course course = courseService.getCourseById(id);
-        if (course == null) {
+    @GetMapping("/search")
+    public ResponseEntity<List<Course>> searchCourses(@RequestParam String searchTerm) {
+        List<Course> courses = courseService.searchCourses(searchTerm);
+        if (courses.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(course);
+        return ResponseEntity.ok(courses);
     }
+
 }
