@@ -1,5 +1,6 @@
 package com.example.questifyapp.service;
 
+import com.example.questifyapp.entity.Course;
 import com.example.questifyapp.entity.Exercise;
 import com.example.questifyapp.repository.ExerciseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,4 +26,6 @@ public class ExerciseService {
     public Exercise getExerciseById(Long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElse(null);
     }
+
+
 }
