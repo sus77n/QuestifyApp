@@ -12,20 +12,20 @@ const Course = () => {
 
     useEffect(() => {
         fetch('/api/course')
-            .then(r => {
-                console.log("Response:", r);
-                if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
-                return r.text();
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text(); // Get raw text first
             })
             .then(text => {
-                console.log("Raw response:", text);
+                console.log("Raw response:", text); // Log the raw response
                 try {
-                    return JSON.parse(text);
+                    const data = JSON.parse(text); // Try parsing manually  
+                    setCourses(data);
                 } catch (e) {
-                    throw new Error("Not valid JSON: " + text.substring(0, 100));
+                    console.error("Failed to parse JSON:", e);
+                    console.error("Problematic JSON portion:", text.substring(e.message.match(/position (\d+)/)?.[1] - 50 || 0, e.message.match(/position (\d+)/)?.[1] + 50 || 100));
                 }
             })
-            .then(setCourses)
             .catch(console.error);
     }, []);
 
