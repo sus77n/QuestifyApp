@@ -1,56 +1,54 @@
 package com.example.questifyapp.controller;
 
-import com.example.questifyapp.dto.SignupRequest;
+import com.example.questifyapp.entity.AuthenticationRequest;
 import com.example.questifyapp.entity.User;
 import com.example.questifyapp.repository.UserRepository;
-import com.example.questifyapp.security.*;
+import com.example.questifyapp.service.CustomUserDetailsService;
+import com.example.questifyapp.service.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
 
     @Autowired
-    UserRepository userRepository;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    PasswordEncoder encoder;
+    private CustomUserDetailsService userDetailsService;
 
     @Autowired
-    JwtUtils jwtUtils;
+    private UserRepository userRepository;
 
-    @PostMapping("/test")
-    public ResponseEntity<?> authenticate() {
-        return ResponseEntity.ok("User registered successfully!");
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtils jwtUtil;
+
+    @PostMapping("/register")
+    public String registerUser(@RequestBody User user) {
+        System.out.println("Registering user: " + user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+            return "User registered successfully";
     }
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser( @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
-        }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body("Error: Email is already in use!");
-        }
-
-        User user = new User(
-                signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()),
-                "ROLE_STUDENT"
+    @PostMapping("/login")
+    public String loginUser(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
         );
 
-        userRepository.save(user);
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
+        final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok("User registered successfully!");
+        return jwt;
     }
+
 }
