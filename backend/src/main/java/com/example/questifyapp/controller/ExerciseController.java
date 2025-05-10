@@ -1,15 +1,16 @@
 package com.example.questifyapp.controller;
 
 import com.example.questifyapp.entity.Exercise;
+import com.example.questifyapp.entity.Option;
 import com.example.questifyapp.service.ExerciseService;
+import org.aspectj.weaver.patterns.TypePatternQuestions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/exercise")
@@ -31,4 +32,11 @@ public class ExerciseController {
         }
         return ResponseEntity.ok(exercise);
     }
+    @PostMapping("/getOptions")
+    public ResponseEntity<List<Option>> getOptions(@RequestBody Map<String, Integer> body) {
+        Integer exerciseId = body.get("id");
+        List<Option> options = exerciseService.getOptionsByExerciseId(exerciseId);
+        return ResponseEntity.ok(options);
+    }
+
 }
