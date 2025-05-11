@@ -3,12 +3,14 @@ package com.example.questifyapp.security;
 import com.example.questifyapp.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class UserDetailsImpl implements UserDetails {
@@ -33,7 +35,12 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl build(User user) {
-        List<GrantedAuthority> authorities =  Collections.singletonList(new SimpleGrantedAuthority(user.getRole()));
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
+        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(
+                "ROLE_" + user.getRole());
 
         return new UserDetailsImpl(
                 user.getId(),
@@ -41,6 +48,20 @@ public class UserDetailsImpl implements UserDetails {
                 user.getEmail(),
                 user.getPassword(),
                 authorities);
+    }
+
+    public UserDetailsImpl(UserDetails details) {
+        this.username = details.getUsername();
+        this.password = details.getPassword();
+        this.authorities = details.getAuthorities();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserDetailsImpl user = (UserDetailsImpl) o;
+        return Objects.equals(id, user.id);
     }
 
     @Override
