@@ -1,4 +1,3 @@
-import React from 'react';
 import Navbar from '../Navbar/Navbar';
 import {NavigationProvider, useNavigation} from "../../context/NavigationContext";
 import Home from "../Home/Home";

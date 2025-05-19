@@ -1,95 +1,97 @@
 import React, {useEffect, useState} from "react";
 import {ChevronRightIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {useNavigate} from "react-router-dom";
-import { useGetChaptersQuery, useLazyGetLessonExercisesQuery } from '../../service/courseApi'
+import {useGetChaptersByCourseQuery, useGetCoursesQuery, useSearchCoursesQuery} from '../../API/service/course.service'
 
 
 const Course = () => {
     const [selectedCourse, setSelectedCourse] = useState(null);
-    const [courses,setCourses] =useState([]);
-    const [chapters, setChapters] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetch('/api/course')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.text(); // Get raw text first
-            })
-            .then(text => {
-                console.log("Raw response:", text); // Log the raw response
-                try {
-                    const data = JSON.parse(text); // Try parsing manually  
-                    setCourses(data);
-                } catch (e) {
-                    console.error("Failed to parse JSON:", e);
-                    console.error("Problematic JSON portion:", text.substring(e.message.match(/position (\d+)/)?.[1] - 50 || 0, e.message.match(/position (\d+)/)?.[1] + 50 || 100));
-                }
-            })
-            .catch(console.error);
-    }, []);
+    const {
+        data: allCourses = [],
+        isLoading: isAllCoursesLoading
+    } = useGetCoursesQuery();
 
-    useEffect(() => {
-        if (selectedCourse) {
-            fetch(`/api/chapter/${selectedCourse.id}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    setChapters(data);
-                })
-                .catch(err => {
-                    console.error("Error fetching chapters:", err);
-                });
-        }
-    }, [selectedCourse]);
+    const {
+        data: searchedCourses = [],
+        isLoading: isSearchLoading
+    } = useSearchCoursesQuery(searchTerm, {
+        skip: searchTerm.length < 1
+    });
+
+    const {
+        data: chapters = [],
+        isLoading: isChaptersLoading,
+    } = useGetChaptersByCourseQuery(selectedCourse?.id, {
+        skip: !selectedCourse
+    });
+
+    const displayCourses = searchTerm.length > 0 ? searchedCourses : allCourses;
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    if (isAllCoursesLoading) {
+        return <div>Loading courses...</div>;
+    }
 
 
     return (
         <div className="h-screen flex ml-1">
+            {/* Left sidebar */}
             <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col p-4">
                 <h1 className="text-3xl font-semibold text-text-color">Courses</h1>
                 <div className="relative">
                     <input
                         placeholder="Find your course..."
                         className="border-2 border-text-color p-2 pl-5 pr-10 text-lg rounded-xl mt-4
-             focus:outline-none transition-all duration-200
-             placeholder-gray-400 placeholder-opacity-75
-             focus:shadow-md focus:ring-1 focus:ring-primary focus:ring-opacity-50
-             text-text-color w-full"
+                         focus:outline-none transition-all duration-200
+                         placeholder-gray-400 placeholder-opacity-75
+                         focus:shadow-md focus:ring-1 focus:ring-primary focus:ring-opacity-50
+                         text-text-color w-full"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
                     />
                     <button
                         type="button"
                         className="absolute right-3 top-[38px] transform -translate-y-1/2"
-                        onClick={() => console.log('Search clicked')}
                     >
                         <MagnifyingGlassIcon className="h-6 w-6 text-text-color"/>
                     </button>
                 </div>
-                <div className="mt-3 overflow-y-auto flex-1 overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    {courses.map((course, index) => (
-                        <div
-                            key={course.courseCode}
-                            onClick={() => setSelectedCourse({ ...course, index })}
-                            className="cursor-pointer"
-                        >
-                            <CardCourseMini
-                                index={index}
-                                courseCode={course.courseCode}
-                                courseName={course.courseName}
-                                isSelected={selectedCourse?.courseCode === course.courseCode}
-                            />
-                        </div>
-                    ))}
+                <div
+                    className="mt-3 overflow-y-auto flex-1 overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    {isSearchLoading && searchTerm.length > 0 ? (
+                        <div className="text-center py-4">Searching...</div>
+                    ) : (
+                        displayCourses.map((course, index) => (
+                            <div
+                                key={course.courseCode}
+                                onClick={() => setSelectedCourse({...course, index})}
+                                className="cursor-pointer"
+                            >
+                                <CardCourseMini
+                                    index={index}
+                                    courseCode={course.courseCode}
+                                    courseName={course.courseName}
+                                    isSelected={selectedCourse?.courseCode === course.courseCode}
+                                />
+                            </div>
+                        ))
+                    )}
+                    {searchTerm.length > 0 && searchedCourses.length === 0 && !isSearchLoading && (
+                        <div className="text-center py-4 text-gray-400">No courses found</div>
+                    )}
                 </div>
             </div>
+
             <div className="m-[8px] ml-1 bg-white h-[98vh] w-[64vw] rounded-xl flex flex-col p-8">
                 {selectedCourse ? (
                     <div className="flex relative">
-                        <div >
+                        <div>
                             <div className="flex">
                                 <img
                                     src={`/img/ava${(selectedCourse?.index % 3 + 1)}.png`}
@@ -100,7 +102,6 @@ const Course = () => {
                                     <p className="text-gray-400 font-semibold text-2xl mb-2">
                                         {selectedCourse.courseCode}
                                     </p>
-
                                     <h2 className="text-[40px] font-bold text-text-color mb-2">
                                         {selectedCourse.courseName}
                                     </h2>
@@ -108,8 +109,8 @@ const Course = () => {
                                 <div className="flex pt-14 absolute justify-end right-8">
                                     <button
                                         className="bg-text-color text-white rounded-xl px-16 py-4 text-2xl font-bold
-               border-2 border-text-color transition-colors duration-300
-               hover:bg-white hover:text-text-color"
+                                         border-2 border-text-color transition-colors duration-300
+                                         hover:bg-white hover:text-text-color"
                                         onClick={() => navigate(`/topics/${selectedCourse.id}`)}
                                     >
                                         Join
@@ -120,19 +121,23 @@ const Course = () => {
                                 {selectedCourse.description}
                             </p>
                             <div className="pt-4 w-[60vw]">
-                                <h2 className="text-text-color font-semibold text-[28px] mb-5 ">Content</h2>
-                                <div className="bg-background-color rounded-xl grid grid-cols-2 gap-x-8 gap-y-4 p-4">
-                                    {chapters.map((topic) => (
-                                        <div key={topic.id}>
-                                            <TopicCard
-                                                index={topic.id}
-                                                numberLesson={topic.lessons.length}
-                                                // numberExe={topic.numberExe}
-                                                name={topic.title}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
+                                <h2 className="text-text-color font-semibold text-[28px] mb-5">Content</h2>
+                                {isChaptersLoading ? (
+                                    <div>Loading chapters...</div>
+                                ) : (
+                                    <div
+                                        className="bg-background-color rounded-xl grid grid-cols-2 gap-x-8 gap-y-4 p-4">
+                                        {chapters.map((topic) => (
+                                            <div key={topic.id}>
+                                                <TopicCard
+                                                    index={topic.id}
+                                                    numberLesson={topic.lessons.length}
+                                                    name={topic.title}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -145,10 +150,9 @@ const Course = () => {
         </div>
     );
 };
-
 export default Course;
 
-function CardCourseMini({courseName, courseCode, index, isSelected }) {
+function CardCourseMini({courseName, courseCode, index, isSelected}) {
     const avatarIndex = (index % 3) + 1; // 1, 2, 3, 1, 2, 3, ...
     const avatarSrc = `/img/ava${avatarIndex}.png`;
 
