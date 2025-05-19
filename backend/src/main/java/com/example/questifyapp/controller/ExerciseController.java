@@ -18,7 +18,7 @@ public class ExerciseController {
     @Autowired
     private ExerciseService exerciseService;
 
-    @GetMapping("/{lessonId}")
+    @GetMapping("/byLessonId/{lessonId}")
     public ResponseEntity<List<Exercise>> getListExercise(@PathVariable Long lessonId) {
         List<Exercise> exercises = exerciseService.getExercisesByLessonId(lessonId);
         return ResponseEntity.ok(exercises);

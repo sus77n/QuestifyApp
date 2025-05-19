@@ -19,7 +19,7 @@ public class ChapterController {
     @Autowired
     private ChapterService chapterService;
 
-    @GetMapping("/{courseId}")
+    @GetMapping("/byCourseId/{courseId}")
     public ResponseEntity<List<Chapter>> getAllChapters(@PathVariable Long courseId) {
         List<Chapter> chapters = chapterService.getChaptersByCourseId(courseId);
         return ResponseEntity.ok(chapters);
