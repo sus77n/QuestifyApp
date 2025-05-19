@@ -43,7 +43,7 @@ public class CourseController {
 
     @PostMapping("/totalExercise")
     public ResponseEntity<Map<String, Integer>> getTotalExercises(@RequestBody Map<String, Integer> body) {
-        Integer courseId = body.get("id"); // Extract 'id' from JSON body
+        Integer courseId = body.get("id");
 
         int total = courseService.countTotalExercisesByCourseId(courseId);
 
