@@ -1,4 +1,3 @@
-import React from 'react';
 import PrimaryInput from "../material/material";
 import {ChevronRightIcon, UserIcon, LockClosedIcon} from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
