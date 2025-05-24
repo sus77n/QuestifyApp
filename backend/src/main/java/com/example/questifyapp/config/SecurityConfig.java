@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/register").permitAll() // Allow POST /register
-                        .anyRequest().authenticated() // Secure other endpoints
+                        .anyRequest().permitAll() // Secure other endpoints
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT-based auth
