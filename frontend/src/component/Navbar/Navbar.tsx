@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigation } from '../../context/NavigationContext';
-import { ArrowRightStartOnRectangleIcon, UserIcon, HomeIcon, ListBulletIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
+import { ArrowRightStartOnRectangleIcon, UserIcon, ListBulletIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
     const { activeTab, setActiveTab } = useNavigation();
@@ -42,8 +42,19 @@ const Navbar = () => {
     );
 };
 
-function NavIcon({ icon: Icon, id, activeTab, onClick }) {
+const NavIcon = ({
+                     icon: Icon,
+                     id,
+                     activeTab,
+                     onClick,
+                 }: {
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    id?: string;
+    activeTab?: string;
+    onClick: () => void;
+}) => {
     const isActive = id && activeTab === id;
+
     return (
         <button
             onClick={onClick}
@@ -51,18 +62,15 @@ function NavIcon({ icon: Icon, id, activeTab, onClick }) {
                 isActive ? 'bg-white' : 'hover:bg-white/10'
             }`}
         >
-            <Icon className={`w-8 h-8 ${
-                isActive ? 'text-text-color' : 'text-white'
-            }`} />
+            <Icon className={`w-8 h-8 ${isActive ? 'text-text-color' : 'text-white'}`} />
             {id && (
-                <span className={`text-[10px] mt-1 ${
-                    isActive ? 'text-text-color' : 'text-white'
-                }`}>
-                    {id}
-                </span>
+                <span className={`text-[10px] mt-1 ${isActive ? 'text-text-color' : 'text-white'}`}>
+          {id}
+        </span>
             )}
         </button>
     );
-}
+};
+
 
 export default Navbar;

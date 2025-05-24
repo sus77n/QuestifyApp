@@ -13,6 +13,6 @@ export interface LoginResponseDTO {
 export interface SignupDTO {
     email: string;
     password: string;
-    username: string;
-    role: 'Student' | 'Teacher' | 'Administrator';
+    username?: string;
+    role?: 'Student' | 'Teacher' | 'Administrator';
 }
