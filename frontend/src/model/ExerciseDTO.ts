@@ -1,7 +1,7 @@
 import {OptionDTO} from "./OptionDTO";
 
 export interface ExerciseDTO {
-    id: number;
+    id: string;
     question: string;
     answer: string;
     type: 'Multiple-choice' | 'Constructed-response';

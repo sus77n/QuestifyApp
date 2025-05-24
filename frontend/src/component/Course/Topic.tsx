@@ -1,20 +1,26 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '../../context/NavigationContext';
 import {useNavigate, useParams} from "react-router-dom";
 import {ChevronDownIcon, ChevronUpIcon, XCircleIcon} from "@heroicons/react/24/outline";
 import {useGetExerciseOptionsQuery} from "../../API/service/exercise.service";
 import {OptionDTO} from "../../model/OptionDTO";
 import {ExerciseDTO} from "../../model/ExerciseDTO";
-import {useGetChaptersByCourseQuery} from "../../API/service/course.service";
+import {useGetChaptersByCourseQuery, useGetCourseByIdQuery} from "../../API/service/course.service";
+import {LessonDTO} from "../../model/LessonDTO";
+import {MyButton} from "../material/material";
 
-export const Topic = () => {
-    const { setActiveTab } = useNavigation();
-    const { courseId } = useParams();
+const Topic = () => {
+    const {setActiveTab} = useNavigation();
+    const {courseId} = useParams();
     const navigate = useNavigate();
-    const [selectedLesson, setSelectedLesson] = useState(null);
-    const [selectedExercise, setSelectedExercise] = useState(null);
+    const [selectedLesson, setSelectedLesson] = useState<LessonDTO | null>(null);
+    const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
 
-    const { data: chapters = [], isLoading, isError } = useGetChaptersByCourseQuery(Number(courseId), {
+    const {data: chapters = [], isLoading, isError} = useGetChaptersByCourseQuery(Number(courseId), {
+        skip: !courseId,
+    });
+
+    const {data: course, isLoading: isLoadingCourse} = useGetCourseByIdQuery(Number(courseId), {
         skip: !courseId,
     });
 
@@ -22,9 +28,24 @@ export const Topic = () => {
         setActiveTab('My courses');
     }, []);
 
-    const handleLessonClick = (lesson) => {
-          setSelectedLesson(lesson);
-        setSelectedExercise(lesson.exercises[0]);
+    useEffect(() => {
+        if (chapters.length > 0) {
+            const firstChapter = chapters[0];
+            if (firstChapter.lessons?.length > 0) {
+                const firstLesson = firstChapter.lessons[0];
+                setSelectedLesson(firstLesson);
+                if (firstLesson.exercises?.length > 0) {
+                    setSelectedExercise(firstLesson.exercises[0]);
+                } else {
+                    console.log("No exercises in first lesson");
+                }
+            }
+        }
+    }, [chapters]);
+
+    const handleLessonClick = (lesson: LessonDTO) => {
+        setSelectedLesson(lesson);
+        setSelectedExercise(lesson.exercises?.length > 0 ? lesson.exercises[0] : null);
     };
 
     if (isLoading) {
@@ -38,8 +59,17 @@ export const Topic = () => {
     return (
         <div className="h-screen flex">
             <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col p-4">
-                <div className="flex justify-between">
-                    <h1 className="text-3xl font-semibold text-text-color">CSE 100</h1>
+                <div className="flex justify-between align-middle mb-5">
+                    <div className="flex-1">
+                        {isLoadingCourse ? (
+                            <p>Loading course data...</p>
+                        ) : (
+                            <>
+                                <h1 className="text-lg font-semibold text-gray-500">{course?.courseCode}</h1>
+                                <h1 className="text-2xl font-semibold text-text-color">{course?.courseName}</h1>
+                            </>
+                        )}
+                    </div>
                     <button
                         onClick={() => navigate('/my-courses')}
                         className="mb-4 p-1 rounded-full transition-all duration-200 hover:bg-red-50 hover:shadow-sm"
@@ -51,12 +81,12 @@ export const Topic = () => {
                 <div
                     className="mt-3 overflow-y-auto flex-1 overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     {chapters.map((topic, i) => (
-                        <TopicCardDropdown key={topic.id} index={i+1} name={topic.title}>
+                        <TopicCardDropdown key={topic.id} index={i + 1} name={topic.title}>
                             {topic.lessons
                                 .map((lesson, i) => (
                                     <LessonCard
                                         key={lesson.id}
-                                        index={i+1}
+                                        index={i + 1}
                                         name={lesson.title}
                                         isSelected={selectedLesson?.id === lesson.id}
                                         onClick={() => handleLessonClick(lesson)}
@@ -88,15 +118,21 @@ export const Topic = () => {
                     </div>
                 )}
                 <div className="h-[90vh] bg-white rounded-xl">
-                    {selectedExercise ? (
-                        <ExerciseCard exercise={selectedExercise}/>
+                    {selectedLesson ? (
+                        selectedExercise ? (
+                            <ExerciseCard exercise={selectedExercise}/>
+                        ) : (
+                            <div className="h-full flex items-center justify-center">
+                                <p className="text-gray-500">
+                                    {selectedLesson.exercises?.length === 0
+                                        ? "No exercises available"
+                                        : "Please select an exercise"}
+                                </p>
+                            </div>
+                        )
                     ) : (
                         <div className="h-full flex items-center justify-center">
-                            {selectedLesson ? (
-                                <p className="text-gray-500">No exercises available for this lesson</p>
-                            ) : (
-                                <p className="text-gray-500">Select a lesson to begin</p>
-                            )}
+                            <p className="text-gray-500">Select a lesson to begin</p>
                         </div>
                     )}
                 </div>
@@ -104,9 +140,18 @@ export const Topic = () => {
         </div>
     );
 };
-
-function TopicCardDropdown({index, name, children}) {
+export default Topic;
+const TopicCardDropdown = ({
+                               index,
+                               name,
+                               children,
+                           }: {
+    index: number;
+    name: string;
+    children: React.ReactNode;
+}) => {
     const [isOpen, setIsOpen] = useState(false);
+
     return (
         <div className="bg-white rounded-xl border-2 border-text-color mb-2">
             <div
@@ -132,7 +177,17 @@ function TopicCardDropdown({index, name, children}) {
     );
 }
 
-function LessonCard({index, name, isSelected, onClick}) {
+const LessonCard = ({
+                        index,
+                        name,
+                        isSelected,
+                        onClick,
+                    }: {
+    index: number;
+    name: string;
+    isSelected: boolean;
+    onClick: () => void;
+}) => {
     return (
         <div
             className={`p-3 mb-2 ml-2 rounded-lg cursor-pointer ${isSelected ? 'bg-text-color' : 'hover:bg-light-background'}`}
@@ -143,7 +198,17 @@ function LessonCard({index, name, isSelected, onClick}) {
     );
 }
 
-function IndexExerciseButton({ index, isDone, isActive, onClick }) {
+const IndexExerciseButton = ({
+                                 index,
+                                 isDone,
+                                 isActive,
+                                 onClick,
+                             }: {
+    index: number;
+    isDone: boolean;
+    isActive: boolean;
+    onClick: () => void;
+}) => {
     return (
         <button
             className={`relative m-2 flex justify-center items-center rounded-xl w-[65px] h-[65px]
@@ -174,23 +239,35 @@ function IndexExerciseButton({ index, isDone, isActive, onClick }) {
     );
 }
 
-const ExerciseCard = ({ exercise }: { exercise: ExerciseDTO }) => {
+export const ExerciseCard = ({exercise}: { exercise?: ExerciseDTO }) => {
+    if (!exercise) {
+        return <div>No exercise data available</div>;
+    }
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // Fetch options with proper typing
-    const { data: options = [], isLoading, isError } =
+    const {data: options = [], isLoading, isError,} =
         useGetExerciseOptionsQuery(exercise.id.toString(), {
-            selectFromResult: ({ data }) => ({
-                data: data as OptionDTO[],
-                isLoading,
-                isError
-            })
+            selectFromResult: ({ data, ...rest }) => ({
+                data: data as OptionDTO[] | undefined,
+                ...rest,
+            }),
         });
 
-    const isCorrect = selectedOption === exercise.answer;
+    // Find the selected option to check if it's correct
+    const selectedOptionData = options.find(opt => opt.id === selectedOption);
+    const isCorrect = selectedOptionData?.correct || false;
 
-    const handleSubmit = () => setIsSubmitted(true);
+    const handleSubmit = () => {
+        if (isSubmitted) {
+            // Reset the exercise if already submitted
+            setSelectedOption(null);
+            setIsSubmitted(false);
+        } else if (selectedOption !== null) {
+            // Submit the answer if not submitted yet and an option is selected
+            setIsSubmitted(true);
+        }
+    };
 
     if (isLoading) return <div>Loading options...</div>;
     if (isError) return <div>Error loading options</div>;
@@ -215,22 +292,32 @@ const ExerciseCard = ({ exercise }: { exercise: ExerciseDTO }) => {
                             htmlFor={`ex-${exercise.id}-opt-${option.id}`}
                             className={`flex items-center space-x-3 cursor-pointer w-full py-2 px-3 rounded-lg transition-all duration-200
                 ${selectedOption === option.id ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                ${isSubmitted && selectedOption === option.id && (isCorrect ? 'bg-green-50' : 'bg-red-50')}`}
+                ${isSubmitted && option.correct ? 'bg-green-50' : ''}
+                ${isSubmitted && selectedOption === option.id && !isCorrect ? 'bg-red-50' : ''}`}
                         >
                             <OptionIndicator
                                 isSelected={selectedOption === option.id}
                                 isSubmitted={isSubmitted}
-                                isCorrect={isCorrect}
+                                isCorrect={option.correct}
+                                showCorrect={isSubmitted}
                             />
                             <span className={`text-gray-700
                 ${selectedOption === option.id ? 'font-medium text-text-color' : ''}
-                ${isSubmitted && selectedOption === option.id && (isCorrect ? 'text-green-700' : 'text-red-700')}`}>
+                ${isSubmitted && option.correct ? 'text-green-700' : ''}
+                ${isSubmitted && selectedOption === option.id && !isCorrect ? 'text-red-700' : ''}`}>
                 {option.content}
               </span>
                         </label>
                     </div>
                 ))}
             </div>
+
+            <MyButton
+                onClick={handleSubmit}
+                disabled={!isSubmitted && selectedOption === null}
+            >
+                {isSubmitted ? 'Try Again' : 'Submit'}
+            </MyButton>
         </div>
     );
 };
@@ -238,15 +325,18 @@ const ExerciseCard = ({ exercise }: { exercise: ExerciseDTO }) => {
 const OptionIndicator = ({
                              isSelected,
                              isSubmitted,
-                             isCorrect
+                             isCorrect,
+                             showCorrect
                          }: {
     isSelected: boolean;
     isSubmitted: boolean;
     isCorrect: boolean;
+    showCorrect: boolean;
 }) => (
     <div className={`relative flex-shrink-0 w-5 h-5 rounded-full border-2 
     ${isSelected ? 'border-text-color' : 'border-gray-300'}
-    ${isSubmitted && isSelected && (isCorrect ? 'border-green-500' : 'border-red-500')}
+    ${isSubmitted && isSelected && !isCorrect ? 'border-red-500' : ''}
+    ${showCorrect && isCorrect ? 'border-green-500' : ''}
     transition-all duration-200`}>
         {isSelected && (
             <div className={`absolute inset-1 rounded-full
@@ -255,7 +345,9 @@ const OptionIndicator = ({
         transition-all duration-200`}
             />
         )}
+        {!isSelected && showCorrect && isCorrect && (
+            <div className="absolute inset-1 rounded-full bg-green-500 transform scale-100 opacity-100" />
+        )}
     </div>
 );
 
-export default ExerciseCard;

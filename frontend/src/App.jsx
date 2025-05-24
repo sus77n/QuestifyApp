@@ -5,23 +5,19 @@ import Signup from "./component/Login/Signup";
 import HeroSection from "./component/HeroSection/HeroSection";
 import {NavigationProvider} from "./context/NavigationContext";
 import Topic from "./component/Course/Topic";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
     return (
         <BrowserRouter>
             <NavigationProvider>
+                <ToastContainer />
                 <Routes>
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/*" element={<HeroSection />} />
-                    <Route path="/topics/:courseId" element={
-                        <div className="flex h-screen bg-light-background">
-                            {/*<Navbar />*/}
-                            <main className="flex">
-                                <Topic />
-                            </main>
-                        </div>
-                    } />
+                    <Route path="/topics/:courseId" element={<Topic />} />
                 </Routes>
             </NavigationProvider>
         </BrowserRouter>

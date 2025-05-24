@@ -6,17 +6,17 @@ export const lessonService = createApi({
     reducerPath: 'lessonService',
     baseQuery: fetchBaseQuery({
         baseUrl: '/api',
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) headers.set('Authorization', `Bearer ${token}`);
-            return headers;
-        },
+        // prepareHeaders: (headers) => {
+        //     const token = localStorage.getItem('token');
+        //     if (token) headers.set('Authorization', `Bearer ${token}`);
+        //     return headers;
+        // },
     }),
     tagTypes: ['Lesson'],
     endpoints: (builder) => ({
         // Get lessons by chapter ID
         getLessonsByChapter: builder.query<LessonDTO[], number>({
-            query: (chapterId) => `/lesson/${chapterId}`,
+            query: (chapterId) => `/lesson/byChapterId/${chapterId}`,
             providesTags: ['Lesson'],
         }),
 
