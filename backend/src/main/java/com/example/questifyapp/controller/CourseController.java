@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/course")
@@ -15,7 +17,7 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<List<Course>> getAllCourses() {
         List<Course> courses = courseService.getAllCourses();
         return ResponseEntity.ok(courses);
@@ -37,6 +39,17 @@ public class CourseController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(courses);
+    }
+
+    @PostMapping("/totalExercise")
+    public ResponseEntity<Map<String, Integer>> getTotalExercises(@RequestBody Map<String, Integer> body) {
+        Integer courseId = body.get("id");
+
+        int total = courseService.countTotalExercisesByCourseId(courseId);
+
+        Map<String, Integer> response = new HashMap<>();
+        response.put("total", total);
+        return ResponseEntity.ok(response);
     }
 
 }

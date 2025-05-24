@@ -17,6 +17,10 @@ public class ChapterService {
         return chapterRepository.findAll();
     }
 
+    public Chapter getChapterById(long id) {
+        return chapterRepository.findById(id).orElse(null);
+    }
+
     public List<Chapter> getChaptersByCourseId(Long courseId) {
         return getAllChapters().stream().filter(chapter -> {
             return chapter.getCourse().getId() == courseId;

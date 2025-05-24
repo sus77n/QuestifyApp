@@ -16,6 +16,10 @@ public class LessonService {
         return lessonRepository.findAll();
     }
 
+    public Lesson getLessonById(long id) {
+        return getAllLessons().stream().filter(lesson -> lesson.getId() == id).findFirst().orElse(null);
+    }
+
     public List<Lesson> getLessonsByChapterId(Long chapterId) {
         return getAllLessons().stream().filter(lesson -> {
             return lesson.getChapter().getId() == chapterId;

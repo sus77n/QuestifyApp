@@ -17,7 +17,7 @@ public class LessonController {
     @Autowired
     private LessonService lessonService;
 
-    @GetMapping("/{chapterId}")
+    @GetMapping("/byChapterId{chapterId}")
     public ResponseEntity<List<Lesson>> getLessonByChapterId(@PathVariable("chapterId") Long chapterId) {
         List<Lesson> lessons = lessonService.getLessonsByChapterId(chapterId);
         return ResponseEntity.ok(lessons);

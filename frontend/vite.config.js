@@ -7,7 +7,7 @@ export default defineConfig({
         postcss: './postcss.config.js',
     },
     server: {
-        port: 3000, // Frontend runs on 3000
+        port: 3000, 
         proxy: {
             '/api': {
                 target: 'http://26.249.200.184:8080',
