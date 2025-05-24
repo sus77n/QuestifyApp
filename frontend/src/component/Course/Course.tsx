@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, { useState} from "react";
 import {ChevronRightIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {useNavigate} from "react-router-dom";
 import {useGetChaptersByCourseQuery, useGetCoursesQuery, useSearchCoursesQuery} from '../../API/service/course.service'
+import {CourseDTO} from "../../model/CourseDTO";
 
 
 const Course = () => {
-    const [selectedCourse, setSelectedCourse] = useState(null);
+    const [selectedCourse, setSelectedCourse] = useState<(CourseDTO & { index: number }) | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
 
@@ -19,25 +20,30 @@ const Course = () => {
         isLoading: isSearchLoading
     } = useSearchCoursesQuery(searchTerm, {
         skip: searchTerm.length < 1
-    });
+    }) as { data: CourseDTO[], isLoading: boolean };
+
 
     const {
         data: chapters = [],
         isLoading: isChaptersLoading,
-    } = useGetChaptersByCourseQuery(selectedCourse?.id, {
+    } = useGetChaptersByCourseQuery(selectedCourse?.id ?? 0, {
         skip: !selectedCourse
     });
 
+    const handleSelectCourse = () => {
+        console.log("Navigating to:", `/course/${selectedCourse?.id}`);
+        navigate(`/topics/${selectedCourse?.id}`);
+    }
+
     const displayCourses = searchTerm.length > 0 ? searchedCourses : allCourses;
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
     if (isAllCoursesLoading) {
         return <div>Loading courses...</div>;
     }
-
 
     return (
         <div className="h-screen flex ml-1">
@@ -67,16 +73,16 @@ const Course = () => {
                     {isSearchLoading && searchTerm.length > 0 ? (
                         <div className="text-center py-4">Searching...</div>
                     ) : (
-                        displayCourses.map((course, index) => (
+                        displayCourses.map((course: CourseDTO, index: number) => (
                             <div
                                 key={course.courseCode}
                                 onClick={() => setSelectedCourse({...course, index})}
                                 className="cursor-pointer"
                             >
                                 <CardCourseMini
-                                    index={index}
                                     courseCode={course.courseCode}
                                     courseName={course.courseName}
+                                    index={index}
                                     isSelected={selectedCourse?.courseCode === course.courseCode}
                                 />
                             </div>
@@ -111,7 +117,7 @@ const Course = () => {
                                         className="bg-text-color text-white rounded-xl px-16 py-4 text-2xl font-bold
                                          border-2 border-text-color transition-colors duration-300
                                          hover:bg-white hover:text-text-color"
-                                        onClick={() => navigate(`/topics/${selectedCourse.id}`)}
+                                        onClick={() => handleSelectCourse()}
                                     >
                                         Join
                                     </button>
@@ -152,8 +158,18 @@ const Course = () => {
 };
 export default Course;
 
-function CardCourseMini({courseName, courseCode, index, isSelected}) {
-    const avatarIndex = (index % 3) + 1; // 1, 2, 3, 1, 2, 3, ...
+const CardCourseMini = ({
+                            courseCode,
+                            courseName,
+                            index,
+                            isSelected,
+                        }: {
+    courseCode: string;
+    courseName: string;
+    index: number;
+    isSelected: boolean;
+}) => {
+    const avatarIndex = (index % 3) + 1;
     const avatarSrc = `/img/ava${avatarIndex}.png`;
 
     return (
@@ -162,7 +178,7 @@ function CardCourseMini({courseName, courseCode, index, isSelected}) {
                 ? "border-text-color shadow-lg bg-white/5"
                 : "border-transparent hover:border-text-color hover:shadow-lg hover:bg-white/5"
         }`}>
-            <img src={avatarSrc} className="w-20 h-20 rounded-xl"/>
+            <img src={avatarSrc} className="w-20 h-20 rounded-xl" alt="avatarCourse"/>
             <div className="ml-3 relative">
                 <p className="text-gray-400 font-semibold text-[15px]">{courseCode}</p>
                 <p className="text-text-color font-bold text-[18px] mt-2">{courseName}</p>
@@ -176,7 +192,15 @@ function CardCourseMini({courseName, courseCode, index, isSelected}) {
     )
 }
 
-function TopicCard({name, numberLesson, index}) {
+const TopicCard = ({
+                       name,
+                       numberLesson,
+                       index,
+                   }: {
+    name: string;
+    numberLesson: number;
+    index: number;
+}) => {
     return (
         <div className="flex gap-2 text-text-color">
             <h1 className="text-4xl bg-white pl-7 pr-7 pt-5 rounded-xl font-bold">{index}</h1>

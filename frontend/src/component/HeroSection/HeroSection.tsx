@@ -1,5 +1,5 @@
 import Navbar from '../Navbar/Navbar';
-import {NavigationProvider, useNavigation} from "../../context/NavigationContext";
+import {useNavigation} from "../../context/NavigationContext";
 import Home from "../Home/Home";
 import Profile from "../Profile/Profile";
 import Course from "../Course/Course";
@@ -11,7 +11,7 @@ const HeroSection = () => {
     return (
         <div className="flex h-screen bg-light-background">
             <Navbar/>
-            <main className="flex">
+            <main className="flex-1 overflow-auto">
                 {activeTab === 'Home' && <Home/>}
                 {activeTab === 'Courses' && <Course/>}
                 {activeTab === 'My profile' && <Profile/>}
