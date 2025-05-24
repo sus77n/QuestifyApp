@@ -1,6 +1,7 @@
 package com.example.questifyapp.controller;
 
 import com.example.questifyapp.entity.Chapter;
+import com.example.questifyapp.entity.Lesson;
 import com.example.questifyapp.repository.ChapterRepository;
 import com.example.questifyapp.service.ChapterService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +14,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/chapter")
+@RequestMapping("/api/chapters")
 public class ChapterController {
 
     @Autowired
     private ChapterService chapterService;
 
-    @GetMapping("/byCourseId/{courseId}")
-    public ResponseEntity<List<Chapter>> getAllChapters(@PathVariable Long courseId) {
-        List<Chapter> chapters = chapterService.getChaptersByCourseId(courseId);
-        return ResponseEntity.ok(chapters);
-    }
 
+    @GetMapping("/{chapterId}/lessons")
+    public ResponseEntity<List<Lesson>> getLessonByChapterId(@PathVariable("chapterId") Long chapterId) {
+        List<Lesson> lessons = chapterService.getLessonsByChapterId(chapterId);
+        return ResponseEntity.ok(lessons);
+    }
 }

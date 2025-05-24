@@ -13,16 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/exercise")
+@RequestMapping("/api/exercises")
 public class ExerciseController {
     @Autowired
     private ExerciseService exerciseService;
-
-    @GetMapping("/byLessonId/{lessonId}")
-    public ResponseEntity<List<Exercise>> getListExercise(@PathVariable Long lessonId) {
-        List<Exercise> exercises = exerciseService.getExercisesByLessonId(lessonId);
-        return ResponseEntity.ok(exercises);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Exercise> getExercise(@PathVariable Long id) {
@@ -32,9 +26,10 @@ public class ExerciseController {
         }
         return ResponseEntity.ok(exercise);
     }
-    @PostMapping("/getOptions")
-    public ResponseEntity<List<Option>> getOptions(@RequestBody Map<String, Integer> body) {
-        Integer exerciseId = body.get("id");
+
+    @PostMapping("/{exerciseId}/options")
+    public ResponseEntity<List<Option>> getOptions(@RequestBody Map<String, Long> body) {
+        Long exerciseId = body.get("id");
         List<Option> options = exerciseService.getOptionsByExerciseId(exerciseId);
         return ResponseEntity.ok(options);
     }

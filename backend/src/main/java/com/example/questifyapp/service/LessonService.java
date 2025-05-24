@@ -1,5 +1,6 @@
 package com.example.questifyapp.service;
 
+import com.example.questifyapp.entity.Exercise;
 import com.example.questifyapp.entity.Lesson;
 import com.example.questifyapp.repository.LessonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +18,11 @@ public class LessonService {
     }
 
     public Lesson getLessonById(long id) {
-        return getAllLessons().stream().filter(lesson -> lesson.getId() == id).findFirst().orElse(null);
+        return lessonRepository.findById(id).get();
     }
 
-    public List<Lesson> getLessonsByChapterId(Long chapterId) {
-        return getAllLessons().stream().filter(lesson -> {
-            return lesson.getChapter().getId() == chapterId;
-        }).toList();
+    public List<Exercise> getExercisesByLessonId(Long id) {
+        Lesson lesson = getLessonById(id);
+        return lesson.getExercises();
     }
 }

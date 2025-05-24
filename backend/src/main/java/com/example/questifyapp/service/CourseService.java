@@ -20,14 +20,14 @@ public class CourseService {
     }
 
     public Course getCourseById(int id) {
-        return courseRepository.findById(id).get();
+        return courseRepository.findById(id).orElse(null);
     }
 
     public Course getCourseByCourseCode(String courseCode) {
         List<Course> courses = getAllCourses();
 
         for (Course course : courses) {
-            if (course.getCourseCode().equalsIgnoreCase(courseCode)) {
+            if (course.getCode().equalsIgnoreCase(courseCode)) {
                 return course;
             }
         }
@@ -60,4 +60,8 @@ public class CourseService {
         return count;
     }
 
+    public List<Chapter> getChaptersByCourseId(Integer courseId) {
+        Course course = getCourseById(courseId);
+        return course.getChapters();
+    }
 }

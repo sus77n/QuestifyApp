@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
-    @Query("SELECT c FROM Course c WHERE LOWER(c.courseName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(c.courseCode) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    @Query("SELECT c FROM Course c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(c.code) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<Course> searchCoursesByNameOrCode(String searchTerm);
 }

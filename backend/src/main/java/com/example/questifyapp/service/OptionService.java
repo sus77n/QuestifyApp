@@ -17,11 +17,7 @@ public class OptionService {
     }
 
     public Option getOptionById(Long id) {
-        return getAllOptions().stream().filter(option -> option.getId() == id).findFirst().orElse(null);
-    }
-
-    public List<Option> getOptionsByExerciseId(Integer exerciseId) {
-        return optionRepository.findByExerciseId(exerciseId);
+        return optionRepository.findById(id).orElse(null);
     }
 
 }

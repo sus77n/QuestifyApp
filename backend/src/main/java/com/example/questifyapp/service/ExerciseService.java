@@ -14,24 +14,19 @@ import java.util.List;
 public class ExerciseService {
     @Autowired
     private ExerciseRepository exerciseRepository;
-    @Autowired
-    private OptionRepository optionRepository;
 
     public List<Exercise> getAllExercises() {
         return exerciseRepository.findAll();
-    }
-
-    public List<Exercise> getExercisesByLessonId(Long lessonId) {
-        return getAllExercises().stream().filter(exercise -> {
-            return exercise.getLesson().getId() == lessonId;
-        }).toList();
     }
 
     public Exercise getExerciseById(Long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElse(null);
     }
 
-    public List<Option> getOptionsByExerciseId(Integer exerciseId) {
-        return optionRepository.findByExerciseId(exerciseId);
+    public List<Option> getOptionsByExerciseId(Long exerciseId) {
+        Exercise exercise = getExerciseById(exerciseId);
+        return exercise.getOptions();
     }
+
+
 }

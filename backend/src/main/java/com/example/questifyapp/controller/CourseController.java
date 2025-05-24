@@ -1,5 +1,6 @@
 package com.example.questifyapp.controller;
 
+import com.example.questifyapp.entity.Chapter;
 import com.example.questifyapp.entity.Course;
 import com.example.questifyapp.repository.CourseRepository;
 import com.example.questifyapp.service.CourseService;
@@ -32,6 +33,12 @@ public class CourseController {
         return ResponseEntity.ok(course);
     }
 
+    @GetMapping("/{courseId}/chapters")
+    public ResponseEntity<List<Chapter>> getAllChapters(@PathVariable Integer courseId) {
+        List<Chapter> chapters = courseService.getChaptersByCourseId(courseId);
+        return ResponseEntity.ok(chapters);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<Course>> searchCourses(@RequestParam String searchTerm) {
         List<Course> courses = courseService.searchCourses(searchTerm);
@@ -41,7 +48,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @PostMapping("/totalExercise")
+    @PostMapping("/{courseId}/total/exercises")
     public ResponseEntity<Map<String, Integer>> getTotalExercises(@RequestBody Map<String, Integer> body) {
         Integer courseId = body.get("id");
 

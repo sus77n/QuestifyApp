@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/api/option")
+@RequestMapping("/api/options")
 public class OptionController {
     @Autowired
     private OptionService optionService;
-
 
     @GetMapping("")
     public List<Option> getAllOptions() {

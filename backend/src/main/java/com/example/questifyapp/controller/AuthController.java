@@ -3,6 +3,7 @@ package com.example.questifyapp.controller;
 import com.example.questifyapp.dto.AuthResponse;
 import com.example.questifyapp.dto.AuthenticationRequest;
 import com.example.questifyapp.entity.User;
+import com.example.questifyapp.entity.UserRole;
 import com.example.questifyapp.repository.UserRepository;
 import com.example.questifyapp.service.CustomUserDetailsService;
 import com.example.questifyapp.service.JwtUtils;
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -40,10 +41,9 @@ public class AuthController {
     private JwtUtils jwtUtil;
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return "User registered successfully";
+    public ResponseEntity<String> registerUser(@RequestBody String username, String password, String email) {
+        registerUser(username, password, email);
+        return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
