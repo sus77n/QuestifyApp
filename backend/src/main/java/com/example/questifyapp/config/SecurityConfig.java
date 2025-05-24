@@ -43,14 +43,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/register").permitAll() // Allow POST /register
-                        .anyRequest().permitAll() // Secure other endpoints
+
+                        .requestMatchers(HttpMethod.POST, "/api/register", "/api/login").permitAll()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT-based auth
-                );
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(jwtRequestFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
