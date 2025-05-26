@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/course")
+@RequestMapping("/api/courses")
 public class CourseController {
     @Autowired
     private CourseService courseService;
@@ -48,10 +48,8 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @PostMapping("/{courseId}/total/exercises")
-    public ResponseEntity<Map<String, Integer>> getTotalExercises(@RequestBody Map<String, Integer> body) {
-        Integer courseId = body.get("id");
-
+    @GetMapping("/{courseId}/total/exercises")
+    public ResponseEntity<Map<String, Integer>> getTotalExercises(@PathVariable Integer courseId) {
         int total = courseService.countTotalExercisesByCourseId(courseId);
 
         Map<String, Integer> response = new HashMap<>();

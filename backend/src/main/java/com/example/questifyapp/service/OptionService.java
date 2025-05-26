@@ -20,4 +20,20 @@ public class OptionService {
         return optionRepository.findById(id).orElse(null);
     }
 
+    public void addOption(Option option) {
+        optionRepository.save(option);
+    }
+
+    public void updateOption(Option option) {
+        optionRepository.save(option);
+    }
+
+    public void deleteOptionById(Long id) {
+        optionRepository.deleteById(id);
+    }
+
+    public Long totalOptions() {
+        return optionRepository.count();
+    }
+
 }

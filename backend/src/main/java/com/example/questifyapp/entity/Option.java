@@ -1,6 +1,7 @@
 package com.example.questifyapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +27,7 @@ public class Option {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     private Exercise exercise;
 
     public Option(String content, boolean isCorrect) {

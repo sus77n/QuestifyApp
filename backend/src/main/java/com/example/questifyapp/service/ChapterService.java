@@ -18,6 +18,22 @@ public class ChapterService {
         return chapterRepository.findAll();
     }
 
+    public void addChapter(Chapter chapter) {
+        chapterRepository.save(chapter);
+    }
+
+    public void deleteChapter(Chapter chapter) {
+        chapterRepository.delete(chapter);
+    }
+
+    public void updateChapter(Chapter chapter) {
+        chapterRepository.save(chapter);
+    }
+
+    public Long totalChapters() {
+        return chapterRepository.count();
+    }
+
     public Chapter getChapterById(long id) {
         return chapterRepository.findById(id).orElse(null);
     }

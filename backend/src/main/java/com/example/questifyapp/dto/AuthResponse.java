@@ -1,7 +1,6 @@
 package com.example.questifyapp.dto;
 
-import com.example.questifyapp.entity.User;
-import com.example.questifyapp.entity.UserRole;
+import com.example.questifyapp.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

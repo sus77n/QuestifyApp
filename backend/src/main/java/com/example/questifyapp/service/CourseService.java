@@ -40,7 +40,7 @@ public class CourseService {
     }
 
     public int countTotalExercisesByCourseId(Integer courseId) {
-        Course course = courseRepository.findById(courseId).orElse(null);
+        Course course = getCourseById(courseId);
         if (course == null || course.getChapters() == null) {
             return 0;
         }
@@ -63,5 +63,17 @@ public class CourseService {
     public List<Chapter> getChaptersByCourseId(Integer courseId) {
         Course course = getCourseById(courseId);
         return course.getChapters();
+    }
+
+    public void addCourse(Course course) {
+        courseRepository.save(course);
+    }
+
+    public void updateCourse(Course course) {
+        courseRepository.save(course);
+    }
+
+    public void deleteCourse(Integer id) {
+        courseRepository.deleteById(id);
     }
 }

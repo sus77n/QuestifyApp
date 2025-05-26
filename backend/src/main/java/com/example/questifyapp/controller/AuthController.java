@@ -2,9 +2,9 @@ package com.example.questifyapp.controller;
 
 import com.example.questifyapp.dto.AuthResponse;
 import com.example.questifyapp.dto.AuthenticationRequest;
-import com.example.questifyapp.entity.User;
-import com.example.questifyapp.entity.UserRole;
+import com.example.questifyapp.dto.SignupRequest;
 import com.example.questifyapp.repository.UserRepository;
+import com.example.questifyapp.service.AuthService;
 import com.example.questifyapp.service.CustomUserDetailsService;
 import com.example.questifyapp.service.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,17 +32,14 @@ public class AuthController {
     private CustomUserDetailsService userDetailsService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private AuthService authService;
 
     @Autowired
     private JwtUtils jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody String username, String password, String email) {
-        registerUser(username, password, email);
+    public ResponseEntity<String> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+        authService.registerUser(signupRequest);
         return ResponseEntity.ok("User registered successfully");
     }
 
@@ -54,13 +51,13 @@ public class AuthController {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            authenticationRequest.getUsername(),
+                            authenticationRequest.getUsernameOrEmail(),
                             authenticationRequest.getPassword()
                     )
             );
 
             final UserDetails userDetails = userDetailsService
-                    .loadUserByUsername(authenticationRequest.getUsername());
+                    .loadUserByUsername(authenticationRequest.getUsernameOrEmail());
 
             final String jwtToken = jwtUtil.generateToken(userDetails);
             final Instant expiration = Instant.now().plusMillis(jwtUtil.getExpiration());
@@ -74,7 +71,7 @@ public class AuthController {
                     .build();
 
             response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-            response.setHeader("X-Content-Type-Options", "nosniff");
+            response.setHeader("X-Content-Type-Options", "no-sniff");
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CACHE_CONTROL, "no-store")

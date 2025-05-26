@@ -1,6 +1,7 @@
 package com.example.questifyapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -41,7 +42,7 @@ public class Exercise {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore
     private Lesson lesson;
 
     @OneToMany(
