@@ -16,18 +16,17 @@ export const exerciseService = createApi({
     endpoints: (builder) => ({
         // Get exercise details
         getExerciseById: builder.query<ExerciseDTO, string>({
-            query: (id) => `/exercise/${id}`,
+            query: (id) => `/exercises/${id}`,
             providesTags: (result, error, id) => [{ type: 'Exercise', id }],
         }),
 
         getExerciseOptions: builder.query<OptionDTO[], string>({
             query: (exerciseId) => ({
-                url: '/exercise/getOptions',
+                url: `/exercises/${exerciseId}/options`,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: { id: exerciseId },
+                }
             }),
         }),
 

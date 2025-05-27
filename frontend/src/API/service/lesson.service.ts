@@ -16,13 +16,13 @@ export const lessonService = createApi({
     endpoints: (builder) => ({
         // Get lessons by chapter ID
         getLessonsByChapter: builder.query<LessonDTO[], number>({
-            query: (chapterId) => `/lesson/byChapterId/${chapterId}`,
+            query: (chapterId) => `/chapters/${chapterId}/lessons`,
             providesTags: ['Lesson'],
         }),
 
         // Get exercises by lesson ID
         getExercisesByLesson: builder.query<ExerciseDTO[], number>({
-            query: (lessonId) => `/exercise/${lessonId}`,
+            query: (lessonId) => `/lessons/${lessonId}/exercises`,
             providesTags: (result, error, lessonId) =>
                 [{ type: 'Lesson', id: lessonId }],
         }),

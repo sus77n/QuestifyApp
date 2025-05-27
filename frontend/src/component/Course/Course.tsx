@@ -75,15 +75,15 @@ const Course = () => {
                     ) : (
                         displayCourses.map((course: CourseDTO, index: number) => (
                             <div
-                                key={course.courseCode}
+                                key={course.code}
                                 onClick={() => setSelectedCourse({...course, index})}
                                 className="cursor-pointer"
                             >
                                 <CardCourseMini
-                                    courseCode={course.courseCode}
-                                    courseName={course.courseName}
+                                    courseCode={course.code}
+                                    courseName={course.name}
                                     index={index}
-                                    isSelected={selectedCourse?.courseCode === course.courseCode}
+                                    isSelected={selectedCourse?.code === course.code}
                                 />
                             </div>
                         ))
@@ -106,10 +106,10 @@ const Course = () => {
                                 />
                                 <div className="ml-8 w-1/2">
                                     <p className="text-gray-400 font-semibold text-2xl mb-2">
-                                        {selectedCourse.courseCode}
+                                        {selectedCourse.code}
                                     </p>
                                     <h2 className="text-[40px] font-bold text-text-color mb-2">
-                                        {selectedCourse.courseName}
+                                        {selectedCourse.name}
                                     </h2>
                                 </div>
                                 <div className="flex pt-14 absolute justify-end right-8">
@@ -133,12 +133,12 @@ const Course = () => {
                                 ) : (
                                     <div
                                         className="bg-background-color rounded-xl grid grid-cols-2 gap-x-8 gap-y-4 p-4">
-                                        {chapters.map((topic) => (
-                                            <div key={topic.id}>
-                                                <TopicCard
-                                                    index={topic.id}
-                                                    numberLesson={topic.lessons.length}
-                                                    name={topic.title}
+                                        {chapters.map((course) => (
+                                            <div key={course.id}>
+                                                <CourseCard
+                                                    index={course.id}
+                                                    numberLesson={course.lessons.length}
+                                                    name={course.title}
                                                 />
                                             </div>
                                         ))}
@@ -192,7 +192,7 @@ const CardCourseMini = ({
     )
 }
 
-const TopicCard = ({
+const CourseCard = ({
                        name,
                        numberLesson,
                        index,
