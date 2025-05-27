@@ -1,5 +1,7 @@
 package com.example.questifyapp.controller;
 
+import com.example.questifyapp.dto.ExerciseDTO;
+import com.example.questifyapp.dto.OptionDTO;
 import com.example.questifyapp.entity.Exercise;
 import com.example.questifyapp.entity.Option;
 import com.example.questifyapp.service.ExerciseService;
@@ -19,19 +21,22 @@ public class ExerciseController {
     private ExerciseService exerciseService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Exercise> getExercise(@PathVariable Long id) {
+    public ResponseEntity<ExerciseDTO> getExercise(@PathVariable Long id) {
         Exercise exercise = exerciseService.getExerciseById(id);
         if (exercise == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(exercise);
+        return ResponseEntity.ok(ExerciseDTO.fromEntity(exercise));
     }
 
-    @PostMapping("/{exerciseId}/options")
-    public ResponseEntity<List<Option>> getOptions(@RequestBody Map<String, Long> body) {
-        Long exerciseId = body.get("id");
-        List<Option> options = exerciseService.getOptionsByExerciseId(exerciseId);
-        return ResponseEntity.ok(options);
+    @GetMapping("/{exerciseId}/options")
+    public ResponseEntity<List<OptionDTO>> getOptionsForExercise(
+            @PathVariable Long exerciseId) {
+        List<Option> options = exerciseService.getExerciseById(exerciseId).getOptions();
+        List<OptionDTO> optionDTOs = options.stream()
+                .map(OptionDTO::fromEntity)
+                .toList();
+        return ResponseEntity.ok(optionDTOs);
     }
 
 }

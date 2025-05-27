@@ -8,13 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/submission")
+@RequestMapping("/api/submissions")
 public class SubmissionController {
     @Autowired
     private SubmissionService submissionService;
 
-    @GetMapping("/totalSubmissionInACourse/{courseId}")
-    public long countSubmissionsWithScoreBetween50And100(@PathVariable int courseId) {
-        return submissionService.countDistinctSubmissionsByCourseId(courseId);
-    }
 }

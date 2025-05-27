@@ -1,5 +1,6 @@
 package com.example.questifyapp.controller;
 
+import com.example.questifyapp.dto.ExerciseDTO;
 import com.example.questifyapp.entity.Exercise;
 import com.example.questifyapp.entity.Lesson;
 import com.example.questifyapp.service.LessonService;
@@ -19,8 +20,10 @@ public class LessonController {
     private LessonService lessonService;
 
     @GetMapping("/{lessonId}/exercises")
-    public ResponseEntity<List<Exercise>> getListExercise(@PathVariable Long lessonId) {
+    public ResponseEntity<List<ExerciseDTO>> getListExercise(@PathVariable Long lessonId) {
         List<Exercise> exercises = lessonService.getExercisesByLessonId(lessonId);
-        return ResponseEntity.ok(exercises);
+        return ResponseEntity.ok(exercises.stream()
+                .map(ExerciseDTO::fromEntity)
+                .toList());
     }
 }

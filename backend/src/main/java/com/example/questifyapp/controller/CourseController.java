@@ -1,5 +1,7 @@
 package com.example.questifyapp.controller;
 
+import com.example.questifyapp.dto.ChapterDTO;
+import com.example.questifyapp.dto.CourseDTO;
 import com.example.questifyapp.entity.Chapter;
 import com.example.questifyapp.entity.Course;
 import com.example.questifyapp.repository.CourseRepository;
@@ -19,33 +21,39 @@ public class CourseController {
     private CourseService courseService;
 
     @GetMapping("")
-    public ResponseEntity<List<Course>> getAllCourses() {
+    public ResponseEntity<List<CourseDTO>> getAllCourses() {
         List<Course> courses = courseService.getAllCourses();
-        return ResponseEntity.ok(courses);
+        return ResponseEntity.ok(courses.stream()
+                .map(CourseDTO::fromEntity)
+                .toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Course> getCourseById(@PathVariable Integer id) {
+    public ResponseEntity<CourseDTO> getCourseById(@PathVariable Integer id) {
         Course course = courseService.getCourseById(id);
         if (course == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(course);
+        return ResponseEntity.ok(CourseDTO.fromEntity(course));
     }
 
     @GetMapping("/{courseId}/chapters")
-    public ResponseEntity<List<Chapter>> getAllChapters(@PathVariable Integer courseId) {
+    public ResponseEntity<List<ChapterDTO>> getAllChapters(@PathVariable Integer courseId) {
         List<Chapter> chapters = courseService.getChaptersByCourseId(courseId);
-        return ResponseEntity.ok(chapters);
+        return ResponseEntity.ok(chapters.stream()
+                .map(ChapterDTO::fromEntity)
+                .toList());
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Course>> searchCourses(@RequestParam String searchTerm) {
+    public ResponseEntity<List<CourseDTO>> searchCourses(@RequestParam String searchTerm) {
         List<Course> courses = courseService.searchCourses(searchTerm);
         if (courses.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(courses);
+        return ResponseEntity.ok(courses.stream()
+                        .map(CourseDTO::fromEntity)
+                .toList());
     }
 
     @GetMapping("/{courseId}/total/exercises")

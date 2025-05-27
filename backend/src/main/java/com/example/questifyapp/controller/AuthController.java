@@ -1,9 +1,10 @@
 package com.example.questifyapp.controller;
 
 import com.example.questifyapp.dto.AuthResponse;
-import com.example.questifyapp.dto.AuthenticationRequest;
+import com.example.questifyapp.dto.AuthRequest;
 import com.example.questifyapp.dto.SignupRequest;
-import com.example.questifyapp.repository.UserRepository;
+import com.example.questifyapp.enums.UserRole;
+import com.example.questifyapp.security.UserDetailsImpl;
 import com.example.questifyapp.service.AuthService;
 import com.example.questifyapp.service.CustomUserDetailsService;
 import com.example.questifyapp.service.JwtUtils;
@@ -14,8 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,30 +45,40 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(
-            @Valid @RequestBody AuthenticationRequest authenticationRequest,
+            @Valid @RequestBody AuthRequest authRequest,
             HttpServletResponse response) {
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            authenticationRequest.getUsernameOrEmail(),
-                            authenticationRequest.getPassword()
+                            authRequest.getUsernameOrEmail(),
+                            authRequest.getPassword()
                     )
             );
 
-            final UserDetails userDetails = userDetailsService
-                    .loadUserByUsername(authenticationRequest.getUsernameOrEmail());
+            UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService
+                    .loadUserByUsername(authRequest.getUsernameOrEmail());
 
+
+            final Instant issuedAt = Instant.now();
+            final Instant expiration = issuedAt.plusMillis(jwtUtil.getExpiration());
             final String jwtToken = jwtUtil.generateToken(userDetails);
-            final Instant expiration = Instant.now().plusMillis(jwtUtil.getExpiration());
 
 
-            AuthResponse authResponse = AuthResponse.builder()
-                    .token(jwtToken)
-                    .issuedAt(Instant.now())
-                    .expiresAt(expiration)
-                    .username(userDetails.getUsername())
-                    .build();
+            AuthResponse authResponse = new AuthResponse(
+                    jwtToken,
+                    issuedAt,
+                    expiration,
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    UserRole.valueOf(
+                            userDetails.getAuthorities().stream()
+                                    .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                                    .findFirst()
+                                    .orElse("USER")
+                    )
+            );
 
             response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
             response.setHeader("X-Content-Type-Options", "no-sniff");
@@ -93,4 +103,24 @@ public class AuthController {
 
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<AuthResponse> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        AuthResponse userResponse = new AuthResponse(
+                null,
+                null,
+                null,
+                userDetails.getId(),
+                userDetails.getUsername(),
+                userDetails.getEmail(),
+                null
+        );
+
+        return ResponseEntity.ok(userResponse);
+    }
 }
