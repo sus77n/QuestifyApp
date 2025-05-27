@@ -2,31 +2,29 @@ package com.example.questifyapp.security;
 
 import com.example.questifyapp.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+@Getter
 public class UserDetailsImpl implements UserDetails {
-    private static final long serialVersionUID = 1L;
 
-    private Long id;
-    private String username;
-    private String email;
+    private final Long id;
+    private final String username;
+    private final String email;
 
     @JsonIgnore
-    private String password;
+    private final String password;
 
-    private Collection<? extends GrantedAuthority> authorities;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password,
-                           Collection<? extends GrantedAuthority> authorities) {
+    private UserDetailsImpl(Long id, String username, String email, String password,
+                            Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -34,57 +32,17 @@ public class UserDetailsImpl implements UserDetails {
         this.authorities = authorities;
     }
 
-    public static UserDetailsImpl build(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
-        }
+    public static UserDetailsImpl from(User user) {
+        if (user == null) throw new IllegalArgumentException("User cannot be null");
 
-        List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(
-                "ROLE_" + user.getRole());
-
+        var authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
         return new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities);
-    }
-
-    public UserDetailsImpl(UserDetails details) {
-        this.username = details.getUsername();
-        this.password = details.getPassword();
-        this.authorities = details.getAuthorities();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UserDetailsImpl user = (UserDetailsImpl) o;
-        return Objects.equals(id, user.id);
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
+                Collections.singleton(authority)
+        );
     }
 
     @Override
@@ -105,5 +63,17 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserDetailsImpl that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

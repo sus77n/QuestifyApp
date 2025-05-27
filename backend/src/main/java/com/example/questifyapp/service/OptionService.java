@@ -17,11 +17,23 @@ public class OptionService {
     }
 
     public Option getOptionById(Long id) {
-        return getAllOptions().stream().filter(option -> option.getId() == id).findFirst().orElse(null);
+        return optionRepository.findById(id).orElse(null);
     }
 
-    public List<Option> getOptionsByExerciseId(Integer exerciseId) {
-        return optionRepository.findByExerciseId(exerciseId);
+    public void addOption(Option option) {
+        optionRepository.save(option);
+    }
+
+    public void updateOption(Option option) {
+        optionRepository.save(option);
+    }
+
+    public void deleteOptionById(Long id) {
+        optionRepository.deleteById(id);
+    }
+
+    public Long totalOptions() {
+        return optionRepository.count();
     }
 
 }

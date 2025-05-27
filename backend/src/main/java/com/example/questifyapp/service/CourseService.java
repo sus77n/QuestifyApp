@@ -20,14 +20,14 @@ public class CourseService {
     }
 
     public Course getCourseById(int id) {
-        return courseRepository.findById(id).get();
+        return courseRepository.findById(id).orElse(null);
     }
 
     public Course getCourseByCourseCode(String courseCode) {
         List<Course> courses = getAllCourses();
 
         for (Course course : courses) {
-            if (course.getCourseCode().equalsIgnoreCase(courseCode)) {
+            if (course.getCode().equalsIgnoreCase(courseCode)) {
                 return course;
             }
         }
@@ -40,7 +40,7 @@ public class CourseService {
     }
 
     public int countTotalExercisesByCourseId(Integer courseId) {
-        Course course = courseRepository.findById(courseId).orElse(null);
+        Course course = getCourseById(courseId);
         if (course == null || course.getChapters() == null) {
             return 0;
         }
@@ -60,4 +60,20 @@ public class CourseService {
         return count;
     }
 
+    public List<Chapter> getChaptersByCourseId(Integer courseId) {
+        Course course = getCourseById(courseId);
+        return course.getChapters();
+    }
+
+    public void addCourse(Course course) {
+        courseRepository.save(course);
+    }
+
+    public void updateCourse(Course course) {
+        courseRepository.save(course);
+    }
+
+    public void deleteCourse(Integer id) {
+        courseRepository.deleteById(id);
+    }
 }

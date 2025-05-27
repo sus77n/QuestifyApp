@@ -1,6 +1,6 @@
 package com.example.questifyapp.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.example.questifyapp.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -56,7 +56,4 @@ public class User {
         this.role = role;
     }
 
-    public enum UserRole {
-        STUDENT, ADMIN, MODERATOR, TEACHER
-    }
 }

@@ -8,25 +8,24 @@ export const courseService = createApi({
     tagTypes: ['Course'],
     endpoints: (builder) => ({
         getCourses: builder.query<CourseDTO[], void>({
-            query: () => '/course',
+            query: () => '/courses',
             providesTags: ['Course'],
         }),
         getCourseById: builder.query<CourseDTO, number, undefined>({
-            query: (id) => `/course/${id}`,
+            query: (id) => `/courses/${id}`,
             providesTags: (result, error, id) => [{ type: 'Course', id }],
         }),
         searchCourses: builder.query<CourseDTO[], string>({
-            query: (term) => ({ url: '/course/search', params: { searchTerm: term } }),
+            query: (term) => ({ url: '/courses/search', params: { searchTerm: term } }),
         }),
         getChaptersByCourse: builder.query<ChapterDTO[], number>({
-            query: (courseId) => `/chapter/byCourseId/${courseId}`,
+            query: (courseId) => `/api/courses/${courseId}/chapters`,
             providesTags: (result, error, courseId) => [{ type: 'Course', id: courseId }],
         }),
         getTotalExercises: builder.query<number, number>({
             query: (courseId) => ({
-                url: '/course/totalExercise',
-                method: 'POST',
-                body: { id: courseId },
+                url: `/api/courses/${courseId}/total/exercises`,
+                method: 'GET',
             }),
             transformResponse: (response: { total?: number }) => response?.total ?? 0,
         }),

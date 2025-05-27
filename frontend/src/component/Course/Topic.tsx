@@ -65,8 +65,8 @@ const Topic = () => {
                             <p>Loading course data...</p>
                         ) : (
                             <>
-                                <h1 className="text-lg font-semibold text-gray-500">{course?.courseCode}</h1>
-                                <h1 className="text-2xl font-semibold text-text-color">{course?.courseName}</h1>
+                                <h1 className="text-lg font-semibold text-gray-500">{course?.code}</h1>
+                                <h1 className="text-2xl font-semibold text-text-color">{course?.name}</h1>
                             </>
                         )}
                     </div>

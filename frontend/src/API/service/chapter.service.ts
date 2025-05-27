@@ -15,7 +15,7 @@ export const chapterService = createApi({
     endpoints: (builder) => ({
         // Get chapters by course ID
         getChaptersByCourse: builder.query<ChapterDTO[], number>({
-            query: (courseId) => `/chapter/byCourseId/${courseId}`,
+            query: (courseId) => `/courses/${courseId}/chapters`,
             providesTags: ['Chapter'],
         }),
     }),

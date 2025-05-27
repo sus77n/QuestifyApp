@@ -1,7 +1,11 @@
 package com.example.questifyapp.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class SignupRequest {
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 3, max = 20, message = "Username must be 3-20 characters")
@@ -19,30 +23,6 @@ public class SignupRequest {
             message = "Password requires: 1 digit, 1 lowercase, 1 uppercase, 1 special character"
     )
     private String password;
-
-    public String getUsername() {
-        return this.username;
-    }
-
-    public String getEmail() {
-        return this.email;
-    }
-
-    public String getPassword() {
-        return this.password;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     @Override
     public String toString() {

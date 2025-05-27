@@ -19,11 +19,11 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String courseCode;
+    @Column(name = "course_code", nullable = false, unique = true, length = 20)
+    private String code;
 
-    @Column(nullable = false, length = 100)
-    private String courseName;
+    @Column(name = "course_name",nullable = false, length = 100)
+    private String name;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -38,18 +38,8 @@ public class Course {
     private List<Chapter> chapters = new ArrayList<>();
 
     public Course(String courseCode, String courseName, String description) {
-        this.courseCode = courseCode;
-        this.courseName = courseName;
+        this.code = courseCode;
+        this.name = courseName;
         this.description = description;
-    }
-
-    public void addChapter(Chapter chapter) {
-        chapters.add(chapter);
-        chapter.setCourse(this);
-    }
-
-    public void removeChapter(Chapter chapter) {
-        chapters.remove(chapter);
-        chapter.setCourse(null);
     }
 }
