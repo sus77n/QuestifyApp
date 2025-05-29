@@ -6,9 +6,14 @@ public record CourseDTO(
         Long id,
         String name,
         String description,
-        String code
+        String code,
+        int totalChapter
 ) {
     public static CourseDTO fromEntity(Course course) {
-        return new CourseDTO(course.getId(), course.getName(), course.getDescription(), course.getCode());
+        return new CourseDTO(course.getId(),
+                course.getName(),
+                course.getDescription(),
+                course.getCode(),
+                course.getChapters().size());
     }
 }

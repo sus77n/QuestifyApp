@@ -10,10 +10,7 @@ const Course = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
 
-    const {
-        data: allCourses = [],
-        isLoading: isAllCoursesLoading
-    } = useGetCoursesQuery();
+    const {data: allCourses = [], isLoading: isAllCoursesLoading} = useGetCoursesQuery();
 
     const {
         data: searchedCourses = [],
@@ -31,7 +28,6 @@ const Course = () => {
     });
 
     const handleSelectCourse = () => {
-        console.log("Navigating to:", `/course/${selectedCourse?.id}`);
         navigate(`/topics/${selectedCourse?.id}`);
     }
 
@@ -133,12 +129,12 @@ const Course = () => {
                                 ) : (
                                     <div
                                         className="bg-background-color rounded-xl grid grid-cols-2 gap-x-8 gap-y-4 p-4">
-                                        {chapters.map((course) => (
-                                            <div key={course.id}>
-                                                <CourseCard
-                                                    index={course.id}
-                                                    numberLesson={course.lessons.length}
-                                                    name={course.title}
+                                        {chapters.map((topic) => (
+                                            <div key={topic.id}>
+                                                <TopicCard
+                                                    index={topic.id}
+                                                    numberLesson={topic.lessons.length}
+                                                    name={topic.title}
                                                 />
                                             </div>
                                         ))}
@@ -192,7 +188,7 @@ const CardCourseMini = ({
     )
 }
 
-const CourseCard = ({
+const TopicCard = ({
                        name,
                        numberLesson,
                        index,

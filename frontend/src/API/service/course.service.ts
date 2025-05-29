@@ -19,12 +19,12 @@ export const courseService = createApi({
             query: (term) => ({ url: '/courses/search', params: { searchTerm: term } }),
         }),
         getChaptersByCourse: builder.query<ChapterDTO[], number>({
-            query: (courseId) => `/api/courses/${courseId}/chapters`,
+            query: (courseId) => `/courses/${courseId}/chapters`,
             providesTags: (result, error, courseId) => [{ type: 'Course', id: courseId }],
         }),
         getTotalExercises: builder.query<number, number>({
             query: (courseId) => ({
-                url: `/api/courses/${courseId}/total/exercises`,
+                url: `/courses/${courseId}/total/exercises`,
                 method: 'GET',
             }),
             transformResponse: (response: { total?: number }) => response?.total ?? 0,
