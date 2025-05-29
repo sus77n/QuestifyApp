@@ -26,13 +26,13 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
-    "include": [
-      "vite.config.ts",
-      "**/*.ts",
-      "**/*.tsx"
-    ],
-    "exclude": [
-      "node_modules"
-    ]
-  }
+  },
+  "include": [
+    "vite.config.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

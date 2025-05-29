@@ -10,7 +10,7 @@ const Login = () => {
     const [login, { isLoading }] = useLoginMutation();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        email: '',
+        usernameOrEmail: '',
         password: ''
     });
 
@@ -64,8 +64,8 @@ const Login = () => {
                                     placeholder="Email"
                                     w="w-[270px] md:w-[500px]"
                                     type="text"
-                                    name="email"
-                                    value={formData.email}
+                                    name="usernameOrEmail"
+                                    value={formData.usernameOrEmail}
                                     onChange={handleInputChange}
                                 />
                                 <LockClosedIcon
@@ -80,7 +80,7 @@ const Login = () => {
                                 />
                             </div>
                             <button
-                                className="md:ml-[50px] ml-[10px] flex-shrink-0 mt-[20px] ml-[50px]"
+                                className="md:ml-[50px] flex-shrink-0 mt-[20px] ml-[50px]"
                                 style={{animation: 'bounceHorizontal 1s infinite'}}
                                 type="submit"
                                 disabled={isLoading}
