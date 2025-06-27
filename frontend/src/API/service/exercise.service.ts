@@ -23,7 +23,7 @@ export const exerciseService = createApi({
         getExerciseOptions: builder.query<OptionDTO[], string>({
             query: (exerciseId) => ({
                 url: `/exercises/${exerciseId}/options`,
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 }

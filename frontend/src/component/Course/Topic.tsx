@@ -8,6 +8,7 @@ import {ExerciseDTO} from "../../model/ExerciseDTO";
 import {useGetChaptersByCourseQuery, useGetCourseByIdQuery} from "../../API/service/course.service";
 import {LessonDTO} from "../../model/LessonDTO";
 import {MyButton} from "../material/material";
+import {useSubmitAnswerMutation} from "../../API/service/submission.service";
 
 const Topic = () => {
     const {setActiveTab} = useNavigation();
@@ -239,89 +240,156 @@ const IndexExerciseButton = ({
     );
 }
 
-export const ExerciseCard = ({exercise}: { exercise?: ExerciseDTO }) => {
+export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
     if (!exercise) {
         return <div>No exercise data available</div>;
     }
-    const [selectedOption, setSelectedOption] = useState<number | null>(null);
-    const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const {data: options = [], isLoading, isError,} =
-        useGetExerciseOptionsQuery(exercise.id.toString(), {
+    const [selectedOption, setSelectedOption] = useState<number | null>(null);
+    const [constructedResponse, setConstructedResponse] = useState('');
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isCorrect, setIsCorrect] = useState(false);
+    const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
+
+    const { data: options = [], isLoading, isError } = useGetExerciseOptionsQuery(
+        exercise.id.toString(),
+        {
             selectFromResult: ({ data, ...rest }) => ({
                 data: data as OptionDTO[] | undefined,
                 ...rest,
             }),
-        });
+            skip: exercise.type !== 'Multiple-choice'
+        }
+    );
 
-    // Find the selected option to check if it's correct
-    const selectedOptionData = options.find(opt => opt.id === selectedOption);
-    const isCorrect = selectedOptionData?.correct || false;
+    const [submitAnswer] = useSubmitAnswerMutation();
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (isSubmitted) {
-            // Reset the exercise if already submitted
+            // Reset the exercise
             setSelectedOption(null);
+            setConstructedResponse('');
             setIsSubmitted(false);
-        } else if (selectedOption !== null) {
-            // Submit the answer if not submitted yet and an option is selected
+            setIsCorrect(false);
+            return;
+        }
+
+        setIsLoadingSubmit(true);
+        try {
+            let response;
+
+            if (exercise.type === 'Multiple-choice') {
+                if (selectedOption === null) return;
+                response = await submitAnswer({
+                    exerciseId: exercise.id,
+                    optionId: selectedOption,
+                    userId: 20, // Replace with actual user ID from your auth system
+                    text: '' // Empty for multiple-choice
+                }).unwrap();
+            } else {
+                if (!constructedResponse.trim()) return;
+                response = await submitAnswer({
+                    exerciseId: exercise.id,
+                    optionId: 0, // 0 or null for constructed response
+                    userId: 1, // Replace with actual user ID from your auth system
+                    text: constructedResponse
+                }).unwrap();
+            }
+
+            // Assuming the response is the submission ID (as per your service)
+            // You might need to adjust this based on your actual API response
+            // If your backend returns more details, you can update the state accordingly
+            setIsCorrect(true); // You might need to get this from the actual response
             setIsSubmitted(true);
+        } catch (error) {
+            console.error('Error submitting answer:', error);
+            setIsCorrect(false);
+            setIsSubmitted(true);
+            // Handle error (show toast, etc.)
+        } finally {
+            setIsLoadingSubmit(false);
         }
     };
 
-    if (isLoading) return <div>Loading options...</div>;
-    if (isError) return <div>Error loading options</div>;
+    const isSubmitDisabled = exercise.type === 'Multiple-choice'
+        ? selectedOption === null
+        : !constructedResponse.trim();
+
+    if (isLoading && exercise.type === 'Multiple-choice') {
+        return <div>Loading options...</div>;
+    }
+    if (isError && exercise.type === 'Multiple-choice') {
+        return <div>Error loading options</div>;
+    }
 
     return (
         <div className="p-6 border border-gray-200 rounded-lg shadow-sm">
             <h3 className="font-medium text-xl mb-4 text-gray-800">{exercise.question}</h3>
 
-            <div className="space-y-3 mb-6">
-                {options.map((option) => (
-                    <div key={option.id} className="flex items-center">
-                        <input
-                            type="radio"
-                            id={`ex-${exercise.id}-opt-${option.id}`}
-                            name={`exercise-${exercise.id}`}
-                            checked={selectedOption === option.id}
-                            onChange={() => !isSubmitted && setSelectedOption(option.id)}
-                            className="hidden"
-                            disabled={isSubmitted}
-                        />
-                        <label
-                            htmlFor={`ex-${exercise.id}-opt-${option.id}`}
-                            className={`flex items-center space-x-3 cursor-pointer w-full py-2 px-3 rounded-lg transition-all duration-200
-                ${selectedOption === option.id ? 'bg-blue-50' : 'hover:bg-gray-50'}
-                ${isSubmitted && option.correct ? 'bg-green-50' : ''}
-                ${isSubmitted && selectedOption === option.id && !isCorrect ? 'bg-red-50' : ''}`}
-                        >
-                            <OptionIndicator
-                                isSelected={selectedOption === option.id}
-                                isSubmitted={isSubmitted}
-                                isCorrect={option.correct}
-                                showCorrect={isSubmitted}
+            {exercise.type === 'Multiple-choice' ? (
+                <div className="space-y-3 mb-6">
+                    {options.map((option) => (
+                        <div key={option.id} className="flex items-center">
+                            <input
+                                type="radio"
+                                id={`ex-${exercise.id}-opt-${option.id}`}
+                                name={`exercise-${exercise.id}`}
+                                checked={selectedOption === option.id}
+                                onChange={() => !isSubmitted && setSelectedOption(option.id)}
+                                className="hidden"
+                                disabled={isSubmitted}
                             />
-                            <span className={`text-gray-700
-                ${selectedOption === option.id ? 'font-medium text-text-color' : ''}
-                ${isSubmitted && option.correct ? 'text-green-700' : ''}
-                ${isSubmitted && selectedOption === option.id && !isCorrect ? 'text-red-700' : ''}`}>
-                {option.content}
-              </span>
-                        </label>
-                    </div>
-                ))}
-            </div>
+                            <label
+                                htmlFor={`ex-${exercise.id}-opt-${option.id}`}
+                                className={`flex items-center space-x-3 cursor-pointer w-full py-2 px-3 rounded-lg transition-all duration-200
+                                    ${selectedOption === option.id ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                                    ${isSubmitted && selectedOption === option.id && isCorrect ? 'bg-green-50' : ''}
+                                    ${isSubmitted && selectedOption === option.id && !isCorrect ? 'bg-red-50' : ''}`}
+                            >
+                                <OptionIndicator
+                                    isSelected={selectedOption === option.id}
+                                    isSubmitted={isSubmitted}
+                                    isCorrect={isSubmitted && selectedOption === option.id && isCorrect}
+                                    showCorrect={isSubmitted && selectedOption === option.id}
+                                />
+                                <span className={`text-gray-700
+                                    ${selectedOption === option.id ? 'font-medium text-text-color' : ''}
+                                    ${isSubmitted && selectedOption === option.id && isCorrect ? 'text-green-700' : ''}
+                                    ${isSubmitted && selectedOption === option.id && !isCorrect ? 'text-red-700' : ''}`}>
+                                    {option.content}
+                                </span>
+                            </label>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="mb-6">
+                    <textarea
+                        value={constructedResponse}
+                        onChange={(e) => !isSubmitted && setConstructedResponse(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lgr"
+                        rows={4}
+                        placeholder="Type your answer here..."
+                        disabled={isSubmitted}
+                    />
+                    {isSubmitted && (
+                        <div className={`mt-3 p-3 rounded-lg ${isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            {isCorrect ? 'Correct!' : 'Incorrect. Try again!'}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <MyButton
                 onClick={handleSubmit}
-                disabled={!isSubmitted && selectedOption === null}
+                disabled={(!isSubmitted && isSubmitDisabled) || isLoadingSubmit}
+                isLoading={isLoadingSubmit}
             >
                 {isSubmitted ? 'Try Again' : 'Submit'}
             </MyButton>
         </div>
     );
 };
-
 const OptionIndicator = ({
                              isSelected,
                              isSubmitted,
@@ -345,9 +413,5 @@ const OptionIndicator = ({
         transition-all duration-200`}
             />
         )}
-        {!isSelected && showCorrect && isCorrect && (
-            <div className="absolute inset-1 rounded-full bg-green-500 transform scale-100 opacity-100" />
-        )}
     </div>
 );
-
