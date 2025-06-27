@@ -58,7 +58,7 @@ const Topic = () => {
     }
 
     return (
-        <div className="h-screen flex">
+        <div className="h-screen flex bg-light-background">
             <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col p-4">
                 <div className="flex justify-between align-middle mb-5">
                     <div className="flex-1">
