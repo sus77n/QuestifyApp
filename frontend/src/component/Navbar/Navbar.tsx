@@ -15,9 +15,9 @@ const Navbar = () => {
             <nav className="m-[8px] mr-0 bg-text-color h-[98vh] w-[80px] rounded-xl flex flex-col items-center pt-2">
                 <NavIcon
                     icon={UserIcon}
-                    id=" My profile "
+                    id="My profile"
                     activeTab={activeTab}
-                    onClick={() => setActiveTab(' My profile ')}
+                    onClick={() => setActiveTab('My profile')}
                 />
                 <div className="absolute top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
                     {navIcons.map(({ icon, id }) => (
