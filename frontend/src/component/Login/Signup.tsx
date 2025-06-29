@@ -25,20 +25,21 @@ const Signup = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+
         try {
-            console.log('Before signup');
             const response = await signup(formData).unwrap();
-            console.log('After signup', response);
             toast.success('Account created successfully!', {
-                autoClose: 2000,  // Show for 2 seconds
+                autoClose: 2000,
                 onClose: () => navigate('/login')
             });
-        } catch (error) {
-            const errorMessage = error.data?.message || 'Signup failed. Please try again.';
+        } catch (error: any) {
+            const errorMessage = error?.data?.message || 'Signup failed. Please try again.';
             toast.error(errorMessage, { autoClose: 3000 });
             console.error('Signup error:', error);
         }
     };
+
 
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden">
@@ -95,13 +96,14 @@ const Signup = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
-                                    minLength={6}
+                                    minLength={8}
+                                    maxLength={40}
                                 />
                             </div>
 
                             <button
                                 className="md:ml-[50px] ml-[65%] flex-shrink-0 mt-[20px]"
-                                style={{ animation: 'bounceHorizontal 1s infinite' }}
+                                style={{animation: 'bounceHorizontal 1s infinite'}}
                                 type="submit"
                                 disabled={isLoading}
                             >

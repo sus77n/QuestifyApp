@@ -3,5 +3,5 @@ export interface UserDTO {
     username: string;
     password: string;
     email: string;
-    role: 'Student' | 'Teacher' | 'Administrator';
+    role: 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
