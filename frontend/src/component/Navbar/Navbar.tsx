@@ -1,14 +1,36 @@
 import React from "react";
 import { useNavigation } from '../../context/NavigationContext';
-import { ArrowRightStartOnRectangleIcon, UserIcon, ListBulletIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
+import {
+    ArrowRightStartOnRectangleIcon,
+    UserIcon,
+    ArchiveBoxIcon,
+    UserGroupIcon,
+    BookOpenIcon,
+    PresentationChartBarIcon
+} from "@heroicons/react/24/outline";
 
 const Navbar = () => {
     const { activeTab, setActiveTab } = useNavigation();
-    const navIcons = [
-        { icon: ArchiveBoxIcon, id: 'My courses' },
-        // { icon: HomeIcon, id: 'Home' },
-        { icon: ListBulletIcon, id: 'Courses' },
-    ];
+    const role = localStorage.getItem("role");
+
+    // role-based navigation icons
+    const navItemsByRole: Record<string, { icon: any; id: string }[]> = {
+        STUDENT: [
+            { icon: ArchiveBoxIcon, id: "My courses" },
+            { icon: BookOpenIcon, id: "Courses" },
+        ],
+        TEACHER: [
+            { icon: BookOpenIcon, id: "My courses" },
+            { icon: BookOpenIcon, id: "Courses" },
+        ],
+        ADMIN: [
+            { icon: PresentationChartBarIcon, id: "Dashboard" },
+            { icon: UserGroupIcon, id: "Users" },
+            { icon: BookOpenIcon, id: "Manage courses" },
+        ],
+    };
+
+    const navIcons = navItemsByRole[role || ""] || [];
 
     return (
         <div className="h-screen mr-0">
@@ -17,8 +39,9 @@ const Navbar = () => {
                     icon={UserIcon}
                     id="My profile"
                     activeTab={activeTab}
-                    onClick={() => setActiveTab('My profile')}
+                    onClick={() => setActiveTab("My profile")}
                 />
+
                 <div className="absolute top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
                     {navIcons.map(({ icon, id }) => (
                         <NavIcon
@@ -30,11 +53,15 @@ const Navbar = () => {
                         />
                     ))}
                 </div>
+
                 <div className="absolute bottom-5">
                     <NavIcon
                         icon={ArrowRightStartOnRectangleIcon}
-                        id="Logout"  // Added id for the logout button
-                        onClick={() => console.log('Logout')}
+                        id="Logout"
+                        onClick={() => {
+                            localStorage.clear();
+                            window.location.href = "/login";
+                        }}
                     />
                 </div>
             </nav>
@@ -59,18 +86,17 @@ const NavIcon = ({
         <button
             onClick={onClick}
             className={`flex flex-col items-center p-2 w-[67px] rounded-xl transition-all ${
-                isActive ? 'bg-white' : 'hover:bg-white/10'
+                isActive ? "bg-white" : "hover:bg-white/10"
             }`}
         >
-            <Icon className={`w-8 h-8 ${isActive ? 'text-text-color' : 'text-white'}`} />
+            <Icon className={`w-8 h-8 ${isActive ? "text-text-color" : "text-white"}`} />
             {id && (
-                <span className={`text-[10px] mt-1 ${isActive ? 'text-text-color' : 'text-white'}`}>
+                <span className={`text-[10px] mt-1 ${isActive ? "text-text-color" : "text-white"}`}>
           {id}
         </span>
             )}
         </button>
     );
 };
-
 
 export default Navbar;

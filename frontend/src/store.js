@@ -19,6 +19,6 @@ export const store = configureStore({
             courseService.middleware,
             lessonService.middleware,
             exerciseService.middleware,
-            chapterService.middleware
+            chapterService.middleware,
         ),
 });

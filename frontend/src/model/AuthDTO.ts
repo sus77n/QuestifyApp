@@ -8,11 +8,12 @@ export interface LoginResponseDTO {
     issuedAt: string;
     expiresAt: string;
     username: string;
+    role: 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
 
 export interface SignupDTO {
     email: string;
     password: string;
     username?: string;
-    role?: 'Student' | 'Teacher' | 'Administrator';
+    role?: 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
