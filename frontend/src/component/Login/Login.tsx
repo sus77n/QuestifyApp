@@ -28,12 +28,17 @@ const Login = () => {
         try {
             const response = await login(formData).unwrap();
             toast.success('Login successful!');
-            // You might want to store the token/user data here
-            // localStorage.setItem('token', response.token);
-            navigate('/'); // Redirect to home or dashboard
-        } catch (error) {
-            toast.error('Login failed. Please check your credentials.');
+
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('role', response.role);
+            localStorage.setItem('username', response.username);
+
+            navigate('/');
+        } catch (error: any) {
             console.error('Login error:', error);
+
+            const backendMessage = error?.data?.message || 'Login failed. Please check your credentials.';
+            toast.error(backendMessage);
         }
     };
 

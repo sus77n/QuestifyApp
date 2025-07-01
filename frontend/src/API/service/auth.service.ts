@@ -4,7 +4,16 @@ import {LoginDTO, LoginResponseDTO, SignupDTO} from "../../model/AuthDTO";
 
 export const authService = createApi({
     reducerPath: 'authService',
-    baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+    baseQuery: fetchBaseQuery({
+        baseUrl: '/api',
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.set('Authorization', `Bearer ${token}`);
+            }
+            return headers;
+        },
+    }),
     endpoints: (builder) => ({
         login: builder.mutation<LoginResponseDTO, LoginDTO>({
             query: (credentials) => ({

@@ -7,5 +7,5 @@ export interface UserDTO {
     token: string | null;
     tokenExpiration: string | null;
     createdAt: string | null;
-    role: 'Student' | 'Teacher' | 'Administrator';
+    role: 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
