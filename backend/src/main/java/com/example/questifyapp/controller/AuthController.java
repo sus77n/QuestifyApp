@@ -39,8 +39,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
-        authService.registerUser(signupRequest);
-        return ResponseEntity.ok("User registered successfully");
+        return authService.registerUser(signupRequest);
     }
 
     @PostMapping("/login")
@@ -66,12 +65,14 @@ public class AuthController {
 
 
             AuthResponse authResponse = new AuthResponse(
-                    jwtToken,
-                    issuedAt,
-                    expiration,
                     userDetails.getId(),
                     userDetails.getUsername(),
                     userDetails.getEmail(),
+                    userDetails.getFirstName(),
+                    userDetails.getLastName(),
+                    jwtToken,
+                    expiration,
+                    userDetails.getCreatedAt(),
                     UserRole.valueOf(
                             userDetails.getAuthorities().stream()
                                     .map(auth -> auth.getAuthority().replace("ROLE_", ""))
@@ -108,17 +109,23 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         AuthResponse userResponse = new AuthResponse(
-                null,
-                null,
-                null,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                null
+                userDetails.getFirstName(),
+                userDetails.getLastName(),
+                null, // Token is not needed here
+                null, // Token expiration is not needed here
+                userDetails.getCreatedAt(),
+                UserRole.valueOf(
+                        userDetails.getAuthorities().stream()
+                                .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                                .findFirst()
+                                .orElse("USER")
+                )
         );
 
         return ResponseEntity.ok(userResponse);

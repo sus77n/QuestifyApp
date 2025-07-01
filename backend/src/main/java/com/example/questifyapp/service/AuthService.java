@@ -4,6 +4,7 @@ import com.example.questifyapp.dto.SignupRequest;
 import com.example.questifyapp.entity.User;
 import com.example.questifyapp.enums.UserRole;
 import com.example.questifyapp.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(SignupRequest signupRequest) {
+    public ResponseEntity<String> registerUser(SignupRequest signupRequest) {
 
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             throw new RuntimeException("Username already exists");
@@ -27,12 +28,26 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
-        User user = new User();
-        user.setUsername(signupRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        user.setEmail(signupRequest.getEmail());
-        user.setRole(UserRole.STUDENT);
+        try {
+            User user = new User();
+            user.setUsername(signupRequest.getUsername());
+            user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+            user.setEmail(signupRequest.getEmail());
+            user.setRole(UserRole.STUDENT);
 
-        return userRepository.save(user);
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return ResponseEntity.ok("Registered user successfully");
+    }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 }

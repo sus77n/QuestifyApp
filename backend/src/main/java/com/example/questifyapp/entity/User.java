@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users",
         uniqueConstraints = {
@@ -31,6 +33,11 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     private String username;
 
+    @Column(length = 50)
+    private String firstName;
+
+    @Column(length = 50)
+    private String lastName;
 
     @NotBlank
     @Size(min = 8)
@@ -48,6 +55,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt = java.time.LocalDateTime.now();
 
     public User(String username, String password, String email, UserRole role) {
         this.username = username;

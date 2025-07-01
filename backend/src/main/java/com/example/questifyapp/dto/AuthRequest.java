@@ -15,10 +15,6 @@ public class AuthRequest {
 
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 8, max = 40, message = "Password must be 8-40 characters")
-    @Pattern(
-            regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$",
-            message = "Password requires: 1 digit, 1 lowercase, 1 uppercase, 1 special character"
-    )
     private String password;
 
 }
