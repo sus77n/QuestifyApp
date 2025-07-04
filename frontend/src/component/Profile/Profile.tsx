@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { ChevronRightIcon, PencilIcon } from "@heroicons/react/24/solid";
 import { useGetCurrentUserQuery } from "../../API/service/user.service";
 

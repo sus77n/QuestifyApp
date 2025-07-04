@@ -2,9 +2,8 @@ import React from "react";
 import { ChevronRightIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 
-// Mock data - replace with your actual API calls
 const ongoingCourses = [
-    { id: 1, code: "CSE106", name: "Data Structures", progress: 20, total: 30 },
+    { id: 1, code: "CSE106", name: "Data Structures & Algorithms", progress: 20, total: 30 },
     { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
 ];
 
@@ -16,10 +15,6 @@ const completedCourses = [
 const MyCourse = () => {
     const navigate = useNavigate();
 
-    const calculatePercentage = (progress: number, total: number) => {
-        return Math.round((progress / total) * 100);
-    };
-
     return (
         <div className="h-screen flex ml-1">
             <div className="m-[8px] bg-white h-[98vh] w-full rounded-xl flex flex-col p-8 overflow-y-auto">
@@ -27,7 +22,7 @@ const MyCourse = () => {
 
                 {/* Ongoing Courses Section */}
                 <section className="mb-12">
-                    <h2 className="text-2xl font-bold text-text-color mb-6">Unfinished Subjects</h2>
+                    <h2 className="text-2xl font-bold text-text-color mb-6">Unfinished Courses</h2>
 
                     <div className="space-y-4">
                         {ongoingCourses.map((course) => (
@@ -38,18 +33,8 @@ const MyCourse = () => {
                             >
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <h3 className="text-xl font-bold text-text-color">{course.code} - {course.name}</h3>
-                                        <div className="flex items-center mt-2">
-                                            <div className="w-64 bg-gray-200 rounded-full h-4 mr-4">
-                                                <div
-                                                    className="bg-primary h-4 rounded-full"
-                                                    style={{ width: `${calculatePercentage(course.progress, course.total)}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="text-gray-600">
-                        {course.progress}/{course.total} ({calculatePercentage(course.progress, course.total)}%)
-                      </span>
-                                        </div>
+                                        <h3 className="text-xl font-bold text-text-color mb-5">{course.code} - {course.name}</h3>
+                                        <ProgressLine progress={course.progress} total={course.total} />
                                     </div>
                                     <ChevronRightIcon className="h-6 w-6 text-gray-400" />
                                 </div>
@@ -66,7 +51,7 @@ const MyCourse = () => {
 
                 {/* Completed Courses Section */}
                 <section>
-                    <h2 className="text-2xl font-bold text-text-color mb-6">Finished Subjects</h2>
+                    <h2 className="text-2xl font-bold text-text-color mb-6">Finished Courses</h2>
 
                     <div className="space-y-3">
                         {completedCourses.map((course) => (
@@ -96,23 +81,20 @@ const MyCourse = () => {
 };
 
 const ProgressLine = ({ progress, total }: { progress: number; total: number }) => {
-    // Calculate percentage (with safeguard against division by zero)
     const percentage = total > 0 ? Math.round((progress / total) * 100) : 0;
 
     return (
         <div className="flex items-center gap-4">
-            {/* Progress bar visualization */}
-            <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="w-[270px] bg-gray-200 rounded-full h-4">
                 <div
-                    className="bg-blue-500 h-4 rounded-full transition-all duration-300"
+                    className="bg-text-color h-4 rounded-full transition-all duration-300"
                     style={{ width: `${percentage}%` }}
                 />
             </div>
 
-            {/* Numeric display */}
             <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-        {progress}/{total} ({percentage}%)
-      </span>
+                {progress}/{total} ({percentage}%)
+            </span>
         </div>
     );
 };

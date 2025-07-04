@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from "styled-components";
 
 export const PrimaryInput = ({
                           placeholder = 'Enter text...',
@@ -51,3 +52,17 @@ export const MyButton: React.FC<{ onClick?: React.MouseEventHandler<HTMLButtonEl
         {children}
     </button>
 );
+
+export const Spinner = styled.div`
+  border: 4px solid #eef1f9;
+  border-radius: 50%;
+  border-top: 4px solid #02457A;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;

@@ -1,15 +1,21 @@
 import { Navigate } from 'react-router-dom';
-import { ReactNode } from 'react';
+import { isAuthenticated, getUserRole } from '../utils/AuthUtils';
 
-interface ProtectedRouteProps {
-    children: ReactNode;
-}
-
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
+const ProtectedRoute = ({
+                            allowedRoles,
+                            children,
+                        }: {
+    allowedRoles: string[];
+    children: React.ReactNode;
+}) => {
+    if (!isAuthenticated()) {
         return <Navigate to="/login" replace />;
+    }
+
+    const role = getUserRole();
+
+    if (!role || !allowedRoles.includes(role)) {
+        return <Navigate to="/403" replace />;
     }
 
     return <>{children}</>;

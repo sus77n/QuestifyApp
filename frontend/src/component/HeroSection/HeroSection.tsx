@@ -7,6 +7,7 @@ import MyCourse from "../Student/MyCourse";
 import Dashboard from "../Admin/Dashboard";
 import ManageUser from "../Admin/ManageUser";
 import ManageCourse from "../Admin/ManageCourse";
+import {Error404Page} from "../material/errorPage";
 
 const HeroSection = () => {
     const { activeTab } = useNavigation();
@@ -28,7 +29,7 @@ const HeroSection = () => {
                 case 'Manage courses':
                     return <ManageCourse/>
             default:
-                return <div className="p-10 text-xl">Page not found.</div>;
+                return <Error404Page />;
         }
     };
 

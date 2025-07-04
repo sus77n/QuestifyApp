@@ -26,6 +26,7 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "types": ["styled-components"]
   },
   "include": [
     "vite.config.ts",

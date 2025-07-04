@@ -3,6 +3,7 @@ import {ChevronRightIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {useNavigate} from "react-router-dom";
 import {useGetChaptersByCourseQuery, useGetCoursesQuery, useSearchCoursesQuery} from '../../API/service/course.service'
 import {CourseDTO} from "../../model/CourseDTO";
+import {Spinner} from "../material/material";
 
 
 const Course = () => {
@@ -18,7 +19,6 @@ const Course = () => {
     } = useSearchCoursesQuery(searchTerm, {
         skip: searchTerm.length < 1
     }) as { data: CourseDTO[], isLoading: boolean };
-
 
     const {
         data: chapters = [],
@@ -37,14 +37,12 @@ const Course = () => {
         setSearchTerm(e.target.value);
     };
 
-    if (isAllCoursesLoading) {
-        return <div>Loading courses...</div>;
-    }
+    const isLoadingCourses = isAllCoursesLoading || isSearchLoading;
 
     return (
         <div className="h-screen flex ml-1">
             {/* Left sidebar */}
-            <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col p-4">
+            <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col p-4 position-relative">
                 <h1 className="text-3xl font-semibold text-text-color">Courses</h1>
                 <div className="relative">
                     <input
@@ -66,8 +64,10 @@ const Course = () => {
                 </div>
                 <div
                     className="mt-3 overflow-y-auto flex-1 overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    {isSearchLoading && searchTerm.length > 0 ? (
-                        <div className="text-center py-4">Searching...</div>
+                    {isLoadingCourses ? (
+                        <div className="flex items-center justify-center h-full">
+                            <Spinner />
+                        </div>
                     ) : (
                         displayCourses.map((course: CourseDTO, index: number) => (
                             <div
