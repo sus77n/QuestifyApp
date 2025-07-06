@@ -4,20 +4,28 @@ import com.example.questifyapp.dto.CourseDTO;
 import com.example.questifyapp.entity.Course;
 
 public class CourseMapper {
-      public static CourseDTO tDto  (Course course) {
-        return new CourseDTO(course.getId(),
+
+    public static CourseDTO tDto(Course course) {
+        return new CourseDTO(
+                course.getId(),
                 course.getName(),
                 course.getDescription(),
                 course.getCode(),
-                course.getChapters().size());
+                course.getLearningUnits().stream()
+                        .map(LearningUnitMapper::toDto)
+                        .toList()
+        );
     }
-    
+
     public static Course toEntity(CourseDTO courseDTO) {
-        Course course = new Course();
-        course.setId(courseDTO.id());
-        course.setName(courseDTO.name());
-        course.setDescription(courseDTO.description());
-        course.setCode(courseDTO.code());
-        return course;
+        return new Course(
+                courseDTO.id(),
+                courseDTO.code(),
+                courseDTO.name(),
+                courseDTO.description(),
+                courseDTO.learningUnits().stream()
+                        .map(LearningUnitMapper::toEntity)
+                        .toList()
+        );
     }
 }

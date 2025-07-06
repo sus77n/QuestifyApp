@@ -14,24 +14,22 @@ public class LearningUnitMapper {
                 learningUnit.getStatus(),
                 learningUnit.getLevel(),
                 learningUnit.getCreatedAt(),
-                learningUnit.getChildUnits().stream().map(LearningUnitMapper::toDto).toList()
+                learningUnit.getChildUnits().stream().map(LearningUnitMapper::toDto).toList(),
+                CourseMapper.tDto(learningUnit.getCourse())
         );
     }
 
     public static LearningUnit toEntity(LearningUnitDto learningUnitDto) {
-        LearningUnit learningUnit = new LearningUnit();
-        learningUnit.setId(learningUnitDto.id());
-        learningUnit.setTitle(learningUnitDto.title());
-        learningUnit.setDescription(learningUnitDto.description());
-        learningUnit.setType(learningUnitDto.type());
-        learningUnit.setStatus(learningUnitDto.status());
-        learningUnit.setLevel(learningUnitDto.level());
-        learningUnit.setCreatedAt(learningUnitDto.createdAt());
-        learningUnit.setChildUnits(
-                learningUnitDto.childUnits().stream()
-                        .map(LearningUnitMapper::toEntity)
-                        .toList()
+        return new LearningUnit(
+                learningUnitDto.id(),
+                learningUnitDto.title(),
+                learningUnitDto.description(),
+                learningUnitDto.type(),
+                learningUnitDto.status(),
+                learningUnitDto.level(),
+                learningUnitDto.createdAt(),
+                learningUnitDto.childUnits().stream().map(LearningUnitMapper::toEntity).toList(),
+                CourseMapper.toEntity(learningUnitDto.course())
         );
-        return learningUnit;
     }
 }

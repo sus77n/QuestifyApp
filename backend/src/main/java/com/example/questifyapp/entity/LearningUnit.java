@@ -49,4 +49,7 @@ public class LearningUnit {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Course course;
 }

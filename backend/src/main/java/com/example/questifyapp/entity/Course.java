@@ -2,6 +2,7 @@ package com.example.questifyapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +37,6 @@ public class Course {
             fetch = FetchType.LAZY
     )
     @JsonManagedReference
-    private List<Chapter> chapters = new ArrayList<>();
+    private List<LearningUnit> learningUnits = new ArrayList<>();
 
-    public Course(String courseCode, String courseName, String description) {
-        this.code = courseCode;
-        this.name = courseName;
-        this.description = description;
-    }
 }

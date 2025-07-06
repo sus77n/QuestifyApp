@@ -7,19 +7,24 @@ public class SubmissionMapper {
     public static SubmissionDTO toDto(Submission submission) {
         return new SubmissionDTO(
                 submission.getId(),
+                ExerciseMapper.toDto(submission.getExercise()),
                 submission.getStudent().getId(),
-                submission.getSubmission(),
-                submission.getSelectedOption().getId()
+                submission.getText(),
+                OptionMapper.toDto(submission.getSelectedOption()),
+                submission.getSubmittedAt(),
+                submission.getScore()
         );
     }
 
     public static Submission toEntity(SubmissionDTO submissionDTO) {
         return new Submission(
-                submissionDTO.exerciseId(),
-                submissionDTO.userId(),
-                submissionDTO.submission(),
-                submissionDTO.optionId(), 
-                
+                submissionDTO.id(),
+                ExerciseMapper.toEntity(submissionDTO.exercise()),
+                null,
+                submissionDTO.text(),
+                submissionDTO.score(),
+                submissionDTO.submittedAt(),
+                OptionMapper.toEntity(submissionDTO.selectedOption())
         );
     }
 }

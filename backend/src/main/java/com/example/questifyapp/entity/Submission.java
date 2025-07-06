@@ -1,6 +1,7 @@
 package com.example.questifyapp.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,9 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "submissions")
-@Getter
-@Setter
-@NoArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Submission {
 
     @Id
@@ -29,7 +28,7 @@ public class Submission {
 
     @Lob
     @Column(nullable = false)
-    private String submission;
+    private String text;
 
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal score;
@@ -38,10 +37,6 @@ public class Submission {
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;
 
-    public Submission(Exercise exercise, User user, String submission, BigDecimal score) {
-        this.exercise = exercise;
-        this.student = user;
-        this.submission = submission;
-        this.score = score;
-    }
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Option selectedOption;
 }

@@ -1,13 +1,12 @@
 package com.example.questifyapp.dto;
 
-import com.example.questifyapp.entity.Course;
+
+import java.util.List;
 
 public record CourseDTO(
         Long id,
         String name,
         String description,
         String code,
-        int totalChapter
-) {
-  
-}
+        List<LearningUnitDto> learningUnits
+) {}
