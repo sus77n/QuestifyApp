@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLoginMutation } from '../../API/service/auth.service';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import {PrimaryInput} from "../material/material";
+import {PrimaryInput, Spinner} from "../material/material";
 import {ChevronRightIcon, UserIcon, LockClosedIcon} from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
@@ -27,16 +27,33 @@ const Login = () => {
 
         try {
             const response = await login(formData).unwrap();
-            toast.success('Login successful!');
 
             localStorage.setItem('token', response.token);
             localStorage.setItem('role', response.role);
             localStorage.setItem('username', response.username);
 
-            navigate('/');
+            // Redirect based on role
+            switch (response.role) {
+                case 'ADMIN':
+                    navigate('/admin/dashboard');
+                    break;
+                case 'TEACHER':
+                    navigate('/courses');
+                    break;
+                case 'STUDENT':
+                    navigate('/courses');
+                    break;
+                default:
+                    navigate('/courses');
+                    break;
+            }
+
+            toast.success('Login successful!');
         } catch (error: any) {
             console.error('Login error:', error);
-
+            if (error.status === 500){
+                navigate("/500")
+            }
             const backendMessage = error?.data?.message || 'Login failed. Please check your credentials.';
             toast.error(backendMessage);
         }
@@ -84,15 +101,21 @@ const Login = () => {
                                     onChange={handleInputChange}
                                 />
                             </div>
-                            <button
-                                className="md:ml-[50px] flex-shrink-0 mt-[20px] ml-[50px]"
-                                style={{animation: 'bounceHorizontal 1s infinite'}}
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                <ChevronRightIcon
-                                    className="w-12 h-12 md:w-20 md:h-20 text-background-color bg-text-color rounded-full p-2"/>
-                            </button>
+                            {isLoading ? (
+                                <div className="md:ml-[50px] flex-shrink-0 mt-[50px] ml-[50px]">
+                                    <Spinner/>
+                                </div>
+                                ):(
+                                <button
+                                    className="md:ml-[50px] flex-shrink-0 mt-[20px] ml-[50px]"
+                                    style={{animation: 'bounceHorizontal 1s infinite'}}
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    <ChevronRightIcon className="w-12 h-12 md:w-20 md:h-20 text-background-color bg-text-color rounded-full p-2"/>
+                                </button>
+                            )}
+
                         </div>
                         <div className="mt-[34px] md:mt-8 flex flex-col md:flex-row md:justify-between md:w-[490px] gap-4">
                             <a
