@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigation } from '../../context/NavigationContext';
 import {
     ArrowRightStartOnRectangleIcon,
     UserIcon,
@@ -8,25 +7,27 @@ import {
     BookOpenIcon,
     PresentationChartBarIcon
 } from "@heroicons/react/24/outline";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-    const { activeTab, setActiveTab } = useNavigation();
+    const location = useLocation();
+    const navigate = useNavigate();
     const role = localStorage.getItem("role");
 
-    // role-based navigation icons
-    const navItemsByRole: Record<string, { icon: any; id: string }[]> = {
+    // Define route paths for tabs
+    const navItemsByRole: Record<string, { icon: any; label: string; path: string }[]> = {
         STUDENT: [
-            { icon: ArchiveBoxIcon, id: "My courses" },
-            { icon: BookOpenIcon, id: "Courses" },
+            { icon: ArchiveBoxIcon, label: "My courses", path: "/my-courses" },
+            { icon: BookOpenIcon, label: "Courses", path: "/courses" },
         ],
         TEACHER: [
-            { icon: BookOpenIcon, id: "My courses" },
-            { icon: BookOpenIcon, id: "Courses" },
+            { icon: BookOpenIcon, label: "My courses", path: "/my-courses" },
+            { icon: BookOpenIcon, label: "Courses", path: "/courses" },
         ],
         ADMIN: [
-            { icon: PresentationChartBarIcon, id: "Dashboard" },
-            { icon: UserGroupIcon, id: "Users" },
-            { icon: BookOpenIcon, id: "Manage courses" },
+            { icon: PresentationChartBarIcon, label: "Dashboard", path: "/admin/dashboard" },
+            { icon: UserGroupIcon, label: "Users", path: "/admin/users" },
+            { icon: BookOpenIcon, label: "Manage courses", path: "/admin/courses" },
         ],
     };
 
@@ -35,29 +36,34 @@ const Navbar = () => {
     return (
         <div className="h-screen mr-0">
             <nav className="m-[8px] mr-0 bg-text-color h-[98vh] w-[80px] rounded-xl flex flex-col items-center pt-2">
+                {/* Top - Profile Icon */}
                 <NavIcon
                     icon={UserIcon}
-                    id="My profile"
-                    activeTab={activeTab}
-                    onClick={() => setActiveTab("My profile")}
+                    label="My profile"
+                    path="/profile"
+                    currentPath={location.pathname}
+                    onClick={() => navigate("/profile")}
                 />
 
+                {/* Center - Role-based Icons */}
                 <div className="absolute top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
-                    {navIcons.map(({ icon, id }) => (
+                    {navIcons.map(({ icon, label, path }) => (
                         <NavIcon
-                            key={id}
+                            key={path}
                             icon={icon}
-                            id={id}
-                            activeTab={activeTab}
-                            onClick={() => setActiveTab(id)}
+                            label={label}
+                            path={path}
+                            currentPath={location.pathname}
+                            onClick={() => navigate(path)}
                         />
                     ))}
                 </div>
 
+                {/* Bottom - Logout */}
                 <div className="absolute bottom-5">
                     <NavIcon
                         icon={ArrowRightStartOnRectangleIcon}
-                        id="Logout"
+                        label="Logout"
                         onClick={() => {
                             localStorage.clear();
                             window.location.href = "/login";
@@ -71,16 +77,18 @@ const Navbar = () => {
 
 const NavIcon = ({
                      icon: Icon,
-                     id,
-                     activeTab,
+                     label,
+                     path,
+                     currentPath,
                      onClick,
                  }: {
     icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-    id?: string;
-    activeTab?: string;
+    label?: string;
+    path?: string;
+    currentPath?: string;
     onClick: () => void;
 }) => {
-    const isActive = id && activeTab === id;
+    const isActive = path && currentPath?.startsWith(path);
 
     return (
         <button
@@ -90,10 +98,10 @@ const NavIcon = ({
             }`}
         >
             <Icon className={`w-8 h-8 ${isActive ? "text-text-color" : "text-white"}`} />
-            {id && (
+            {label && (
                 <span className={`text-[10px] mt-1 ${isActive ? "text-text-color" : "text-white"}`}>
-          {id}
-        </span>
+                    {label}
+                </span>
             )}
         </button>
     );

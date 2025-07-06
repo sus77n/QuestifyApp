@@ -1,11 +1,50 @@
-export default  function ErrorPage(){
+import {useNavigate} from "react-router-dom";
+
+export const Error403Page = () => {
+    const  navigate = useNavigate()
+
     return (
-        <div className="flex items-center justify-center h-screen bg-gray-100">
-            <div className="text-center">
-                <h1 className="text-6xl font-bold text-red-600">404</h1>
-                <p className="mt-4 text-xl text-gray-700">Page Not Found</p>
-                <p className="mt-2 text-gray-500">The page you are looking for does not exist.</p>
-            </div>
+        <div className="flex items-center justify-center h-screen bg-gray-100 relative">
+            <img src="/img/403Page.png" className="block w-full h-full object-cover object-center"
+                 alt="403 Page"/>
+            <button className="bg-text-color text-white rounded-xl px-5 py-2 text-sm font-bold
+                                       border-2 border-text-color transition-colors duration-300
+                                        hover:bg-white hover:text-text-color mt-96 ml-[-505px] absolute"
+                    onClick={() => navigate('/profile')}>Back to Profile
+            </button>
+        </div>
+    );
+};
+
+export const Error404Page = () => {
+    const  navigate = useNavigate()
+
+    return (
+        <div className="flex items-center justify-center h-screen bg-gray-100 relative">
+            <img src="/img/404Page.png" className="block w-full h-full object-cover object-center"
+                 alt="404 Page"/>
+            <button className="bg-text-color text-white rounded-xl px-5 py-2 text-sm font-bold
+                                       border-2 border-text-color transition-colors duration-300
+                                        hover:bg-white hover:text-text-color mt-[460px] ml-[-505px] absolute"
+                    onClick={() => navigate('/profile')}>Back to Profile
+            </button>
         </div>
     );
 }
+
+export const Error500Page = () => {
+    const  navigate = useNavigate()
+
+    return (
+        <div className="flex items-center justify-center h-screen bg-gray-100 relative">
+            <img src="/img/500Page.png" className="block w-full h-full object-cover object-center"
+                 alt="500 Page"/>
+            <button className="bg-text-color text-white rounded-xl px-5 py-2 text-sm font-bold
+                                       border-2 border-text-color transition-colors duration-300
+                                        hover:bg-white hover:text-text-color mt-96 ml-[-560px] absolute"
+                    onClick={() => navigate('/profile')}>Back to Profile
+            </button>
+        </div>
+    );
+}
+

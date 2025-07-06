@@ -2,6 +2,7 @@ package com.example.questifyapp.controller;
 
 import com.example.questifyapp.dto.OptionDTO;
 import com.example.questifyapp.entity.Option;
+import com.example.questifyapp.mapper.OptionMapper;
 import com.example.questifyapp.repository.OptionRepository;
 import com.example.questifyapp.service.OptionService;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,7 +26,7 @@ public class OptionController {
     @GetMapping("")
     public List<OptionDTO> getAllOptions() {
         return optionService.getAllOptions().stream()
-                .map(OptionDTO::fromEntity)
+                .map(OptionMapper::toDto)
                 .toList();
     }
 
@@ -33,7 +34,7 @@ public class OptionController {
     public ResponseEntity<OptionDTO> getOption(@PathVariable Long id) {
         Option option = optionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Option not found"));
-        return ResponseEntity.ok(OptionDTO.fromEntity(option));
+        return ResponseEntity.ok(OptionMapper.toDto(option));
     }
 
 }

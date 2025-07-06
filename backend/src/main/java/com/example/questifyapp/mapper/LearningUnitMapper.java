@@ -27,8 +27,9 @@ public class LearningUnitMapper {
                 learningUnitDto.type(),
                 learningUnitDto.status(),
                 learningUnitDto.level(),
-                learningUnitDto.createdAt(),
+                null,
                 learningUnitDto.childUnits().stream().map(LearningUnitMapper::toEntity).toList(),
+                learningUnitDto.createdAt(),
                 CourseMapper.toEntity(learningUnitDto.course())
         );
     }
