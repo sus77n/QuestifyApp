@@ -39,18 +39,13 @@ public class CourseService {
 
     public int countTotalExercisesByCourseId(Integer courseId) {
         Course course = getCourseById(courseId);
-        if (course == null || course.getChapters() == null) {
+        if (course == null || course.getLearningUnits() == null) {
             return 0;
         }
 
         int count = 0;
 
         return count;
-    }
-
-    public List<Chapter> getChaptersByCourseId(Integer courseId) {
-        Course course = getCourseById(courseId);
-        return course.getChapters();
     }
 
     public void addCourse(Course course) {

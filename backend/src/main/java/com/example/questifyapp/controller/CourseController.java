@@ -2,6 +2,7 @@ package com.example.questifyapp.controller;
 
 import com.example.questifyapp.dto.CourseDTO;
 import com.example.questifyapp.entity.Course;
+import com.example.questifyapp.mapper.CourseMapper;
 import com.example.questifyapp.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class CourseController {
     public ResponseEntity<List<CourseDTO>> getAllCourses() {
         List<Course> courses = courseService.getAllCourses();
         return ResponseEntity.ok(courses.stream()
-                .map(CourseDTO::fromEntity)
+                .map(CourseMapper::tDto)
                 .toList());
     }
 
@@ -31,35 +32,7 @@ public class CourseController {
         if (course == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(CourseDTO.fromEntity(course));
-    }
-
-    @GetMapping("/{courseId}/chapters")
-    public ResponseEntity<List<ChapterDTO>> getAllChapters(@PathVariable Integer courseId) {
-        List<Chapter> chapters = courseService.getChaptersByCourseId(courseId);
-        return ResponseEntity.ok(chapters.stream()
-                .map(ChapterDTO::fromEntity)
-                .toList());
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<CourseDTO>> searchCourses(@RequestParam String searchTerm) {
-        List<Course> courses = courseService.searchCourses(searchTerm);
-        if (courses.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(courses.stream()
-                        .map(CourseDTO::fromEntity)
-                .toList());
-    }
-
-    @GetMapping("/{courseId}/total/exercises")
-    public ResponseEntity<Map<String, Integer>> getTotalExercises(@PathVariable Integer courseId) {
-        int total = courseService.countTotalExercisesByCourseId(courseId);
-
-        Map<String, Integer> response = new HashMap<>();
-        response.put("total", total);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CourseMapper.tDto(course));
     }
 
 }
