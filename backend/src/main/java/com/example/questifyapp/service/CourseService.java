@@ -1,13 +1,11 @@
 package com.example.questifyapp.service;
 
-import com.example.questifyapp.entity.Chapter;
 import com.example.questifyapp.entity.Course;
-import com.example.questifyapp.entity.Lesson;
+import com.example.questifyapp.entity.LearningUnit;
 import com.example.questifyapp.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,28 +39,13 @@ public class CourseService {
 
     public int countTotalExercisesByCourseId(Integer courseId) {
         Course course = getCourseById(courseId);
-        if (course == null || course.getChapters() == null) {
+        if (course == null || course.getLearningUnits() == null) {
             return 0;
         }
 
         int count = 0;
 
-        for (Chapter chapter : course.getChapters()) {
-            if (chapter.getLessons() == null) continue;
-
-            for (Lesson lesson : chapter.getLessons()) {
-                if (lesson.getExercises() != null) {
-                    count += lesson.getExercises().size();
-                }
-            }
-        }
-
         return count;
-    }
-
-    public List<Chapter> getChaptersByCourseId(Integer courseId) {
-        Course course = getCourseById(courseId);
-        return course.getChapters();
     }
 
     public void addCourse(Course course) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Exercise {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +43,9 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = false)
-    @JsonIgnore
-    private Lesson lesson;
+    @JoinColumn(name = "learning_unit_id", nullable = false)
+    @JsonBackReference
+    private LearningUnit parentUnit;
 
     @OneToMany(
             mappedBy = "exercise",
@@ -54,10 +56,4 @@ public class Exercise {
     @JsonManagedReference
     private List<Option> options = new ArrayList<>();
 
-
-    public Exercise(String question, String answer, String type) {
-        this.question = question;
-        this.answer = answer;
-        this.type = type;
-    }
 }

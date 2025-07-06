@@ -4,6 +4,8 @@ import com.example.questifyapp.dto.ExerciseDTO;
 import com.example.questifyapp.dto.OptionDTO;
 import com.example.questifyapp.entity.Exercise;
 import com.example.questifyapp.entity.Option;
+import com.example.questifyapp.mapper.ExerciseMapper;
+import com.example.questifyapp.mapper.OptionMapper;
 import com.example.questifyapp.service.ExerciseService;
 import org.aspectj.weaver.patterns.TypePatternQuestions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class ExerciseController {
         if (exercise == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(ExerciseDTO.fromEntity(exercise));
+        return ResponseEntity.ok(ExerciseMapper.toDto(exercise));
     }
 
     @GetMapping("/{exerciseId}/options")
@@ -34,7 +36,7 @@ public class ExerciseController {
             @PathVariable Long exerciseId) {
         List<Option> options = exerciseService.getExerciseById(exerciseId).getOptions();
         List<OptionDTO> optionDTOs = options.stream()
-                .map(OptionDTO::fromEntity)
+                .map(OptionMapper::toDto)
                 .toList();
         return ResponseEntity.ok(optionDTOs);
     }

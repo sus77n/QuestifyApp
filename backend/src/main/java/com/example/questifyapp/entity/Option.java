@@ -1,8 +1,8 @@
 package com.example.questifyapp.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Option {
 
     @Id
@@ -20,7 +21,7 @@ public class Option {
 
     @Lob
     @Column(nullable = false)
-    private String content;
+    private String text;
 
     @Column(name = "is_correct", nullable = false)
     private boolean isCorrect;
@@ -29,9 +30,4 @@ public class Option {
     @JoinColumn(name = "exercise_id", nullable = false)
     @JsonIgnore
     private Exercise exercise;
-
-    public Option(String content, boolean isCorrect) {
-        this.content = content;
-        this.isCorrect = isCorrect;
-    }
 }
