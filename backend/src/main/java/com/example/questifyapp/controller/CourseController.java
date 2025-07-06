@@ -1,10 +1,7 @@
 package com.example.questifyapp.controller;
 
-import com.example.questifyapp.dto.ChapterDTO;
 import com.example.questifyapp.dto.CourseDTO;
-import com.example.questifyapp.entity.Chapter;
 import com.example.questifyapp.entity.Course;
-import com.example.questifyapp.repository.CourseRepository;
 import com.example.questifyapp.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

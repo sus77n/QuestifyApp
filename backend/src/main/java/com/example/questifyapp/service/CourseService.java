@@ -1,13 +1,10 @@
 package com.example.questifyapp.service;
 
-import com.example.questifyapp.entity.Chapter;
 import com.example.questifyapp.entity.Course;
-import com.example.questifyapp.entity.Lesson;
 import com.example.questifyapp.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

@@ -1,13 +1,9 @@
 package com.example.questifyapp.service;
 
-import com.example.questifyapp.entity.Chapter;
-import com.example.questifyapp.entity.Lesson;
-import com.example.questifyapp.repository.ChapterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ChapterService {
