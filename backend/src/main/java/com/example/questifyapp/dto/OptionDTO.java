@@ -7,10 +7,5 @@ public record OptionDTO(
         String content
 )
 {
-    public static OptionDTO fromEntity(Option option) {
-        return new OptionDTO(
-                option.getId(),
-                option.getContent()
-        );
-    }
+    
 }

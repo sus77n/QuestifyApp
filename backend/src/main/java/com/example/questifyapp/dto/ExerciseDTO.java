@@ -11,12 +11,6 @@ public record ExerciseDTO(
         String type,
         List<OptionDTO> options
 ) {
-    public static ExerciseDTO fromEntity(Exercise exercise) {
-        return new ExerciseDTO(
-                exercise.getId(),
-                exercise.getQuestion(),
-                exercise.getType(),
-                exercise.getOptions().stream().map(OptionDTO::fromEntity).toList()
-        );
-    }
+    
 }
+
