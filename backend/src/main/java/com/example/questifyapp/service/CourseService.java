@@ -1,7 +1,6 @@
 package com.example.questifyapp.service;
 
 import com.example.questifyapp.entity.Course;
-import com.example.questifyapp.entity.LearningUnit;
 import com.example.questifyapp.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,51 +16,56 @@ public class CourseService {
         return courseRepository.findAll();
     }
 
-    public Course getCourseById(int id) {
+    public Course getCourseById(Long id) {
         return courseRepository.findById(id).orElse(null);
     }
 
     public Course getCourseByCourseCode(String courseCode) {
-        List<Course> courses = getAllCourses();
-
-        for (Course course : courses) {
-            if (course.getCode().equalsIgnoreCase(courseCode)) {
-                return course;
-            }
-        }
-
-        return null;
+        return courseRepository.findByCode(courseCode);
     }
 
     public List<Course> searchCourses(String searchTerm) {
         return courseRepository.searchCoursesByNameOrCode(searchTerm);
     }
 
-    public int countTotalExercisesByCourseId(Integer courseId) {
+    public int countTotalExercisesByCourseId(Long courseId) {
         Course course = getCourseById(courseId);
-        if (course == null || course.getChapters() == null) {
+        if (course == null || course.getLearningUnits() == null) {
             return 0;
         }
 
         int count = 0;
-
+        // Count exercises in learning units
+        // This would depend on your Exercise entity relationship
+        // For now, returning 0 as placeholder
         return count;
     }
 
-    public List<Chapter> getChaptersByCourseId(Integer courseId) {
-        Course course = getCourseById(courseId);
-        return course.getChapters();
+    public Course createCourse(Course course) {
+        return courseRepository.save(course);
     }
 
-    public void addCourse(Course course) {
-        courseRepository.save(course);
+    public Course updateCourse(Course course) {
+        return courseRepository.save(course);
     }
 
-    public void updateCourse(Course course) {
-        courseRepository.save(course);
-    }
-
-    public void deleteCourse(Integer id) {
+    public void deleteCourse(Long id) {
         courseRepository.deleteById(id);
+    }
+
+    public boolean existsById(Long id) {
+        return courseRepository.existsById(id);
+    }
+
+    public boolean existsByCode(String code) {
+        return courseRepository.existsByCode(code);
+    }
+
+    public boolean existsByName(String name) {
+        return courseRepository.existsByName(name);
+    }
+
+    public long countTotalCourses() {
+        return courseRepository.count();
     }
 }
