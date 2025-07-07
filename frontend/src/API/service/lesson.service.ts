@@ -16,7 +16,7 @@ export const lessonService = createApi({
     endpoints: (builder) => ({
         // Get lessons by chapter ID
         getLessonsByChapter: builder.query<LessonDTO[], number>({
-            query: (chapterId) => `/chapters/${chapterId}/lessons`,
+            query: (chapterId) => `/learning-units/${chapterId}`,
             providesTags: ['Lesson'],
         }),
 

@@ -6,4 +6,5 @@ export interface CourseDTO {
     name: string;
     description: string;
     chapters: ChapterDTO[];
+    createdAt: Date
 }

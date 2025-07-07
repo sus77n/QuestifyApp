@@ -5,15 +5,9 @@ export const chapterService = createApi({
     reducerPath: 'chapterService',
     baseQuery: fetchBaseQuery({
         baseUrl: '/api',
-        // prepareHeaders: (headers) => {
-        //     const token = localStorage.getItem('token');
-        //     if (token) headers.set('Authorization', `Bearer ${token}`);
-        //     return headers;
-        // },
     }),
     tagTypes: ['Chapter'],
     endpoints: (builder) => ({
-        // Get chapters by course ID
         getChaptersByCourse: builder.query<ChapterDTO[], number>({
             query: (courseId) => `/courses/${courseId}/chapters`,
             providesTags: ['Chapter'],
