@@ -5,11 +5,12 @@ import java.time.LocalDateTime;
 
 public record SubmissionDTO(
         Long id,
-        ExerciseDTO exercise,
+        Long exerciseId,
         Long userId,
         String text,
-        OptionDTO selectedOption,
+        Long optionId,
         LocalDateTime submittedAt,
-        BigDecimal score
-) {
-}
+        BigDecimal score,
+        ExerciseDTO exercise,
+        OptionDTO selectedOption
+) {}

@@ -8,6 +8,7 @@ public class OptionMapper {
         return new OptionDTO(
                 option.getId(),
                 option.getText(),
+                option.isCorrect(),
                 ExerciseMapper.toDto(option.getExercise())
         );
     }
@@ -16,7 +17,7 @@ public class OptionMapper {
         return new Option(
                 optionDTO.id(),
                 optionDTO.text(),
-                false,
+                optionDTO.isCorrect(),
                 ExerciseMapper.toEntity(optionDTO.exercise())
         );
     }
