@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
-import Home from '../Home/Home';
 import Profile from '../Profile/Profile';
 import Course from '../Student/Course';
 import MyCourse from '../Student/MyCourse';
@@ -16,8 +15,7 @@ const HeroSection = () => {
             <Navbar />
             <main className="flex-1 overflow-auto">
                 <Routes>
-                    <Route path="/" element={<Navigate to="/home" replace />} />
-                    <Route path="/home" element={<Home />} />
+                    <Route path="/" element={<Navigate to="/profile" replace />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/courses" element={<Course />} />
                     <Route path="/my-courses" element={<MyCourse />} />
