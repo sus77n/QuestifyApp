@@ -126,87 +126,44 @@ const Course = () => {
                                 <h2 className="text-[20px] text-text-color font-bold mb-1">Description</h2>
                                 <p className="text-[16px] text-justify">{selectedCourse.description}</p>
                             </div>
-                            {/*<div className="flex items-start justify-between pt-4">*/}
-                            {/*    <div>*/}
-                            {/*        <h1 className="text-[20px] text-text-color font-bold mb-2">Statistic</h1>*/}
-                            {/*        <div className="w-[27vw] mr-14">*/}
-                            {/*            <div className="flex justify-between bg-background-color rounded-2xl p-4">*/}
-                            {/*                <div className="border-l-2 border-text-color pl-2 text-text-color">*/}
-                            {/*                    <h3 className="font-bold">Lessons</h3>*/}
-                            {/*                    <p className="text-2xl">10</p>*/}
-                            {/*                </div>*/}
-                            {/*                <div className="border-l-2 border-text-color pl-2 text-text-color">*/}
-                            {/*                    <h3 className="">Exercises</h3>*/}
-                            {/*                    <p className="text-2xl">150</p>*/}
-                            {/*                </div>*/}
-                            {/*                <div className="border-l-2 border-text-color pl-2 text-text-color">*/}
-                            {/*                    <h3 className="">Participants</h3>*/}
-                            {/*                    <p className="text-2xl">300</p>*/}
-                            {/*                </div>*/}
-                            {/*            </div>*/}
-                            {/*        </div>*/}
-                            {/*    </div>*/}
-                            {/*</div>*/}
                             <div>
                                 <h1 className="text-[20px] text-text-color font-bold mb-2">Content</h1>
-                                <div className="relative overflow-auto rounded">
-                                    <table className="w-full text-left rtl:text-right rounded-2xl text-[15px]">
-                                        <colgroup>
-                                            <col style={{ width: '10%' }} />
-                                            <col style={{ width: '60%' }} />
-                                            <col style={{ width: '30%' }} />
-                                        </colgroup>
-                                        <thead className="uppercase bg-text-color text-[15px] font-medium text-white">
+                                <div className="relative rounded overflow-x-auto">
+                                    <div className="overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ maxHeight: '300px' }}>
+                                        <table className="min-w-full w-full text-left rtl:text-right text-[15px]">
+                                            <colgroup>
+                                                <col style={{ width: '10%' }} />
+                                                <col style={{ width: '60%' }} />
+                                                <col style={{ width: '30%' }} />
+                                            </colgroup>
+                                            <thead className="uppercase bg-text-color text-[15px] font-medium text-white sticky top-0">
                                             <tr>
-                                                <th scope="col" className="px-6 py-3 text-[15px] font-medium">Index</th>
-                                                <th scope="col" className="px-6 py-3 text-[15px] font-medium">Name</th>
-                                                <th scope="col" className="px-6 py-3 text-[15px] font-medium">Lessons</th>
+                                                <th scope="col" className="px-6 py-3">Index</th>
+                                                <th scope="col" className="px-6 py-3">Name</th>
+                                                <th scope="col" className="px-6 py-3">Exercises</th>
                                             </tr>
-                                        </thead>
-                                        {isChaptersLoading ? (
+                                            </thead>
                                             <tbody>
-                                            <tr className="border-t border-gray-200">
-                                                <td colSpan={3} className="px-6 py-4 text-center">
-                                                    <Spinner />
-                                                </td>
-                                            </tr>
+                                            {isChaptersLoading ? (
+                                                <tr className="border-t border-gray-200">
+                                                    <td colSpan={3} className="px-6 py-4 text-center">
+                                                        <Spinner />
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                chapters.map((chapter: ChapterDTO, index: number) => (
+                                                    <tr key={index} className="border-t border-gray-200">
+                                                        <th scope="row" className="px-6 py-4">{index + 1}</th>
+                                                        <td className="px-6 py-4">{chapter.title}</td>
+                                                        {/*<td className="px-6 py-4">{chapter.lessons.length}</td>*/}
+                                                    </tr>
+                                                ))
+                                            )}
                                             </tbody>
-                                        ):(
-                                            <tbody>
-                                            {/*{chapters.map((chapter: ChapterDTO, index: number) => (*/}
-                                            {/*    <tr className="border-t border-gray-200">*/}
-                                            {/*        <th scope="row" className="px-6 py-4">{index +1}</th>*/}
-                                            {/*        <td className="px-6 py-4">{chapter.title}</td>*/}
-                                            {/*        <td className="px-6 py-4">{chapter.lessons.length}</td>*/}
-                                            {/*    </tr>*/}
-                                            {/*))}*/}
-                                            <tr className="border-t border-text-color bg-gray-100">
-                                                <th scope="row" className="px-6 py-4">1</th>
-                                                <td className="px-6 py-4">The course provides</td>
-                                                <td className="px-6 py-4">10</td>
-                                            </tr>
-                                            <tr className="  bg-gray-200">
-                                                <th scope="row" className="px-6 py-4">1</th>
-                                                <td className="px-6 py-4">The course provides</td>
-                                                <td className="px-6 py-4">10</td>
-                                            </tr>
-                                            <tr className="bg-gray-100">
-                                                <th scope="row" className="px-6 py-4">1</th>
-                                                <td className="px-6 py-4">The course provides</td>
-                                                <td className="px-6 py-4">10</td>
-                                            </tr>
-                                            <tr className="bg-gray-200">
-                                                <th scope="row" className="px-6 py-4">1</th>
-                                                <td className="px-6 py-4">The course provides</td>
-                                                <td className="px-6 py-4">10</td>
-                                            </tr>
-
-                                            </tbody>
-                                        )}
-                                    </table>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 ) : (

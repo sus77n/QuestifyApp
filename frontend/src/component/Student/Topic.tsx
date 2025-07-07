@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigation} from '../../context/NavigationContext';
 import {useNavigate, useParams} from "react-router-dom";
 import {ChevronDownIcon, ChevronUpIcon, XCircleIcon} from "@heroicons/react/24/outline";
 import {useGetExerciseOptionsQuery} from "../../API/service/exercise.service";
@@ -11,23 +10,19 @@ import {MyButton} from "../material/material";
 import {useSubmitAnswerMutation} from "../../API/service/submission.service";
 
 const Topic = () => {
-    const {setActiveTab} = useNavigation();
     const {courseId} = useParams();
     const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<LessonDTO | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
 
-    const {data: chapters = [], isLoading, isError} = useGetChaptersByCourseQuery(Number(courseId), {
-        skip: !courseId,
-    });
-
     const {data: course, isLoading: isLoadingCourse} = useGetCourseByIdQuery(Number(courseId), {
         skip: !courseId,
     });
 
-    useEffect(() => {
-        setActiveTab('My courses');
-    }, []);
+    const {data: chapters = [], isLoading, isError} = useGetChaptersByCourseQuery(Number(courseId), {
+        skip: !courseId,
+    });
+    
 
     useEffect(() => {
         if (chapters.length > 0) {
@@ -305,7 +300,6 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
             console.error('Error submitting answer:', error);
             setIsCorrect(false);
             setIsSubmitted(true);
-            // Handle error (show toast, etc.)
         } finally {
             setIsLoadingSubmit(false);
         }
