@@ -22,7 +22,7 @@ const Topic = () => {
     const {data: chapters = [], isLoading, isError} = useGetChaptersByCourseQuery(Number(courseId), {
         skip: !courseId,
     });
-    
+
 
     useEffect(() => {
         if (chapters.length > 0) {
