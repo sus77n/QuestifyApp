@@ -1,10 +1,8 @@
-# Prompt for Generating Questions – Lesson 1.1: Propositional Logic
+# Prompt for Generating Questions – Lesson 1.3: Predicate Logic
 
 ## Task
 Generate a new practice question file based on the content in  
-**/questions/original/lesson1_1_propositionalLogic.md**  
-and save the result as a new file named  
-**/questions/generated/v1.md**
+**/questions/original/lesson1_3_predicateLogic.md**  
 
 ## Requirements
 Generate a total of **40 new questions**:
@@ -53,5 +51,5 @@ Each question must strictly follow the format defined in
 ## Output Instructions
 - The output must be a plain Markdown file containing only the formatted questions.
 - Save it as:  
-  **/questions/generated/lesson1_1_gen1.md**
+  **/questions/generated/lesson1_3_gen1.md**
 - Do not include any comments, explanations, or metadata outside the expected format.
