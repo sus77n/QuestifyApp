@@ -1,27 +1,20 @@
-# Prompt for Generating Questions – Lesson 1.1: Propositional Logic
+# Prompt for Generating Questions – Lesson 1.2: Propositional Equivalences
 
 ## Task
-Generate a new practice question file based on the content in  
-**/questions/original/lesson1_1_propositionalLogic.md**  
-and save the result as a new file named  
+Generate a new set of **50 practice questions** based on the concepts in  
+**/questions/original/lesson1_2_propositionalEquivalences.md**  
+and save the result as a new file named:  
 **/questions/generated/v1.md**
 
 ## Requirements
-Generate a total of **40 new questions**:
-- 20 questions of type: `Multiple Choice`
-- 20 questions of type: `Short Answer`
+- Total: **50 questions**
+- Types:
+  - 25 questions of type: `Multiple Choice`
+  - 25 questions of type: `Short Answer`
 
 ## Format
-Each question must strictly follow the format defined in  
-**/templates/templateLesson.md**, including the following fields:
-
-- **EX <lesson_id>.<question_number>**
-- **Type**: (either `Multiple Choice` or `Short Answer`)
-- **Question**: the main question text
-- **Options**: (only for Multiple Choice questions; exactly 4 options)
-- **Solution**: the correct answer (text or option letter)
-
----
+Each question must follow the structure defined in:  
+**/templates/templateLesson.md**
 
 ## Guidelines for Content (General)
 
@@ -53,5 +46,5 @@ Each question must strictly follow the format defined in
 ## Output Instructions
 - The output must be a plain Markdown file containing only the formatted questions.
 - Save it as:  
-  **/questions/generated/lesson1_1_gen1.md**
+  **/questions/generated/lesson1_2_gen1.md**
 - Do not include any comments, explanations, or metadata outside the expected format.
