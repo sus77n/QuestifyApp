@@ -21,4 +21,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
     @Query("SELECT COUNT(s) > 0 FROM Submission s WHERE s.exercise.id = :exerciseId AND s.score BETWEEN 50 and 100")
     boolean existsByExerciseIdAndScoreBetween50And100(Long exerciseId);
+
+//    List<Submission> findByCourseIdAndUserId(Long courseId, Long userId);
 }

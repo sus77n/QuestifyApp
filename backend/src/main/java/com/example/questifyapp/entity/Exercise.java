@@ -28,7 +28,7 @@ public class Exercise {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String answer;
 
     @Column(nullable = false, length = 50)
@@ -43,9 +43,9 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "learning_unit_id", nullable = false)
+    @JoinColumn(name = "parent_id", nullable = false)
     @JsonBackReference
-    private LearningUnit parentUnit;
+    private LearningUnit parent;
 
     @OneToMany(
             mappedBy = "exercise",

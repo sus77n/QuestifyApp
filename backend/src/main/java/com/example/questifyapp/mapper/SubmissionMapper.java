@@ -1,30 +1,30 @@
 package com.example.questifyapp.mapper;
 
-import com.example.questifyapp.dto.SubmissionDTO;
+import com.example.questifyapp.dto.SubmissionDto;
 import com.example.questifyapp.entity.Submission;
 
 public class SubmissionMapper {
-    public static SubmissionDTO toDto(Submission submission) {
-        return new SubmissionDTO(
+    public static SubmissionDto toDto(Submission submission) {
+        return new SubmissionDto(
                 submission.getId(),
-                ExerciseMapper.toDto(submission.getExercise()),
+                submission.getExercise().getId(),
                 submission.getStudent().getId(),
                 submission.getText(),
-                OptionMapper.toDto(submission.getSelectedOption()),
+                submission.getSelectedOption().getId(),
                 submission.getSubmittedAt(),
                 submission.getScore()
         );
     }
 
-    public static Submission toEntity(SubmissionDTO submissionDTO) {
+    public static Submission toEntity(SubmissionDto submissionDTO) {
         return new Submission(
                 submissionDTO.id(),
-                ExerciseMapper.toEntity(submissionDTO.exercise()),
+                null,
                 null,
                 submissionDTO.text(),
                 submissionDTO.score(),
                 submissionDTO.submittedAt(),
-                OptionMapper.toEntity(submissionDTO.selectedOption())
+                null
         );
     }
 }

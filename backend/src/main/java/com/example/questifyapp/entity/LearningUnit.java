@@ -1,15 +1,8 @@
 package com.example.questifyapp.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,26 +23,40 @@ public class LearningUnit {
     private Long id;
 
     @Column(nullable = false)
-    private String title;
+    private String name;
+
+    private String code;
 
     private String description;
 
-    private String type;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "type_id", nullable = true)
+    @JsonBackReference
+    private LearningUnitType type;
 
-    private int status;
-
-    private int level;
+    private int status = 1;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_unit_id")
-    private LearningUnit parentUnit;
+    @JoinColumn(name = "parent_id", nullable = true)
+    @JsonBackReference
+    private LearningUnit parent;
 
-    @OneToMany(mappedBy = "parentUnit", fetch = FetchType.LAZY)
-    private List<LearningUnit> childUnits = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<LearningUnit> children = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Course course;
+    @OneToOne(fetch = FetchType.LAZY)
+    private User createdBy;
+
+    @OneToMany(
+            mappedBy = "parent",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    @JsonManagedReference
+    private List<Exercise> exercises = new ArrayList<>();
 }

@@ -1,40 +1,39 @@
 package com.example.questifyapp.controller;
 
-import com.example.questifyapp.dto.OptionDTO;
-import com.example.questifyapp.entity.Option;
-import com.example.questifyapp.mapper.OptionMapper;
-import com.example.questifyapp.repository.OptionRepository;
+import com.example.questifyapp.dto.option.OptionRequestDto;
+import com.example.questifyapp.dto.option.OptionResponseDto;
 import com.example.questifyapp.service.OptionService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/api/options")
 public class OptionController {
     @Autowired
     private OptionService optionService;
-    @Autowired
-    private OptionRepository optionRepository;
 
-    @GetMapping("")
-    public List<OptionDTO> getAllOptions() {
-        return optionService.getAllOptions().stream()
-                .map(OptionMapper::toDto)
-                .toList();
+    @GetMapping
+    public ResponseEntity<List<OptionResponseDto>> findAll() {
+        return ResponseEntity.ok(optionService.getAllOptions());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OptionDTO> getOption(@PathVariable Long id) {
-        Option option = optionRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
-        return ResponseEntity.ok(OptionMapper.toDto(option));
+    @PostMapping
+    public ResponseEntity<OptionResponseDto> create(@RequestBody OptionRequestDto dto) {
+        return ResponseEntity.ok(optionService.saveOption(dto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OptionResponseDto> update(@PathVariable Long id, @RequestBody OptionRequestDto dto) {
+        return ResponseEntity.ok(optionService.updateOption(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        optionService.deleteOptionById(id);
+        return ResponseEntity.ok("Option has been deleted!");
     }
 
 }

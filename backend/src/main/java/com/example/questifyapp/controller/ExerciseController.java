@@ -1,20 +1,14 @@
 package com.example.questifyapp.controller;
 
-import com.example.questifyapp.dto.ExerciseDTO;
-import com.example.questifyapp.dto.OptionDTO;
-import com.example.questifyapp.entity.Exercise;
-import com.example.questifyapp.entity.Option;
-import com.example.questifyapp.mapper.ExerciseMapper;
-import com.example.questifyapp.mapper.OptionMapper;
+import com.example.questifyapp.dto.exercise.ExerciseRequestDto;
+import com.example.questifyapp.dto.exercise.ExerciseResponseDto;
+import com.example.questifyapp.dto.option.OptionResponseDto;
 import com.example.questifyapp.service.ExerciseService;
-import org.aspectj.weaver.patterns.TypePatternQuestions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/exercises")
@@ -23,22 +17,34 @@ public class ExerciseController {
     private ExerciseService exerciseService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExerciseDTO> getExercise(@PathVariable Long id) {
-        Exercise exercise = exerciseService.getExerciseById(id);
-        if (exercise == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(ExerciseMapper.toDto(exercise));
+    public ResponseEntity<ExerciseResponseDto> getExercise(@PathVariable Long id) {
+        return ResponseEntity.ok(exerciseService.getExerciseById(id));
     }
 
     @GetMapping("/{exerciseId}/options")
-    public ResponseEntity<List<OptionDTO>> getOptionsForExercise(
+    public ResponseEntity<List<OptionResponseDto>> getOptionsForExercise(
             @PathVariable Long exerciseId) {
-        List<Option> options = exerciseService.getExerciseById(exerciseId).getOptions();
-        List<OptionDTO> optionDTOs = options.stream()
-                .map(OptionMapper::toDto)
-                .toList();
-        return ResponseEntity.ok(optionDTOs);
+        return ResponseEntity.ok(exerciseService.getOptionsByExerciseId(exerciseId));
     }
 
+    @GetMapping
+    public ResponseEntity<List<ExerciseResponseDto>> getAllExercises() {
+        return ResponseEntity.ok(exerciseService.getAllExercises());
+    }
+
+    @PostMapping
+    public ResponseEntity<ExerciseResponseDto> createExercise(@RequestBody ExerciseRequestDto dto) {
+        return ResponseEntity.ok(exerciseService.saveExercise(dto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ExerciseResponseDto> updateExercise(@RequestBody ExerciseRequestDto dto, @PathVariable Long id) {
+        return ResponseEntity.ok(exerciseService.updateExercise(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteExercise(@PathVariable Long id) {
+        exerciseService.deleteExercise(id);
+        return ResponseEntity.ok("Exercise has been deleted");
+    }
 }

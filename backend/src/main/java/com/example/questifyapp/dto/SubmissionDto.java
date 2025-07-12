@@ -3,12 +3,12 @@ package com.example.questifyapp.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record SubmissionDTO(
+public record SubmissionDto(
         Long id,
-        ExerciseDTO exercise,
+        Long exerciseId,
         Long userId,
         String text,
-        OptionDTO selectedOption,
+        Long selectedOption,
         LocalDateTime submittedAt,
         BigDecimal score
 ) {

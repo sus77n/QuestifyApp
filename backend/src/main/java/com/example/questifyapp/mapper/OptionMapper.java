@@ -1,23 +1,23 @@
 package com.example.questifyapp.mapper;
 
-import com.example.questifyapp.dto.OptionDTO;
+import com.example.questifyapp.dto.option.OptionRequestDto;
+import com.example.questifyapp.dto.option.OptionResponseDto;
 import com.example.questifyapp.entity.Option;
 
 public class OptionMapper {
-    public static OptionDTO toDto(Option option) {
-        return new OptionDTO(
+    public static OptionResponseDto toDto(Option option) {
+        return new OptionResponseDto(
                 option.getId(),
-                option.getText(),
-                ExerciseMapper.toDto(option.getExercise())
+                option.getText()
         );
     }
 
-    public static Option toEntity(OptionDTO optionDTO) {
+    public static Option toEntity(OptionRequestDto dto) {
         return new Option(
-                optionDTO.id(),
-                optionDTO.text(),
-                false,
-                ExerciseMapper.toEntity(optionDTO.exercise())
+                dto.id(),
+                dto.text(),
+                dto.isCorrect(),
+                null
         );
     }
 }
