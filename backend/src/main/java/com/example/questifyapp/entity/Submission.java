@@ -28,7 +28,7 @@ public class Submission {
 
     @Lob
     @Column(nullable = false)
-    private String text;
+    private String answer;
 
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal score;
@@ -37,6 +37,6 @@ public class Submission {
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Option selectedOption;
 }

@@ -43,4 +43,9 @@ public class LearningUnitController {
     public ResponseEntity<List<LearningUnitDto>> getLearningUnitsByTypeLevel(@PathVariable int level) {
         return ResponseEntity.ok(learningUnitService.getLearningUnitsByTypeLevel(level));
     }
+
+    @GetMapping("/count/{id}")
+    public ResponseEntity<Long> countLearningUnitById(@PathVariable Long id) {
+        return ResponseEntity.ok(learningUnitService.countByLearningUnitId(id));
+    }
 }

@@ -27,25 +27,25 @@ public class SubmissionService {
     private OptionRepository optionRepository;
 
     public SubmissionDto submit(SubmissionDto submissionDTO) {
-        Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId()).get();
-        User user = userRepository.findById(submissionDTO.userId()).get();
+
+        Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId()).orElseThrow(() -> new NullPointerException("exercise not found"));
+        User user = userRepository.findById(submissionDTO.userId()).orElseThrow(() -> new NullPointerException("User not found"));
 
         Submission submission = SubmissionMapper.toEntity(submissionDTO);
         submission.setExercise(exercise);
         submission.setStudent(user);
 
-        if (submissionDTO.selectedOption() != null) {
-            Option option = optionRepository.findById(submissionDTO.selectedOption()).get();
+        if (submissionDTO.selectedOptionId() != 0) {
+            Option option = optionRepository.findById(submissionDTO.selectedOptionId()).orElse(null);
             submission.setSelectedOption(option);
             if (option.isCorrect()) {
                 submission.setScore(BigDecimal.valueOf(100));
             } else {
                 submission.setScore(BigDecimal.valueOf(0));
             }
-        }
-
-        if (submissionDTO.text() != null) {
-            if (exercise.getAnswer().contains(submissionDTO.text())) {
+        } else  {
+            if (exercise.getAnswer().contains(submissionDTO.answer())
+                    && (exercise.getAnswer().length()/2 <= submissionDTO.answer().length())) {
                 submission.setScore(BigDecimal.valueOf(100));
             } else  {
                 submission.setScore(BigDecimal.valueOf(0));

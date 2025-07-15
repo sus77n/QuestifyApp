@@ -7,8 +7,8 @@ public record SubmissionDto(
         Long id,
         Long exerciseId,
         Long userId,
-        String text,
-        Long selectedOption,
+        String answer,
+        Long selectedOptionId,
         LocalDateTime submittedAt,
         BigDecimal score
 ) {

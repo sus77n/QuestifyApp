@@ -4,6 +4,7 @@ import com.example.questifyapp.dto.learningUnit.LearningUnitChildDto;
 import com.example.questifyapp.dto.learningUnit.LearningUnitDto;
 import com.example.questifyapp.entity.LearningUnit;
 import com.example.questifyapp.entity.LearningUnitType;
+import com.example.questifyapp.utility.LearningUnitUtil;
 
 public class LearningUnitMapper {
 
@@ -21,7 +22,9 @@ public class LearningUnitMapper {
                 unit.getCreatedAt(),
                 UserMapper.toDto(unit.getCreatedBy()),
                 unit.getParent() != null ? unit.getParent().getId() : null,
-                unit.getChildren().stream().map(LearningUnitMapper::toChildDto).toList()
+                unit.getChildren().stream().map(LearningUnitMapper::toChildDto).toList(),
+                unit.getExercises() != null ? unit.getExercises().stream().map(ExerciseMapper::toDto).toList() : null,
+                LearningUnitUtil.countExercises(unit)
         );
     }
 
@@ -48,7 +51,8 @@ public class LearningUnitMapper {
         return new LearningUnitChildDto(
                 entity.getId(),
                 entity.getName(),
-                entity.getType() != null ? entity.getType().getName() : null
+                entity.getType() != null ? entity.getType().getName() : null,
+                LearningUnitUtil.countExercises(entity)
         );
     }
 }

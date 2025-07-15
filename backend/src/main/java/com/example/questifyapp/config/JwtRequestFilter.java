@@ -2,7 +2,7 @@ package com.example.questifyapp.config;
 
 
 import com.example.questifyapp.service.CustomUserDetailsService;
-import com.example.questifyapp.service.JwtUtils;
+import com.example.questifyapp.utility.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

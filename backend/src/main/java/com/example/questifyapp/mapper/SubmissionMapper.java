@@ -9,8 +9,8 @@ public class SubmissionMapper {
                 submission.getId(),
                 submission.getExercise().getId(),
                 submission.getStudent().getId(),
-                submission.getText(),
-                submission.getSelectedOption().getId(),
+                submission.getAnswer(),
+                submission.getSelectedOption() != null ? submission.getSelectedOption().getId() : null,
                 submission.getSubmittedAt(),
                 submission.getScore()
         );
@@ -21,7 +21,7 @@ public class SubmissionMapper {
                 submissionDTO.id(),
                 null,
                 null,
-                submissionDTO.text(),
+                submissionDTO.answer(),
                 submissionDTO.score(),
                 submissionDTO.submittedAt(),
                 null

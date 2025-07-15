@@ -2,6 +2,7 @@ package com.example.questifyapp.dto.learningUnit;
 
 import com.example.questifyapp.dto.LearningUnitTypeDto;
 import com.example.questifyapp.dto.UserDto;
+import com.example.questifyapp.dto.exercise.ExerciseResponseDto;
 import com.example.questifyapp.entity.LearningUnitType;
 
 import java.time.LocalDateTime;
@@ -16,5 +17,7 @@ public record LearningUnitDto(
         LocalDateTime createdAt,
         UserDto createdBy,
         Long parentId,
-        List<LearningUnitChildDto> childUnits
+        List<LearningUnitChildDto> childUnits,
+        List<ExerciseResponseDto> exercises,
+        Long numberOfExercise
 ) {}

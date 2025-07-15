@@ -7,6 +7,7 @@ import com.example.questifyapp.mapper.LearningUnitMapper;
 import com.example.questifyapp.mapper.LearningUnitTypeMapper;
 import com.example.questifyapp.repository.LearningUnitRepository;
 import com.example.questifyapp.repository.LearningUnitTypeRepository;
+import com.example.questifyapp.utility.LearningUnitUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -101,5 +102,10 @@ public class LearningUnitService {
             }
         }
         return type;
+    }
+
+    public long countByLearningUnitId(Long id) {
+        LearningUnit learningUnit = learningUnitRepository.findById(id).orElseThrow(() -> new NullPointerException("Learning Unit not found with id: " + id));
+        return LearningUnitUtil.countExercises(learningUnit);
     }
 }

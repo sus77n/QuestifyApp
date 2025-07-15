@@ -7,7 +7,7 @@ import com.example.questifyapp.enums.UserRole;
 import com.example.questifyapp.security.UserDetailsImpl;
 import com.example.questifyapp.service.AuthService;
 import com.example.questifyapp.service.CustomUserDetailsService;
-import com.example.questifyapp.service.JwtUtils;
+import com.example.questifyapp.utility.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

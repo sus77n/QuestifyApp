@@ -43,7 +43,7 @@ public class LearningUnit {
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<LearningUnit> children = new ArrayList<>();
+    private List<LearningUnit> children;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -58,5 +58,5 @@ public class LearningUnit {
             fetch = FetchType.LAZY
     )
     @JsonManagedReference
-    private List<Exercise> exercises = new ArrayList<>();
+    private List<Exercise> exercises;
 }

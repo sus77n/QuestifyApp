@@ -21,10 +21,5 @@ public class SubmissionController {
         return ResponseEntity.ok(submissionService.submit(submissionDTO));
     }
 
-//    @GetMapping("/submitted/count")
-//    public ResponseEntity<Integer> countSubmitted(@RequestParam Long courseId, @RequestParam Long userId) {
-//        List<SubmissionDTO> submissions = submissionService.getSubmissionsByCourseIdAndUserId(courseId, userId);
-//        return ResponseEntity.ok(submissions.size());
-//    }
 
 }
