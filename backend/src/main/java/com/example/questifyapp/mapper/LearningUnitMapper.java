@@ -1,5 +1,6 @@
 package com.example.questifyapp.mapper;
 
+import com.example.questifyapp.dto.learningUnit.CourseDto;
 import com.example.questifyapp.dto.learningUnit.LearningUnitChildDto;
 import com.example.questifyapp.dto.learningUnit.LearningUnitDto;
 import com.example.questifyapp.entity.LearningUnit;

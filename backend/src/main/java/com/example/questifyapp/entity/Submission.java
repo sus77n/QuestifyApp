@@ -24,7 +24,7 @@ public class Submission {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User student;
+    private User user;
 
     @Lob
     @Column(nullable = false)

@@ -30,16 +30,19 @@ public class ExerciseService {
     }
 
     public ExerciseResponseDto getExerciseById(Long exerciseId) {
-        return ExerciseMapper.toDto(exerciseRepository.findById(exerciseId).orElse(null));
+        return ExerciseMapper.toDto(exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " not found!")));
     }
 
     public List<OptionResponseDto> getOptionsByExerciseId(Long exerciseId) {
-        Exercise exercise = exerciseRepository.findById(exerciseId).orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
         return exercise.getOptions().stream().map(OptionMapper::toDto).collect(Collectors.toList());
     }
 
     public ExerciseResponseDto updateExercise(Long exerciseId, ExerciseRequestDto dto) {
-        Exercise exercise = exerciseRepository.findById(exerciseId).orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
 
         LearningUnit parent = getLearningUnit(dto.parentUnit());
         if (parent == null) {

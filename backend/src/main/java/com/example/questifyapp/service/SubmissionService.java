@@ -33,7 +33,7 @@ public class SubmissionService {
 
         Submission submission = SubmissionMapper.toEntity(submissionDTO);
         submission.setExercise(exercise);
-        submission.setStudent(user);
+        submission.setUser(user);
 
         if (submissionDTO.selectedOptionId() != 0) {
             Option option = optionRepository.findById(submissionDTO.selectedOptionId()).orElse(null);
@@ -56,8 +56,7 @@ public class SubmissionService {
         return SubmissionMapper.toDto(submission);
     }
 
-//    public List<SubmissionDTO> getSubmissionsByCourseIdAndUserId(Long courseId, Long userId) {
-//        List<Submission> submissions = submissionRepository.findByCourseIdAndUserId(courseId, userId);
-//        return submissions.stream().map(SubmissionMapper::toDto).toList();
-//    }
+    public Submission getSubmissionByUserIdAndExerciseId(Long userId, Long exerciseId) {
+        return submissionRepository.findTopByUserIdAndExerciseIdOrderBySubmittedAtDesc(userId, exerciseId).orElse(null);
+    }
 }

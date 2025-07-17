@@ -1,10 +1,13 @@
 package com.example.questifyapp.controller;
 
+import com.example.questifyapp.dto.learningUnit.CourseDto;
 import com.example.questifyapp.dto.learningUnit.LearningUnitDto;
+import com.example.questifyapp.entity.User;
 import com.example.questifyapp.service.LearningUnitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,5 +50,19 @@ public class LearningUnitController {
     @GetMapping("/count/{id}")
     public ResponseEntity<Long> countLearningUnitById(@PathVariable Long id) {
         return ResponseEntity.ok(learningUnitService.countByLearningUnitId(id));
+    }
+
+    @GetMapping("/completed-courses/{userId}")
+    public ResponseEntity<List<CourseDto>> getAllCompletedCourses(@PathVariable Long userId) {
+        return ResponseEntity.ok(learningUnitService.getAllCoursesWithUserId(userId)
+                .stream().filter((c) -> c.completedExercises() == c.totalOfExercise()).toList());
+    }
+
+    @GetMapping("/incompleted-courses/{userId}")
+    public ResponseEntity<List<CourseDto>> getAllIncompletedCourses(@PathVariable Long userId) {
+        return ResponseEntity.ok(learningUnitService.getAllCoursesWithUserId(userId)
+                .stream().filter((c) ->  c.completedExercises() != null
+                        && (c.completedExercises() < c.totalOfExercise()))
+                .toList());
     }
 }

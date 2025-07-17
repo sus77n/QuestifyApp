@@ -1,6 +1,7 @@
 package com.example.questifyapp.controller;
 
 import com.example.questifyapp.dto.SubmissionDto;
+import com.example.questifyapp.mapper.SubmissionMapper;
 import com.example.questifyapp.service.OptionService;
 import com.example.questifyapp.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,5 +22,10 @@ public class SubmissionController {
         return ResponseEntity.ok(submissionService.submit(submissionDTO));
     }
 
-
+    @GetMapping("/latest")
+    public ResponseEntity<SubmissionDto> getLatestSubmission(
+            @RequestParam Long userId,
+            @RequestParam Long exerciseId) {
+        return ResponseEntity.ok(SubmissionMapper.toDto(submissionService.getSubmissionByUserIdAndExerciseId(userId, exerciseId)));
+    }
 }

@@ -3,7 +3,6 @@ package com.example.questifyapp.dto.learningUnit;
 import com.example.questifyapp.dto.LearningUnitTypeDto;
 import com.example.questifyapp.dto.UserDto;
 import com.example.questifyapp.dto.exercise.ExerciseResponseDto;
-import com.example.questifyapp.entity.LearningUnitType;
 
 import java.time.LocalDateTime;
 import java.util.List;
