@@ -5,6 +5,7 @@ export interface LoginDTO {
 
 export interface LoginResponseDTO {
     token: string;
+    id: string;
     issuedAt: string;
     expiresAt: string;
     username: string;

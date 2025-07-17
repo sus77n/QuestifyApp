@@ -29,6 +29,7 @@ const Login = () => {
             const response = await login(formData).unwrap();
 
             localStorage.setItem('token', response.token);
+            localStorage.setItem("id", response.id);
             localStorage.setItem('role', response.role);
             localStorage.setItem('username', response.username);
 
@@ -102,12 +103,12 @@ const Login = () => {
                                 />
                             </div>
                             {isLoading ? (
-                                <div className="md:ml-[50px] flex-shrink-0 mt-[50px] ml-[50px]">
+                                <div className="md:ml-[50px] flex-shrink-0 mt-[50px] ml-[20px]">
                                     <Spinner/>
                                 </div>
                                 ):(
                                 <button
-                                    className="md:ml-[50px] flex-shrink-0 mt-[20px] ml-[50px]"
+                                    className="md:ml-[50px] flex-shrink-0 mt-[20px] ml-[20px]"
                                     style={{animation: 'bounceHorizontal 1s infinite'}}
                                     type="submit"
                                     disabled={isLoading}

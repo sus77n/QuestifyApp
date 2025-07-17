@@ -34,34 +34,71 @@ const Navbar = () => {
     const navIcons = navItemsByRole[role || ""] || [];
 
     return (
-        <div className="h-screen mr-0">
-            <nav className="m-[8px] mr-0 bg-text-color h-[98vh] w-[80px] rounded-xl flex flex-col items-center pt-2">
-                {/* Top - Profile Icon */}
-                <NavIcon
-                    icon={UserIcon}
-                    label="My profile"
-                    path="/profile"
-                    currentPath={location.pathname}
-                    onClick={() => navigate("/profile")}
-                />
+        <>
+            {/* Desktop Navigation (hidden on mobile) */}
+            <div className="hidden md:block h-screen mr-0">
+                <nav className="m-[8px] mr-0 bg-text-color h-[98vh] w-[80px] rounded-xl flex flex-col items-center pt-2">
+                    {/* Desktop nav content */}
+                    <NavIcon
+                        icon={UserIcon}
+                        label="My profile"
+                        path="/profile"
+                        currentPath={location.pathname}
+                        onClick={() => navigate("/profile")}
+                    />
 
-                {/* Center - Role-based Icons */}
-                <div className="absolute top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
-                    {navIcons.map(({ icon, label, path }) => (
+                    <div className="absolute top-1/2 transform -translate-y-1/2 flex flex-col gap-4">
+                        {navIcons.map(({ icon, label, path }) => (
+                            <NavIcon
+                                key={path}
+                                icon={icon}
+                                label={label}
+                                path={path}
+                                currentPath={location.pathname}
+                                onClick={() => navigate(path)}
+                            />
+                        ))}
+                    </div>
+
+                    <div className="absolute bottom-5">
                         <NavIcon
+                            icon={ArrowRightStartOnRectangleIcon}
+                            label="Logout"
+                            onClick={() => {
+                                localStorage.clear();
+                                window.location.href = "/login";
+                            }}
+                        />
+                    </div>
+                </nav>
+            </div>
+
+            {/* Mobile Navigation (hidden on desktop) */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-text-color z-50">
+                <nav className="flex justify-around items-center p-2">
+                    {/* Profile Icon */}
+                    <MobileNavIcon
+                        icon={UserIcon}
+                        label="Profile"
+                        path="/profile"
+                        currentPath={location.pathname}
+                        onClick={() => navigate("/profile")}
+                    />
+
+                    {/* Role-based Icons */}
+                    {navIcons.map(({ icon, label, path }) => (
+                        <MobileNavIcon
                             key={path}
                             icon={icon}
-                            label={label}
+                            label={label.split(" ")[0]} // Shorten label for mobile
                             path={path}
                             currentPath={location.pathname}
                             onClick={() => navigate(path)}
                         />
                     ))}
-                </div>
 
-                {/* Bottom - Logout */}
-                <div className="absolute bottom-5">
-                    <NavIcon
+                    {/* Logout Icon */}
+                    <MobileNavIcon
                         icon={ArrowRightStartOnRectangleIcon}
                         label="Logout"
                         onClick={() => {
@@ -69,12 +106,46 @@ const Navbar = () => {
                             window.location.href = "/login";
                         }}
                     />
-                </div>
-            </nav>
-        </div>
+                </nav>
+            </div>
+        </>
     );
 };
 
+// Mobile-specific icon component
+const MobileNavIcon = ({
+                           icon: Icon,
+                           label,
+                           path,
+                           currentPath,
+                           onClick,
+                       }: {
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    label?: string;
+    path?: string;
+    currentPath?: string;
+    onClick: () => void;
+}) => {
+    const isActive = path && currentPath?.startsWith(path);
+
+    return (
+        <button
+            onClick={onClick}
+            className={`flex flex-col items-center p-2 rounded-xl transition-all ${
+                isActive ? "bg-white" : "hover:bg-white/10"
+            }`}
+        >
+            <Icon className={`w-6 h-6 ${isActive ? "text-text-color" : "text-white"}`} />
+            {label && (
+                <span className={`text-[10px] mt-1 ${isActive ? "text-text-color" : "text-white"}`}>
+                    {label}
+                </span>
+            )}
+        </button>
+    );
+};
+
+// Original NavIcon component remains the same
 const NavIcon = ({
                      icon: Icon,
                      label,

@@ -12,6 +12,8 @@ const Profile = () => {
         username: user?.username,
         email: user?.email,
         joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }) : '',
+        firstName : user?.firstName || null,
+        lastName : user?.lastName || null,
         completedCourses: 5, // Example data, replace with real data if available
         ongoingCourses: 2 // Example data, replace with real data if available
     };
@@ -38,7 +40,6 @@ const Profile = () => {
     };
 
     const sortedCourses = [...completedCourses].sort((a, b) => {
-        // Handle date comparison separately
         if (sortConfig.key === 'createdAt') {
             const dateA = new Date(a.createdAt).getTime();
             const dateB = new Date(b.createdAt).getTime();
@@ -135,7 +136,7 @@ const Profile = () => {
                         />
                         <h2 className="text-2xl font-bold text-text-color mb-4">@{profileData.username}</h2>
                         <div className="flex items-center justify-center w-full mb-4 text-text-color">
-                            <h2 className="text-2xl font-bold">Bui Nguyen Hai Ngan</h2>
+                            <h2 className="text-2xl font-bold">{profileData.firstName} {profileData.lastName}</h2>
                             <PencilIcon className="w-6 ml-2 "/>
                         </div>
                         <div className="w-full p-2 text-text-color ">
@@ -219,12 +220,12 @@ const Profile = () => {
                             <input
                                 type="text"
                                 placeholder="Search courses..."
-                                className="w-full pl-4 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-background-color"
+                                className="w-full pl-4 pr-10 py-2 border-2 rounded-lg focus:outline-none focus:border-text-color"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <svg
-                                className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
+                                className="absolute right-3 top-2.5 h-5 w-5 text-text-color"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"

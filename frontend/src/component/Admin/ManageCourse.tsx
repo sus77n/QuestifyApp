@@ -1,16 +1,16 @@
-import {useGetCoursesQuery} from '../../API/service/course.service';
 import React, {useState} from "react";
 import {Spinner} from "../material/material";
-import {CourseDTO} from "../../model/CourseDTO";
 import {PencilIcon} from "@heroicons/react/24/solid";
+import {LearningUnitDTO} from "../../model/LearningUnitDTO";
+import {useGetAllLearningUnitsByLevelQuery} from "../../API/service/learningUnit.service";
 
 export default function ManageCourse() {
-    const {data: courses = [], isLoading, isError} = useGetCoursesQuery();
+    const {data: courses = [], isLoading, isError} = useGetAllLearningUnitsByLevelQuery(1);
     // const [deleteCourses] = useDeleteCoursesMutation();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
     const [sortConfig, setSortConfig] = useState<{
-        key: keyof CourseDTO;
+        key: keyof LearningUnitDTO;
         direction: 'asc' | 'desc';
     }>({
         key: 'id',
@@ -18,7 +18,7 @@ export default function ManageCourse() {
     });
 
     // Handle sorting
-    const requestSort = (key: keyof CourseDTO) => {
+    const requestSort = (key: keyof LearningUnitDTO) => {
         let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
             direction = 'desc';
