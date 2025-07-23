@@ -1,44 +1,51 @@
 import React from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import {useGetCurrentUserQuery} from "../../API/service/user.service";
-
-const ongoingCourses = [
-    { id: 1, code: "CSE106", name: "Data Structures & Algorithms", progress: 20, total: 30 },
-    { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-    { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-    { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-    { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-];
+import {useGetAllIncompletedCoursesByUserIdQuery} from "../../API/service/learningUnit.service";
+import {CourseDTO} from "../../model/LearningUnitDTO";
+import {Spinner} from "../material/material";
 
 const MyCourse = () => {
     const navigate = useNavigate();
-    const { data: user }= useGetCurrentUserQuery();
+    const userId = Number(localStorage.getItem("id")!);
+    const username = localStorage.getItem("username");
+
+    const { data: ongoingCourses, isLoading: isLoadingCourses } =
+        useGetAllIncompletedCoursesByUserIdQuery(userId, {
+            skip: !userId,
+        });
+    ;
 
     return (
         <div className="h-screen flex ml-1">
             <div className="m-[8px] bg-white h-[98vh] w-full rounded-xl flex flex-col overflow-y-auto">
                 <h1 className="text-2xl font-semibold text-white bg-text-color pt-3 pb-3 pl-5 pr-5 ">My Courses</h1>
+                {isLoadingCourses ? (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Spinner/>
+                        </div>
+                    ):(
+                    <div className="p-4">
+                        <div className="mb-12">
+                            <h2 className="text-xl font-bold text-text-color mb-2">Hey, {username}, let's finish your courses !!!</h2>
 
-                <div className="p-4">
-                    <div className="mb-12">
-                        <h2 className="text-xl font-bold text-text-color mb-2">Hey, {user?.username}, let's finish your courses !!!</h2>
+                            <div className="flex flex-1 flex-wrap gap-4">
+                                {ongoingCourses?.map((course: CourseDTO, index: number) => (
+                                    <div className="w-[450px]" onClick={() => navigate(`/topics/${course.id}`)} key={course.id}>
+                                        <CardCourseMini courseCode={course.code} courseName={course.name} index={index} progress={course.completedExercises} total={course.totalOfExercise}/>
+                                    </div>
+                                ))}
 
-                        <div className="flex flex-1 flex-wrap gap-4">
-                            {ongoingCourses.map((course: any, index: number) => (
-                                <div className="w-[450px]" onClick={() => navigate(`/topics/${course.id}`)} key={course.id}>
-                                    <CardCourseMini courseCode={course.code} courseName={course.name} index={index} progress={course.progress} total={course.total}/>
-                                </div>
-                            ))}
-
-                            {ongoingCourses.length === 0 && (
-                                <div className="text-center py-8 text-gray-400">
-                                    No ongoing courses found
-                                </div>
-                            )}
+                                {ongoingCourses?.length === 0 && (
+                                    <div className="text-center py-8 text-gray-400">
+                                        No ongoing courses found
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
+
             </div>
         </div>
     );
@@ -75,7 +82,7 @@ const CardCourseMini = ({courseCode, courseName, index, progress, total
     const avatarSrc = `/img/ava${avatarIndex}.png`;
 
     return (
-        <div className={`p-3 relative flex items-center h-30 mt-3 border-2 rounded-xl transition-all duration-200 hover:border-background-color hover:shadow-lg hover:bg-white/5`}
+        <div className={`p-3 relative flex items-center h-30 mt-3 border-2 rounded-xl transition-all duration-200 hover:border-text-color hover:shadow-lg hover:bg-white/5`}
         >
             <img src={avatarSrc} className="w-24 h-24 rounded-xl mr-2" alt="avatarCourse"/>
             <div className="ml-2 relative">
