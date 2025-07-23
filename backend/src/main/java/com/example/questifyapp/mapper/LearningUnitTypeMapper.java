@@ -2,9 +2,11 @@ package com.example.questifyapp.mapper;
 
 import com.example.questifyapp.dto.LearningUnitTypeDto;
 import com.example.questifyapp.entity.LearningUnitType;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LearningUnitTypeMapper {
-    public static LearningUnitTypeDto toDto(LearningUnitType entity) {
+    public LearningUnitTypeDto toDto(LearningUnitType entity) {
         if (entity == null) {
             return null;
         }
@@ -16,7 +18,7 @@ public class LearningUnitTypeMapper {
         );
     }
 
-    public static LearningUnitType toEntity(LearningUnitTypeDto dto) {
+    public LearningUnitType toEntity(LearningUnitTypeDto dto) {
         if (dto == null) {
             return null;
         }

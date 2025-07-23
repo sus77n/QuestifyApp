@@ -1,5 +1,6 @@
 package com.example.questifyapp.dto.learningUnit;
 
+import com.example.questifyapp.dto.ExerciseTypeDto;
 import com.example.questifyapp.dto.LearningUnitTypeDto;
 import com.example.questifyapp.dto.UserDto;
 import com.example.questifyapp.dto.exercise.ExerciseResponseDto;
@@ -11,7 +12,7 @@ public record LearningUnitDto(
         String name,
         String code,
         String description,
-        LearningUnitTypeDto type,
+        String type,
         int status,
         LocalDateTime createdAt,
         UserDto createdBy,

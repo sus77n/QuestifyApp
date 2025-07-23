@@ -16,23 +16,26 @@ public class LearningUnitTypeService {
 
     @Autowired
     private LearningUnitTypeRepository learningUnitTypeRepository;
+    
+    @Autowired
+    private LearningUnitTypeMapper learningUnitTypeMapper;
 
     public LearningUnitTypeDto getLearningUnitTypeById(Long id) {
-        return LearningUnitTypeMapper.toDto(learningUnitTypeRepository.findById(id).get());
+        return learningUnitTypeMapper.toDto(learningUnitTypeRepository.findById(id).get());
     }
 
     public List<LearningUnitTypeDto> getLearningUnitTypes() {
-        return learningUnitTypeRepository.findAll().stream().map(LearningUnitTypeMapper::toDto).collect(Collectors.toList());
+        return learningUnitTypeRepository.findAll().stream().map(learningUnitType -> learningUnitTypeMapper.toDto(learningUnitType)).collect(Collectors.toList());
     }
 
     public LearningUnitTypeDto getLearningUnitTypeByType(String type) {
-        return LearningUnitTypeMapper.toDto(learningUnitTypeRepository.findByName(type));
+        return learningUnitTypeMapper.toDto(learningUnitTypeRepository.findByName(type));
     }
 
     public LearningUnitTypeDto saveLearningUnitType(LearningUnitTypeDto learningUnitTypeDto) {
-        LearningUnitType learningUnitType = LearningUnitTypeMapper.toEntity(learningUnitTypeDto);
+        LearningUnitType learningUnitType = learningUnitTypeMapper.toEntity(learningUnitTypeDto);
         learningUnitTypeRepository.save(learningUnitType);
-        return LearningUnitTypeMapper.toDto(learningUnitType);
+        return learningUnitTypeMapper.toDto(learningUnitType);
     }
 
     public void deleteLearningUnitTypeById(Long id) {
@@ -51,6 +54,6 @@ public class LearningUnitTypeService {
         }
 
         learningUnitTypeRepository.save(learningUnitType);
-        return LearningUnitTypeMapper.toDto(learningUnitType);
+        return learningUnitTypeMapper.toDto(learningUnitType);
     }
 }

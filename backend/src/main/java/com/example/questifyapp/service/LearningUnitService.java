@@ -10,7 +10,6 @@ import com.example.questifyapp.repository.LearningUnitRepository;
 import com.example.questifyapp.repository.LearningUnitTypeRepository;
 import com.example.questifyapp.repository.SubmissionRepository;
 import com.example.questifyapp.utility.LearningUnitUtil;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +29,15 @@ public class LearningUnitService {
     @Autowired
     private SubmissionRepository submissionRepository;
 
+    @Autowired
+    private LearningUnitMapper learningUnitMapper;
+
+    @Autowired
+    private LearningUnitTypeMapper learningUnitTypeMapper;
+
     public List<LearningUnitDto> getAllLearningUnitTypes() {
         return learningUnitRepository.findAll().stream().
-                map(LearningUnitMapper::toDto)
+                map(learningUnit ->  learningUnitMapper.toDto(learningUnit))
                 .toList();
     }
 
@@ -40,54 +45,38 @@ public class LearningUnitService {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Learning Unit not found with id: " + id));
 
-        return LearningUnitMapper.toDto(learningUnit);
+        return learningUnitMapper.toDto(learningUnit);
     }
 
     public LearningUnitDto saveLearningUnit(LearningUnitDto learningUnitDto) {
-        LearningUnit learningUnit = LearningUnitMapper.toEntity(learningUnitDto);
-
-        LearningUnitType type = null;
-        try {
-            type = getLearningUnitType(LearningUnitTypeMapper.toEntity(learningUnitDto.type()));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        learningUnit.setType(type);
-
-        LearningUnit parent = learningUnitRepository.findById(learningUnitDto.parentId()).orElse(null);
-        learningUnit.setParent(parent);
+        LearningUnit learningUnit = learningUnitMapper.toEntity(learningUnitDto);
 
         learningUnit = learningUnitRepository.save(learningUnit);
-        return LearningUnitMapper.toDto(learningUnit);
+        return learningUnitMapper.toDto(learningUnit);
     }
 
-    public LearningUnitDto updateLearningUnit(Long id, LearningUnitDto learningUnitDto) {
+    public LearningUnitDto updateLearningUnit(Long id, LearningUnitDto dto) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Learning Unit not found with id: " + id));
 
-        LearningUnitType type = null;
-        try {
-            type = getLearningUnitType(LearningUnitTypeMapper.toEntity(learningUnitDto.type()));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        LearningUnitType type = learningUnitTypeRepository.findByName(dto.type());
         learningUnit.setType(type);
 
-        LearningUnit parent = learningUnitRepository.findById(learningUnitDto.parentId()).orElse(null);
+        LearningUnit parent = learningUnitRepository.findById(dto.parentId()).orElse(null);
         learningUnit.setParent(parent);
 
-        learningUnit.setName(learningUnitDto.name());
-        learningUnit.setCode(learningUnitDto.code());
-        learningUnit.setDescription(learningUnitDto.description());
-        learningUnit.setStatus(learningUnitDto.status());
+        learningUnit.setName(dto.name());
+        learningUnit.setCode(dto.code());
+        learningUnit.setDescription(dto.description());
+        learningUnit.setStatus(dto.status());
         learningUnit = learningUnitRepository.save(learningUnit);
-        return LearningUnitMapper.toDto(learningUnit);
+        return learningUnitMapper.toDto(learningUnit);
     }
 
 
     public List<LearningUnitDto> getLearningUnitsByTypeLevel(int level) {
         List<LearningUnit> learningUnits = learningUnitRepository.findByTypeLevel(level);
-        return learningUnits.stream().map(LearningUnitMapper::toDto).collect(Collectors.toList());
+        return learningUnits.stream().map(learningUnit -> learningUnitMapper.toDto(learningUnit)).collect(Collectors.toList());
     }
 
     private LearningUnitType getLearningUnitType(LearningUnitType type) throws Exception {

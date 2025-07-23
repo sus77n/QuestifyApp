@@ -3,12 +3,19 @@ package com.example.questifyapp.mapper;
 import com.example.questifyapp.dto.exercise.ExerciseResponseDto;
 import com.example.questifyapp.dto.exercise.ExerciseRequestDto;
 import com.example.questifyapp.entity.Exercise;
+import com.example.questifyapp.repository.LearningUnitRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+@Component
 public class ExerciseMapper {
+    @Autowired
+    private LearningUnitRepository learningUnitRepository;
 
-    public static ExerciseResponseDto toDto(Exercise entity) {
+    public ExerciseResponseDto toDto(Exercise entity) {
         return new ExerciseResponseDto(
                 entity.getId(),
                 entity.getQuestion(),
@@ -17,16 +24,18 @@ public class ExerciseMapper {
         );
     }
 
-    public static Exercise toEntity(ExerciseRequestDto dto) {
-        return new Exercise(
-                dto.id(),
-                dto.question(),
-                dto.answer(),
-                dto.type(),
-                null,
-                null,
-                null,
-                null
-        );
+    public Exercise toEntity(ExerciseRequestDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        Exercise entity = new Exercise();
+        entity.setQuestion(dto.question());
+        entity.setType(dto.type());
+        entity.setAnswer(dto.answer());
+        entity.setDifficulty(dto.difficulty());
+        entity.setParent(learningUnitRepository.findById(dto.parentUnitId())
+                .orElseThrow(() -> new EntityNotFoundException("Parent Unit with id: " + dto.parentUnitId())));
+
+        return entity;
     }
 }
