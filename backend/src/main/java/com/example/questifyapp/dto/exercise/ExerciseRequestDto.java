@@ -8,13 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ExerciseRequestDto(
-        Long id,
         String question,
         String type,
         String answer,
+        int difficulty,
         List<OptionRequestDto> options,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        LearningUnitChildDto parentUnit
+        Long parentUnitId
 ) {
 }

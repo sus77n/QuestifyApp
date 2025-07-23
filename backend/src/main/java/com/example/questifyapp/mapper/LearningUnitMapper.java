@@ -6,10 +6,18 @@ import com.example.questifyapp.dto.learningUnit.LearningUnitDto;
 import com.example.questifyapp.entity.LearningUnit;
 import com.example.questifyapp.entity.LearningUnitType;
 import com.example.questifyapp.utility.LearningUnitUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+
+@Component
 public class LearningUnitMapper {
+    @Autowired
+    private ExerciseMapper exerciseMapper;
+    @Autowired
+    private UserMapper userMapper;
 
-    public static LearningUnitDto toDto(LearningUnit unit) {
+    public LearningUnitDto toDto(LearningUnit unit) {
         if (unit == null) {
             return null;
         }
@@ -18,18 +26,18 @@ public class LearningUnitMapper {
                 unit.getName(),
                 unit.getCode(),
                 unit.getDescription(),
-                LearningUnitTypeMapper.toDto(unit.getType()),
+                unit.getType().getName(),
                 unit.getStatus(),
                 unit.getCreatedAt(),
-                UserMapper.toDto(unit.getCreatedBy()),
+                userMapper.toDto(unit.getCreatedBy()),
                 unit.getParent() != null ? unit.getParent().getId() : null,
-                unit.getChildren().stream().map(LearningUnitMapper::toChildDto).toList(),
-                unit.getExercises() != null ? unit.getExercises().stream().map(ExerciseMapper::toDto).toList() : null,
+                unit.getChildren().stream().map(learningUnit -> toChildDto(learningUnit)).toList(),
+                unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
                 LearningUnitUtil.countExercises(unit)
         );
     }
 
-    public static LearningUnit toEntity(LearningUnitDto dto) {
+    public LearningUnit toEntity(LearningUnitDto dto) {
         if (dto == null) {
             return null;
         }
@@ -44,7 +52,7 @@ public class LearningUnitMapper {
         return unit;
     }
 
-    public static LearningUnitChildDto toChildDto(LearningUnit entity) {
+    public LearningUnitChildDto toChildDto(LearningUnit entity) {
         if (entity == null) {
             return null;
         }

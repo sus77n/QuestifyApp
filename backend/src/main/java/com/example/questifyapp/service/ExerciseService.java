@@ -24,30 +24,33 @@ public class ExerciseService {
     private ExerciseRepository exerciseRepository;
     @Autowired
     private LearningUnitRepository learningUnitRepository;
+    @Autowired
+    private ExerciseMapper exerciseMapper;
+    @Autowired
+    private OptionMapper optionMapper;
 
     public List<ExerciseResponseDto> getAllExercises() {
-        return exerciseRepository.findAll().stream().map(ExerciseMapper::toDto).collect(Collectors.toList());
+        return exerciseRepository.findAll()
+                .stream().map(exercise ->  exerciseMapper.toDto(exercise)).collect(Collectors.toList());
     }
 
     public ExerciseResponseDto getExerciseById(Long exerciseId) {
-        return ExerciseMapper.toDto(exerciseRepository.findById(exerciseId)
+        return exerciseMapper.toDto(exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " not found!")));
     }
 
     public List<OptionResponseDto> getOptionsByExerciseId(Long exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
-        return exercise.getOptions().stream().map(OptionMapper::toDto).collect(Collectors.toList());
+        return optionMapper.toDtoList(exercise.getOptions());
     }
 
     public ExerciseResponseDto updateExercise(Long exerciseId, ExerciseRequestDto dto) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
 
-        LearningUnit parent = getLearningUnit(dto.parentUnit());
-        if (parent == null) {
-            return null;
-        }
+        LearningUnit parent = learningUnitRepository.findById(dto.parentUnitId())
+                .orElseThrow(() -> new NullPointerException("Parent Unit with id: " + dto.parentUnitId() + " does not exist"));
         exercise.setParent(parent);
 
         exercise.setUpdatedAt(LocalDateTime.now());
@@ -56,38 +59,19 @@ public class ExerciseService {
         exercise.setQuestion(dto.question());
 
         exerciseRepository.save(exercise);
-        return ExerciseMapper.toDto(exercise);
+        return exerciseMapper.toDto(exercise);
     }
 
     public ExerciseResponseDto saveExercise(ExerciseRequestDto dto) {
-        Exercise exercise = ExerciseMapper.toEntity(dto);
-
-        LearningUnit parent = getLearningUnit(dto.parentUnit());
-        if (parent == null) {
-            return null;
-        }
-        exercise.setParent(parent);
-
+        Exercise exercise = exerciseMapper.toEntity(dto);
         exercise.setUpdatedAt(LocalDateTime.now());
         exercise.setCreatedAt(LocalDateTime.now());
 
         exerciseRepository.save(exercise);
-        return ExerciseMapper.toDto(exercise);
+        return exerciseMapper.toDto(exercise);
     }
 
     public void deleteExercise(Long exerciseId) {
         exerciseRepository.deleteById(exerciseId);
-    }
-
-    private LearningUnit getLearningUnit(LearningUnitChildDto dto) {
-        if (dto == null) {
-            return null;
-        }
-
-        if (dto.id() != null) {
-            return learningUnitRepository.findById(dto.id()).orElse(null);
-        }
-
-        return null;
     }
 }

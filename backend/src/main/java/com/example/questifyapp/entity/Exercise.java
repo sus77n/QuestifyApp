@@ -28,11 +28,14 @@ public class Exercise {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;
 
-    @Column(nullable = true, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String answer;
 
     @Column(nullable = false, length = 50)
     private String type;
+
+    @Column(nullable = false)
+    private int difficulty;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -43,8 +46,10 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id", nullable = false)
     @JsonBackReference
+    private ExerciseType exerciseCode;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private LearningUnit parent;
 
     @OneToMany(

@@ -1,4 +1,4 @@
-package com.example.questifyapp.dto;
+package com.example.questifyapp.dto.submission;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

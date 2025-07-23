@@ -19,35 +19,34 @@ public class OptionService {
     private OptionRepository optionRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
+    @Autowired
+    private OptionMapper optionMapper;
 
     public List<OptionResponseDto> getAllOptions () {
-        return optionRepository.findAll().stream().map(OptionMapper::toDto).collect(Collectors.toList());
+        return optionRepository.findAll().stream()
+                .map(option -> optionMapper.toDto(option)).collect(Collectors.toList());
     }
 
     public OptionResponseDto getOptionById(Long id) {
-        return OptionMapper.toDto(optionRepository.findById(id).orElse(null));
+        return optionMapper.toDto(optionRepository.findById(id).orElse(null));
     }
 
     public OptionResponseDto saveOption(OptionRequestDto dto) {
-        Option option = OptionMapper.toEntity(dto);
-
-        Exercise exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> new NullPointerException("exercise not found"));
-
-        option.setExercise(exercise);
+        Option option = optionMapper.toEntity(dto);
 
         optionRepository.save(option);
-        return OptionMapper.toDto(option);
+        return optionMapper.toDto(option);
     }
 
     public OptionResponseDto updateOption(Long id,OptionRequestDto dto) {
         Option option = optionRepository.findById(id).orElseThrow(() -> new NullPointerException("option not found"));
 
-        Exercise exercise = exerciseRepository.findById(dto.exerciseId()).orElseThrow(() -> new NullPointerException("exercise not found"));
-
+        Exercise exercise = exerciseRepository.findById(dto.exerciseId())
+                .orElseThrow(() -> new NullPointerException("exercise not found"));
         option.setExercise(exercise);
 
         optionRepository.save(option);
-        return OptionMapper.toDto(option);
+        return optionMapper.toDto(option);
     }
 
     public void deleteOptionById(Long id) {
