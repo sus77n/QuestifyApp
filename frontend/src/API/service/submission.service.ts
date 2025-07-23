@@ -23,9 +23,19 @@ export const submissionService = createApi({
             }),
             invalidatesTags: ['submission'],
         }),
+
+        submitByLesson: builder.mutation<SubmissionDTO[], SubmissionDTO[]>({
+            query: (submit) => ({
+                url: `/submissions/submit-all`,
+                method: 'POST',
+                body: submit,
+            }),
+            invalidatesTags: ['submission'],
+        }),
     }),
 });
 
 export const {
     useSubmitAnswerMutation,
+    useSubmitByLessonMutation
 } = submissionService;

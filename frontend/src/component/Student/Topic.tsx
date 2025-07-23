@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigate, useParams} from "react-router-dom";
+import { useParams} from "react-router-dom";
 import {ChevronDownIcon, ChevronUpIcon, XCircleIcon} from "@heroicons/react/24/outline";
 import {useGetExerciseOptionsQuery} from "../../API/service/exercise.service";
 import {OptionDTO} from "../../model/OptionDTO";
@@ -13,7 +13,6 @@ import {useGetCurrentUserQuery} from "../../API/service/user.service";
 
 const Topic = () => {
     const {courseId} = useParams();
-    const navigate = useNavigate();
     const [selectedLesson, setSelectedLesson] = useState<LearningUnitDTO | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
 
@@ -81,7 +80,7 @@ const Topic = () => {
                         )}
                     </div>
                     <button
-                        onClick={() => navigate('/my-courses')}
+                        onClick={() => window.location.href = '/my-courses'}
                         className="mb-4 p-1 rounded-full transition-all duration-200 hover:bg-red-50 hover:shadow-sm"
                     >
                         <XCircleIcon

@@ -22,6 +22,7 @@ export interface CourseDTO {
     id: number,
     name: string,
     code: string;
+    createdAt?: string
     totalOfExercise: number,
     completedExercises: number
 }

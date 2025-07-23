@@ -93,10 +93,10 @@ const Course = () => {
                                     <h2 className="text-[30px] font-bold text-gray-900 mb-2">
                                         {selectedCourse.name}
                                     </h2>
-                                    <p className="text-gray-400 text-lg mt-2">
+                                    <p className="text-gray-400 text-md mt-5">
                                         Total of exercises: {selectedCourse.numberOfExercise}
                                     </p>
-                                    <p className="text-gray-400 text-lg mt-2">
+                                    <p className="text-gray-400 text-md mt-2">
                                         Created by: {(selectedCourse.createdBy?.firstName || "") + " " + (selectedCourse.createdBy?.lastName || "")}
                                     </p>
                                 </div>
@@ -158,20 +158,25 @@ const CardCourseMini = ({
     const avatarSrc = `/img/ava${avatarIndex}.png`;
 
     return (
-        <div className={`p-3 relative flex items-center h-30 mt-3 border-2 rounded-xl transition-all duration-200 ${
-            isSelected
-                ? "border-text-color shadow-lg bg-white/5"
-                : "border-transparent hover:border-text-color hover:shadow-lg hover:bg-white/5"
-        }`}>
+        <div className={`
+    p-3 relative flex items-center h-30 mt-3
+    border-b-2 ${isSelected ? "border-text-color" : "border-b-gray-200"} 
+    transition-[border-color,border-radius] duration-200 ease-in-out
+    ${isSelected
+            ? "rounded-xl border-2 border-text-color shadow-lg bg-white/5" // Selected
+            : "hover:border-2 hover:border-text-color hover:rounded-xl hover:shadow-lg" // Hover
+        }
+`}>
+            {/* Content remains same */}
             <img src={avatarSrc} className="w-20 h-20 rounded-xl" alt="avatarCourse"/>
             <div className="ml-3 relative">
                 <p className="text-gray-400 font-semibold text-[15px]">{courseCode}</p>
                 <p className="text-gray-900 font-bold text-[16px] mt-2">{courseName}</p>
             </div>
             <div className="absolute right-5 flex items-center justify-end">
-                <ChevronRightIcon className={`h-5 w-5 transition-all duration-300   ${
+                <ChevronRightIcon className={`h-5 w-5 transition-all duration-300 ${
                     isSelected ? "text-text-color translate-x-1" : "text-gray-400"
-                } `}/>
+                }`}/>
             </div>
         </div>
     )

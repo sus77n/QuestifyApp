@@ -5,16 +5,6 @@ import {useGetAllIncompletedCoursesByUserIdQuery} from "../../API/service/learni
 import {CourseDTO} from "../../model/LearningUnitDTO";
 import {Spinner} from "../material/material";
 
-// const ongoingCourses = [
-//     { id: 1, code: "CSE106", name: "Data Structures & Algorithms", progress: 20, total: 30 },
-//     { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-//     { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-//     { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-//     { id: 2, code: "CSE205", name: "Algorithms", progress: 15, total: 25 },
-// ];
-
-
-
 const MyCourse = () => {
     const navigate = useNavigate();
     const userId = Number(localStorage.getItem("id")!);
@@ -31,7 +21,9 @@ const MyCourse = () => {
             <div className="m-[8px] bg-white h-[98vh] w-full rounded-xl flex flex-col overflow-y-auto">
                 <h1 className="text-2xl font-semibold text-white bg-text-color pt-3 pb-3 pl-5 pr-5 ">My Courses</h1>
                 {isLoadingCourses ? (
-                    <Spinner/>
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Spinner/>
+                        </div>
                     ):(
                     <div className="p-4">
                         <div className="mb-12">
@@ -90,7 +82,7 @@ const CardCourseMini = ({courseCode, courseName, index, progress, total
     const avatarSrc = `/img/ava${avatarIndex}.png`;
 
     return (
-        <div className={`p-3 relative flex items-center h-30 mt-3 border-2 rounded-xl transition-all duration-200 hover:border-background-color hover:shadow-lg hover:bg-white/5`}
+        <div className={`p-3 relative flex items-center h-30 mt-3 border-2 rounded-xl transition-all duration-200 hover:border-text-color hover:shadow-lg hover:bg-white/5`}
         >
             <img src={avatarSrc} className="w-24 h-24 rounded-xl mr-2" alt="avatarCourse"/>
             <div className="ml-2 relative">
