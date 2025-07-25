@@ -4,6 +4,14 @@ import { useGetCurrentUserQuery } from "../../API/service/user.service";
 import {  CartesianGrid, Line, LineChart,Tooltip, XAxis, YAxis} from "recharts";
 import {Spinner} from "../material/material";
 import {HandThumbUpIcon} from "@heroicons/react/16/solid";
+import {CourseDTO} from "../../model/LearningUnitDTO";
+
+type SortKey = keyof CourseDTO; // 'id' | 'code' | 'name' | 'createdAt'
+
+type SortConfig = {
+    key: SortKey;
+    direction: 'asc' | 'desc';
+};
 
 const Profile = () => {
     const { data: user, isLoading: isLoadingUser } = useGetCurrentUserQuery();
@@ -12,14 +20,16 @@ const Profile = () => {
         username: user?.username,
         email: user?.email,
         joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }) : '',
+        firstName : user?.firstName || null,
+        lastName : user?.lastName || null,
         completedCourses: 5, // Example data, replace with real data if available
         ongoingCourses: 2 // Example data, replace with real data if available
     };
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState({
-        key: 'createdAt', // 'code', 'name', or 'createdAt'
-        direction: 'desc', // 'asc' or 'desc'
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: 'name',
+        direction: 'asc',
     });
 
     const [completedCourses] = useState([
@@ -29,37 +39,35 @@ const Profile = () => {
         { id: 4, code: 'PHYS101', name: 'Physics Fundamentals', createdAt: '2023-04-18' },
     ]);
 
-    const requestSort = (key: any) => {
-        let direction = 'asc';
+    const requestSort = (key: SortKey) => {
+        let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
             direction = 'desc';
         }
         setSortConfig({ key, direction });
     };
 
-    const sortedCourses = [...completedCourses].sort((a, b) => {
-        // Handle date comparison separately
-        if (sortConfig.key === 'createdAt') {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
-        }
+    // const sortedCourses = [...completedCourses].sort((a, b) => {
+    //     if (sortConfig.key === 'createdAt') {
+    //         const dateA = new Date(a.createdAt).getTime();
+    //         const dateB = new Date(b.createdAt).getTime();
+    //         return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+    //     }
+    //
+    //     const valA = a[sortConfig.key];
+    //     const valB = b[sortConfig.key];
+    //
+    //     if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+    //     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+    //     return 0;
+    // });
 
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-            return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-            return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-    });
-
-    const filteredCourses = sortedCourses.filter((course) => {
-        return (
-            course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            course.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    });
+    // const filteredCourses = sortedCourses.filter((course) => {
+    //     return (
+    //         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //         course.name.toLowerCase().includes(searchTerm.toLowerCase())
+    //     );
+    // });
 
     type DayData = {
         day: string;
@@ -135,7 +143,7 @@ const Profile = () => {
                         />
                         <h2 className="text-2xl font-bold text-text-color mb-4">@{profileData.username}</h2>
                         <div className="flex items-center justify-center w-full mb-4 text-text-color">
-                            <h2 className="text-2xl font-bold">Bui Nguyen Hai Ngan</h2>
+                            <h2 className="text-2xl font-bold">{profileData.firstName} {profileData.lastName}</h2>
                             <PencilIcon className="w-6 ml-2 "/>
                         </div>
                         <div className="w-full p-2 text-text-color ">
@@ -219,12 +227,12 @@ const Profile = () => {
                             <input
                                 type="text"
                                 placeholder="Search courses..."
-                                className="w-full pl-4 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-background-color"
+                                className="w-full pl-4 pr-10 py-2 border-2 rounded-lg focus:outline-none focus:border-text-color"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <svg
-                                className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
+                                className="absolute right-3 top-2.5 h-5 w-5 text-text-color"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -301,36 +309,36 @@ const Profile = () => {
                                 </th>
                             </tr>
                             </thead>
-                            <tbody>
-                            {filteredCourses.length > 0 ? (
-                                filteredCourses.map((course, index) => (
-                                    <tr key={course.id} className="bg-white border-b hover:bg-gray-50 text-black">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {index + 1}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {course.code}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {course.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {new Date(course.createdAt).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr className="bg-white border-b hover:bg-gray-50">
-                                    <td colSpan={4} className="px-6 py-4 text-center">
-                                        No courses found
-                                    </td>
-                                </tr>
-                            )}
-                            </tbody>
+                            {/*<tbody>*/}
+                            {/*{filteredCourses.length > 0 ? (*/}
+                            {/*    filteredCourses.map((course, index) => (*/}
+                            {/*        <tr key={course.id} className="bg-white border-b hover:bg-gray-50 text-black">*/}
+                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
+                            {/*                {index + 1}*/}
+                            {/*            </td>*/}
+                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
+                            {/*                {course.code}*/}
+                            {/*            </td>*/}
+                            {/*            <td className="px-6 py-4">*/}
+                            {/*                {course.name}*/}
+                            {/*            </td>*/}
+                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
+                            {/*                {new Date(course.createdAt).toLocaleDateString('en-US', {*/}
+                            {/*                    year: 'numeric',*/}
+                            {/*                    month: 'short',*/}
+                            {/*                    day: 'numeric'*/}
+                            {/*                })}*/}
+                            {/*            </td>*/}
+                            {/*        </tr>*/}
+                            {/*    ))*/}
+                            {/*) : (*/}
+                            {/*    <tr className="bg-white border-b hover:bg-gray-50">*/}
+                            {/*        <td colSpan={4} className="px-6 py-4 text-center">*/}
+                            {/*            No courses found*/}
+                            {/*        </td>*/}
+                            {/*    </tr>*/}
+                            {/*)}*/}
+                            {/*</tbody>*/}
                         </table>
                     </div>
                 </div>

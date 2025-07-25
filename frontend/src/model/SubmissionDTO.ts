@@ -1,8 +1,9 @@
 export interface SubmissionDTO {
-    id: number;
-    exercise_id: number;
-    student_id: number;
-    submission: string;
-    score: number;
-    submitted_at: Date | string;
+    id?: number;
+    exerciseId: number;
+    userId?: number;
+    answer?: string | null;
+    submittedAt?: Date | string;
+    selectedOptionId?: number | null;
+    score?: number;
 }

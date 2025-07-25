@@ -1,11 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import {SubmissionDTO} from "../../model/SubmissionDTO";
 
-interface SubmitAnswerRequest {
-    exerciseId: number;
-    userId: number;
-    text: string;
-    optionId: number;
-}
 
 export const submissionService = createApi({
     reducerPath: 'submissionService',
@@ -20,11 +15,20 @@ export const submissionService = createApi({
     }),
     tagTypes: ['submission'],
     endpoints: (builder) => ({
-        submitAnswer: builder.mutation<number, SubmitAnswerRequest>({
-            query: (body) => ({
+        submitAnswer: builder.mutation<SubmissionDTO, SubmissionDTO>({
+            query: (submit) => ({
                 url: `/submissions/submit`,
                 method: 'POST',
-                body,
+                body: submit,
+            }),
+            invalidatesTags: ['submission'],
+        }),
+
+        submitByLesson: builder.mutation<SubmissionDTO[], SubmissionDTO[]>({
+            query: (submit) => ({
+                url: `/submissions/submit-all`,
+                method: 'POST',
+                body: submit,
             }),
             invalidatesTags: ['submission'],
         }),
@@ -33,4 +37,5 @@ export const submissionService = createApi({
 
 export const {
     useSubmitAnswerMutation,
+    useSubmitByLessonMutation
 } = submissionService;

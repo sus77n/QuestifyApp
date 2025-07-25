@@ -1,56 +1,69 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigate, useParams} from "react-router-dom";
+import { useParams} from "react-router-dom";
 import {ChevronDownIcon, ChevronUpIcon, XCircleIcon} from "@heroicons/react/24/outline";
 import {useGetExerciseOptionsQuery} from "../../API/service/exercise.service";
 import {OptionDTO} from "../../model/OptionDTO";
 import {ExerciseDTO} from "../../model/ExerciseDTO";
-import {useGetChaptersByCourseQuery, useGetCourseByIdQuery} from "../../API/service/course.service";
-import {LessonDTO} from "../../model/LessonDTO";
 import {MyButton} from "../material/material";
 import {useSubmitAnswerMutation} from "../../API/service/submission.service";
+import {useGetLearningUnitByIdQuery, useLazyGetLearningUnitByIdQuery} from "../../API/service/learningUnit.service";
+import {LearningUnitDTO} from "../../model/LearningUnitDTO";
+import {LearningUnitChildDto} from "../../model/LearningUnitChildDto";
+import {useGetCurrentUserQuery} from "../../API/service/user.service";
 
 const Topic = () => {
     const {courseId} = useParams();
-    const navigate = useNavigate();
-    const [selectedLesson, setSelectedLesson] = useState<LessonDTO | null>(null);
+    const [selectedLesson, setSelectedLesson] = useState<LearningUnitDTO | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
 
-    const {data: course, isLoading: isLoadingCourse} = useGetCourseByIdQuery(Number(courseId), {
+
+    const {data: course, isLoading: isLoadingCourse} = useGetLearningUnitByIdQuery(Number(courseId), {
         skip: !courseId,
     });
 
-    const {data: chapters = [], isLoading, isError} = useGetChaptersByCourseQuery(Number(courseId), {
-        skip: !courseId,
-    });
+    const chapters = course?.childUnits || [];
+    const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
 
 
     useEffect(() => {
-        if (chapters.length > 0) {
-            const firstChapter = chapters[0];
-            if (firstChapter.lessons?.length > 0) {
-                const firstLesson = firstChapter.lessons[0];
-                setSelectedLesson(firstLesson);
-                if (firstLesson.exercises?.length > 0) {
-                    setSelectedExercise(firstLesson.exercises[0]);
-                } else {
-                    console.log("No exercises in first lesson");
+        const loadFirstUnit = async () => {
+            if (chapters.length > 0) {
+                const firstChapter = chapters[0];
+                const res = await fetchUnit(firstChapter.id);
+                if (res.data) {
+                    setSelectedLesson(res.data);
+                    if (res.data.exercises?.length) {
+                        setSelectedExercise(res.data.exercises[0]);
+                    }
                 }
             }
-        }
+        };
+        loadFirstUnit();
     }, [chapters]);
 
-    const handleLessonClick = (lesson: LessonDTO) => {
-        setSelectedLesson(lesson);
-        setSelectedExercise(lesson.exercises?.length > 0 ? lesson.exercises[0] : null);
-    };
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-
-    if (isError) {
-        return <div>Error loading chapters</div>;
-    }
+    // const [currentChildren, setCurrentChildren] = useState<LearningUnitChildDto[]>([]);
+    //
+    // const handleLessonClick = async (unitDto: LearningUnitChildDto) => {
+    //     const res = await fetchUnit(unitDto.id);
+    //     const fullUnit = res.data;
+    //
+    //     if (!fullUnit) return;
+    //
+    //     setSelectedLesson(fullUnit);
+    //
+    //     if (fullUnit.exercises?.length) {
+    //         setSelectedExercise(fullUnit.exercises[0]);
+    //         setCurrentChildren([]);
+    //     } else if (fullUnit.childUnits?.length) {
+    //         setCurrentChildren(fullUnit.childUnits);
+    //         setSelectedExercise(null);
+    //     } else {
+    //         // Leaf node, no exercises or children
+    //         setCurrentChildren([]);
+    //         setSelectedExercise(null);
+    //     }
+    // };
 
     return (
         <div className="h-screen flex bg-light-background">
@@ -67,7 +80,7 @@ const Topic = () => {
                         )}
                     </div>
                     <button
-                        onClick={() => navigate('/my-courses')}
+                        onClick={() => window.location.href = '/my-courses'}
                         className="mb-4 p-1 rounded-full transition-all duration-200 hover:bg-red-50 hover:shadow-sm"
                     >
                         <XCircleIcon
@@ -76,47 +89,61 @@ const Topic = () => {
                 </div>
                 <div
                     className="mt-3 overflow-y-auto flex-1 overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    {chapters.map((topic, i) => (
-                        <TopicCardDropdown key={topic.id} index={i + 1} name={topic.title}>
-                            {topic.lessons
-                                .map((lesson, i) => (
-                                    <LessonCard
-                                        key={lesson.id}
-                                        index={i + 1}
-                                        name={lesson.title}
-                                        isSelected={selectedLesson?.id === lesson.id}
-                                        onClick={() => handleLessonClick(lesson)}
-                                    >
-                                    </LessonCard>
-                                ))}
-                        </TopicCardDropdown>
+                    {chapters.map((topic: LearningUnitChildDto, i) => (
+                        <TopicCardDropdown
+                            key={topic.id}
+                            index={i + 1}
+                            name={topic.name}
+                            childrenId={topic.id}
+                            selectedLessonId={selectedLesson?.id ?? null}
+                            onLessonClick={async (lessonId: number) => {
+                                const res = await fetchUnit(lessonId);
+                                if (res.data) {
+                                    setSelectedLesson(res.data);
+                                    if (res.data.exercises?.length) {
+                                        setSelectedExercise(res.data.exercises[0]);
+                                    } else {
+                                        setSelectedExercise(null);
+                                    }
+                                }
+                            }}
+                        />
                     ))}
                 </div>
             </div>
             <div className="m-[8px] ml-1 h-[98vh] w-[70vw] flex flex-col ">
                 {selectedLesson ? (
-                    <div className="h-[10vh] mb-2 bg-white rounded-xl flex">
-                        {selectedLesson.exercises.map((exe, i) => (
-                            <IndexExerciseButton
-                                key={exe.id}
-                                index={i + 1}
-                                isDone={false}
-                                isActive={selectedExercise?.id === exe.id}
-                                onClick={() => setSelectedExercise(exe)}
-                            />
-                        ))}
-                    </div>
+                    selectedLesson.exercises && selectedLesson.exercises.length > 0 ? (
+                        <>
+                            {/* Top bar with exercise index buttons */}
+                            <div className="mb-2 bg-white rounded-xl flex">
+                                {selectedLesson.exercises.map((exe, i) => (
+                                    <IndexExerciseButton
+                                        key={exe.id}
+                                        index={i + 1}
+                                        isDone={false} // You can customize this later
+                                        isActive={selectedExercise?.id === exe.id}
+                                        onClick={() => setSelectedExercise(exe)}
+                                    />
+                                ))}
+                            </div>
+
+                        </>
+                    ) : (
+                        <div className="mb-2 h-[70px] bg-white items-center justify-center rounded-xl flex">
+                            <p className="text-sm text-gray-500">Select a lesson to begin</p>
+                        </div>
+                    )
                 ) : (
                     <div className="flex-1 flex items-center justify-center bg-white rounded-xl">
-                        <div className="text-xl text-gray-500">
-                            Select a lesson to begin
-                        </div>
+                        <p className="text-xl text-gray-500">Select a lesson</p>
                     </div>
                 )}
+
                 <div className="h-[90vh] bg-white rounded-xl">
                     {selectedLesson ? (
                         selectedExercise ? (
-                            <ExerciseCard exercise={selectedExercise}/>
+                            <ExerciseCard key={selectedExercise?.id} exercise={selectedExercise} />
                         ) : (
                             <div className="h-full flex items-center justify-center">
                                 <p className="text-gray-500">
@@ -140,38 +167,67 @@ export default Topic;
 const TopicCardDropdown = ({
                                index,
                                name,
-                               children,
+                               childrenId,
+                               onLessonClick,
+                               selectedLessonId,
                            }: {
     index: number;
     name: string;
-    children: React.ReactNode;
+    childrenId: number;
+    onLessonClick: (lessonId: number) => void;
+    selectedLessonId: number | null;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [lessons, setLessons] = useState<LearningUnitChildDto[]>([]);
+    const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
+
+    const handleToggle = async () => {
+        setIsOpen(!isOpen);
+
+        // only fetch if not already fetched
+        if (!lessons.length && !isOpen) {
+            const res = await fetchUnit(childrenId);
+            if (res.data?.childUnits?.length) {
+                setLessons(res.data.childUnits);
+            }
+        }
+    };
 
     return (
         <div className="bg-white rounded-xl border-2 border-text-color mb-2">
             <div
-                className="flex justify-between items-center p-3 rounded-xl cursor-pointer "
-                onClick={() => setIsOpen(!isOpen)}
+                className="flex justify-between items-center p-3 rounded-xl cursor-pointer"
+                onClick={handleToggle}
             >
-                <div className="flex items-center">
-                    <h3 className="font-medium text-text-color">Chapter {index} : {name}</h3>
-                </div>
+                <h3 className="font-medium text-text-color">Chapter {index} : {name}</h3>
                 {isOpen ? (
-                    <ChevronUpIcon className="w-5 h-5 text-gray-500 transition-transform"/>
+                    <ChevronUpIcon className="w-5 h-5 text-gray-500 transition-transform" />
                 ) : (
-                    <ChevronDownIcon className="w-5 h-5 text-gray-500 transition-transform"/>
+                    <ChevronDownIcon className="w-5 h-5 text-gray-500 transition-transform" />
                 )}
             </div>
 
-            <div className={`px-4 pb-4 ${isOpen ? 'block' : 'hidden'}`}>
-                <div className="pt-2 border-t-2 border-text-color">
-                    {children}
+            {isOpen && (
+                <div className="px-4 pb-4 pt-2 border-t-2 border-text-color">
+                    {lessons.length > 0 ? (
+                        lessons.map((lesson, i) => (
+                            <LessonCard
+                                key={lesson.id}
+                                index={i + 1}
+                                name={lesson.name}
+                                isSelected={selectedLessonId === lesson.id}
+                                onClick={() => onLessonClick(lesson.id)}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-sm text-gray-500">No lessons found</p>
+                    )}
                 </div>
-            </div>
+            )}
         </div>
     );
-}
+};
+
 
 const LessonCard = ({
                         index,
@@ -240,6 +296,14 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
         return <div>No exercise data available</div>;
     }
 
+    useEffect(() => {
+        setSelectedOption(null);
+        setConstructedResponse('');
+        setIsSubmitted(false);
+        setIsCorrect(false);
+        setIsLoadingSubmit(false);
+    }, [exercise?.id]);
+
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [constructedResponse, setConstructedResponse] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -253,15 +317,16 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
                 data: data as OptionDTO[] | undefined,
                 ...rest,
             }),
-            skip: exercise.type !== 'Multiple-choice'
+            skip: exercise.type !== 'Multiple Choice'
         }
     );
 
     const [submitAnswer] = useSubmitAnswerMutation();
+    const {data: currentUser} = useGetCurrentUserQuery();
+
 
     const handleSubmit = async () => {
         if (isSubmitted) {
-            // Reset the exercise
             setSelectedOption(null);
             setConstructedResponse('');
             setIsSubmitted(false);
@@ -272,29 +337,26 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
         setIsLoadingSubmit(true);
         try {
             let response;
-
-            if (exercise.type === 'Multiple-choice') {
+            if (exercise?.type === 'Multiple Choice') {
                 if (selectedOption === null) return;
                 response = await submitAnswer({
                     exerciseId: exercise.id,
-                    optionId: selectedOption,
-                    userId: 20, // Replace with actual user ID from your auth system
-                    text: '' // Empty for multiple-choice
+                    selectedOptionId: selectedOption,
+                    userId: currentUser?.id,
+                    answer: '',
                 }).unwrap();
             } else {
                 if (!constructedResponse.trim()) return;
                 response = await submitAnswer({
                     exerciseId: exercise.id,
-                    optionId: 0, // 0 or null for constructed response
-                    userId: 1, // Replace with actual user ID from your auth system
-                    text: constructedResponse
+                    selectedOptionId: 0,
+                    userId: currentUser?.id,
+                    answer: constructedResponse,
                 }).unwrap();
             }
 
-            // Assuming the response is the submission ID (as per your service)
-            // You might need to adjust this based on your actual API response
-            // If your backend returns more details, you can update the state accordingly
-            setIsCorrect(true); // You might need to get this from the actual response
+            // Safely check if `response` and `response.score` exist
+            setIsCorrect(response?.score !== undefined && response.score > 50);
             setIsSubmitted(true);
         } catch (error) {
             console.error('Error submitting answer:', error);
@@ -305,22 +367,22 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
         }
     };
 
-    const isSubmitDisabled = exercise.type === 'Multiple-choice'
+    const isSubmitDisabled = exercise.type === 'Multiple Choice'
         ? selectedOption === null
         : !constructedResponse.trim();
 
-    if (isLoading && exercise.type === 'Multiple-choice') {
+    if (isLoading && exercise.type === 'Multiple Choice') {
         return <div>Loading options...</div>;
     }
-    if (isError && exercise.type === 'Multiple-choice') {
+    if (isError && exercise.type === 'Multiple Choice') {
         return <div>Error loading options</div>;
     }
 
     return (
-        <div className="p-6 border border-gray-200 rounded-lg shadow-sm">
+        <div className="p-6 rounded-lg">
             <h3 className="font-medium text-xl mb-4 text-gray-800">{exercise.question}</h3>
 
-            {exercise.type === 'Multiple-choice' ? (
+            {exercise.type === 'Multiple Choice' ? (
                 <div className="space-y-3 mb-6">
                     {options.map((option) => (
                         <div key={option.id} className="flex items-center">
@@ -350,11 +412,16 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
                                     ${selectedOption === option.id ? 'font-medium text-text-color' : ''}
                                     ${isSubmitted && selectedOption === option.id && isCorrect ? 'text-green-700' : ''}
                                     ${isSubmitted && selectedOption === option.id && !isCorrect ? 'text-red-700' : ''}`}>
-                                    {option.content}
+                                    {option.text}
                                 </span>
                             </label>
                         </div>
                     ))}
+                    {isSubmitted && (
+                        <div className={`mt-3 p-3 rounded-lg ${isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            {isCorrect ? 'Correct!' : 'Incorrect. Try again!'}
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="mb-6">
@@ -377,7 +444,7 @@ export const ExerciseCard = ({ exercise }: { exercise?: ExerciseDTO }) => {
             <MyButton
                 onClick={handleSubmit}
                 disabled={(!isSubmitted && isSubmitDisabled) || isLoadingSubmit}
-                isLoading={isLoadingSubmit}
+                // isLoading={isLoadingSubmit}
             >
                 {isSubmitted ? 'Try Again' : 'Submit'}
             </MyButton>
