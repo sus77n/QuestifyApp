@@ -9,10 +9,10 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>questifyapp</artifactId>
+	<artifactId>iquiz</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>QuestifyApp</name>
+	<name>IQuiz</name>
 	<description>WebApp for teacher evaluate students more currency by exercises and AI </description>
 	<url/>
 	<licenses>
