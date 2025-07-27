@@ -1,10 +1,16 @@
 import React, {useEffect, useState} from "react";
 import { PencilIcon } from "@heroicons/react/24/solid";
-import { useGetCurrentUserQuery } from "../../API/service/user.service";
+import {useEditUserMutation} from "../../API/service/user.service";
 import {  CartesianGrid, Line, LineChart,Tooltip, XAxis, YAxis} from "recharts";
 import {Spinner} from "../material/material";
 import {HandThumbUpIcon} from "@heroicons/react/16/solid";
 import {CourseDTO} from "../../model/LearningUnitDTO";
+import {
+    useGetAllCompletedCoursesByUserIdQuery,
+    useGetAllIncompletedCoursesByUserIdQuery
+} from "../../API/service/learningUnit.service";
+import {toast} from "react-toastify";
+import {useGetCurrentUserQuery} from "../../API/service/auth.service";
 
 type SortKey = keyof CourseDTO; // 'id' | 'code' | 'name' | 'createdAt'
 
@@ -14,7 +20,21 @@ type SortConfig = {
 };
 
 const Profile = () => {
-    const { data: user, isLoading: isLoadingUser } = useGetCurrentUserQuery();
+    const { data: user, isLoading: isLoadingUser, refetch } = useGetCurrentUserQuery();
+    const {data: completedCourses} = useGetAllCompletedCoursesByUserIdQuery(
+        user?.id || 0,
+        {
+            skip: !user?.id,
+        }
+    );
+
+    const userId = user?.id || 0;
+
+    const { data: ongoingCourses } =
+        useGetAllIncompletedCoursesByUserIdQuery(userId, {
+            skip: !userId,
+        });
+    ;
 
     const profileData = {
         username: user?.username,
@@ -22,22 +42,42 @@ const Profile = () => {
         joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleString('default', { month: 'long', year: 'numeric' }) : '',
         firstName : user?.firstName || null,
         lastName : user?.lastName || null,
-        completedCourses: 5, // Example data, replace with real data if available
-        ongoingCourses: 2 // Example data, replace with real data if available
+        completedCourses: completedCourses?.length  || 0,
+        ongoingCourses: ongoingCourses?.length || 0
     };
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+
+    useEffect(() => {
+        if (user) {
+            setFirstName(user.firstName ?? "");
+            setLastName(user.lastName ?? "");
+        }
+    }, [user]);
+
+    const [editUser] = useEditUserMutation();
+
+    const handleSave = async () => {
+        try {
+            await editUser({ firstName, lastName }).unwrap();
+            toast.success("Saved successfully!");
+            setIsEditing(false);
+            refetch();
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to update name');
+        }
+    };
+
+
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>({
         key: 'name',
         direction: 'asc',
     });
-
-    const [completedCourses] = useState([
-        { id: 1, code: 'CS101', name: 'Introduction to Programming', createdAt: '2023-05-15' },
-        { id: 2, code: 'MATH201', name: 'Advanced Calculus', createdAt: '2023-03-10' },
-        { id: 3, code: 'ENG101', name: 'English Composition', createdAt: '2023-06-22' },
-        { id: 4, code: 'PHYS101', name: 'Physics Fundamentals', createdAt: '2023-04-18' },
-    ]);
 
     const requestSort = (key: SortKey) => {
         let direction: 'asc' | 'desc' = 'asc';
@@ -47,27 +87,24 @@ const Profile = () => {
         setSortConfig({ key, direction });
     };
 
-    // const sortedCourses = [...completedCourses].sort((a, b) => {
-    //     if (sortConfig.key === 'createdAt') {
-    //         const dateA = new Date(a.createdAt).getTime();
-    //         const dateB = new Date(b.createdAt).getTime();
-    //         return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
-    //     }
-    //
-    //     const valA = a[sortConfig.key];
-    //     const valB = b[sortConfig.key];
-    //
-    //     if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-    //     if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-    //     return 0;
-    // });
+    const sortedCourses = [...(completedCourses ?? [])].sort((a, b) => {
+        const valA = a[sortConfig.key];
+        const valB = b[sortConfig.key];
 
-    // const filteredCourses = sortedCourses.filter((course) => {
-    //     return (
-    //         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    //         course.name.toLowerCase().includes(searchTerm.toLowerCase())
-    //     );
-    // });
+        if (valA == null) return 1;
+        if (valB == null) return -1;
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const filteredCourses = sortedCourses.filter((course) => {
+        return (
+            course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    });
 
     type DayData = {
         day: string;
@@ -142,11 +179,55 @@ const Profile = () => {
                             alt="Profile avatar"
                         />
                         <h2 className="text-2xl font-bold text-text-color mb-4">@{profileData.username}</h2>
-                        <div className="flex items-center justify-center w-full mb-4 text-text-color">
-                            <h2 className="text-2xl font-bold">{profileData.firstName} {profileData.lastName}</h2>
-                            <PencilIcon className="w-6 ml-2 "/>
-                        </div>
-                        <div className="w-full p-2 text-text-color ">
+                            <div className="flex items-center justify-center w-full mb-4 text-text-color text-sm">
+                                {isEditing ? (
+                                    <div>
+                                        <div>
+                                            <input
+                                                className="border p-1 mr-2 rounded w-44"
+                                                value={firstName}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                            />
+                                            <input
+                                                className="border p-1 mr-2 rounded w-44"
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex justify-end mt-2 mr-2">
+                                            <button
+                                                className="text-sm text-green-600 font-semibold mr-2"
+                                                onClick={handleSave}
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                className="text-sm text-gray-600"
+                                                onClick={() => {
+                                                    setIsEditing(false);
+                                                    setFirstName(profileData.firstName ?? "");
+                                                    setLastName(profileData.lastName ?? "");
+                                                }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-2xl font-bold">
+                                            {profileData.lastName} {profileData.firstName}
+                                        </h2>
+                                        <PencilIcon
+                                            className="w-6 ml-2 cursor-pointer"
+                                            onClick={() => setIsEditing(true)}
+                                        />
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="w-full p-2 text-text-color ">
                             <div className="flex justify-between mb-3">
                                 <span>Email</span>
                                 <span >{profileData.email}</span>
@@ -219,7 +300,7 @@ const Profile = () => {
                         <div>
                             <div className="flex items-center space-x-2">
                                 {/*<h3 className="text-xl font-semibold text-text-color">Completed Courses</h3>*/}
-                                <h3 className="text-[20px] text-text-color">Congratulation !! You completed {completedCourses.length} courses</h3>
+                                <h3 className="text-[20px] text-text-color">Congratulation !! You completed {completedCourses?.length} courses</h3>
                                 <HandThumbUpIcon className="h-5 w-5 text-text-color"/>
                             </div>
                         </div>
@@ -283,62 +364,62 @@ const Profile = () => {
                                                 fill="currentColor"
                                                 viewBox="0 0 24 24"
                                             >
-                                                <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
+                                                <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1. 086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
                                             </svg>
                                         </button>
                                     </div>
                                 </th>
-                                <th scope="col" className="px-6 py-3">
-                                    <div className="flex items-center">
-                                        Completed Date
-                                        <button
-                                            onClick={() => requestSort('createdAt')}
-                                            aria-label="Sort by completion date"
-                                        >
-                                            <svg
-                                                className={`w-3 h-3 ms-1.5 ${sortConfig.key === 'createdAt' ? 'text-gray-700' : 'text-gray-400'}`}
-                                                aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </th>
+                                {/*<th scope="col" className="px-6 py-3">*/}
+                                {/*    <div className="flex items-center">*/}
+                                {/*        Completed Date*/}
+                                {/*        <button*/}
+                                {/*            onClick={() => requestSort('createdAt')}*/}
+                                {/*            aria-label="Sort by completion date"*/}
+                                {/*        >*/}
+                                {/*            <svg*/}
+                                {/*                className={`w-3 h-3 ms-1.5 ${sortConfig.key === 'createdAt' ? 'text-gray-700' : 'text-gray-400'}`}*/}
+                                {/*                aria-hidden="true"*/}
+                                {/*                xmlns="http://www.w3.org/2000/svg"*/}
+                                {/*                fill="currentColor"*/}
+                                {/*                viewBox="0 0 24 24"*/}
+                                {/*            >*/}
+                                {/*                <path d="M8.574 11.024h6.852a2.075 2.075 0 0 0 1.847-1.086 1.9 1.9 0 0 0-.11-1.986L13.736 2.9a2.122 2.122 0 0 0-3.472 0L6.837 7.952a1.9 1.9 0 0 0-.11 1.986 2.074 2.074 0 0 0 1.847 1.086Zm6.852 1.952H8.574a2.072 2.072 0 0 0-1.847 1.087 1.9 1.9 0 0 0 .11 1.985l3.426 5.05a2.123 2.123 0 0 0 3.472 0l3.427-5.05a1.9 1.9 0 0 0 .11-1.985 2.074 2.074 0 0 0-1.846-1.087Z"/>*/}
+                                {/*            </svg>*/}
+                                {/*        </button>*/}
+                                {/*    </div>*/}
+                                {/*</th>*/}
                             </tr>
                             </thead>
-                            {/*<tbody>*/}
-                            {/*{filteredCourses.length > 0 ? (*/}
-                            {/*    filteredCourses.map((course, index) => (*/}
-                            {/*        <tr key={course.id} className="bg-white border-b hover:bg-gray-50 text-black">*/}
-                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
-                            {/*                {index + 1}*/}
-                            {/*            </td>*/}
-                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
-                            {/*                {course.code}*/}
-                            {/*            </td>*/}
-                            {/*            <td className="px-6 py-4">*/}
-                            {/*                {course.name}*/}
-                            {/*            </td>*/}
-                            {/*            <td className="px-6 py-4 whitespace-nowrap">*/}
-                            {/*                {new Date(course.createdAt).toLocaleDateString('en-US', {*/}
-                            {/*                    year: 'numeric',*/}
-                            {/*                    month: 'short',*/}
-                            {/*                    day: 'numeric'*/}
-                            {/*                })}*/}
-                            {/*            </td>*/}
-                            {/*        </tr>*/}
-                            {/*    ))*/}
-                            {/*) : (*/}
-                            {/*    <tr className="bg-white border-b hover:bg-gray-50">*/}
-                            {/*        <td colSpan={4} className="px-6 py-4 text-center">*/}
-                            {/*            No courses found*/}
-                            {/*        </td>*/}
-                            {/*    </tr>*/}
-                            {/*)}*/}
-                            {/*</tbody>*/}
+                            <tbody>
+                            {filteredCourses.length > 0 ? (
+                                filteredCourses.map((course, index) => (
+                                    <tr key={course.id} className="bg-white border-b hover:bg-gray-50 text-black">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {index + 1}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {course.code}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {course.name}
+                                        </td>
+                                        {/*<td className="px-6 py-4 whitespace-nowrap">*/}
+                                        {/*    {new Date(course.createdAt).toLocaleDateString('en-US', {*/}
+                                        {/*        year: 'numeric',*/}
+                                        {/*        month: 'short',*/}
+                                        {/*        day: 'numeric'*/}
+                                        {/*    })}*/}
+                                        {/*</td>*/}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr className="bg-white border-b hover:bg-gray-50">
+                                    <td colSpan={4} className="px-6 py-4 text-center">
+                                        No courses found
+                                    </td>
+                                </tr>
+                            )}
+                            </tbody>
                         </table>
                     </div>
                 </div>

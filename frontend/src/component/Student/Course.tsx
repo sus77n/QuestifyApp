@@ -1,4 +1,7 @@
-import React, { useState} from "react";
+import React, { useState } from 'react';
+// import { gsap } from 'gsap';
+// import { ScrollTrigger } from 'gsap/ScrollTrigger';
+// import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import {ChevronRightIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {useNavigate} from "react-router-dom";
 import {Spinner} from "../material/material";
@@ -83,24 +86,24 @@ const Course = () => {
                             <div className="flex">
                                 <img
                                     src={`/img/ava${(selectedCourse?.index % 3 + 1)}.png`}
-                                    className="w-40 h-40 rounded-xl object-cover mb-6 shadow-md"
+                                    className="w-44 h-44 rounded-xl object-cover mb-6 shadow-md"
                                     alt="Course avatar"
                                 />
-                                <div className="ml-8 w-[80%]">
-                                    <p className="text-gray-400 font-semibold text-xl mb-2">
+                                <div className="ml-8 w-[70%]">
+                                    <p className="text-gray-400 font-semibold text-xl mb-1">
                                         {selectedCourse.code}
                                     </p>
-                                    <h2 className="text-[30px] font-bold text-gray-900 mb-2">
+                                    <h2 className="text-[30px] font-bold text-gray-900 h-24">
                                         {selectedCourse.name}
                                     </h2>
-                                    <p className="text-gray-400 text-md mt-5">
+                                    <p className="text-gray-400 text-md ">
                                         Total of exercises: {selectedCourse.numberOfExercise}
                                     </p>
-                                    <p className="text-gray-400 text-md mt-2">
+                                    <p className="text-gray-400 text-md">
                                         Created by: {(selectedCourse.createdBy?.firstName || "") + " " + (selectedCourse.createdBy?.lastName || "")}
                                     </p>
                                 </div>
-                                <div className="flex pt-14 absolute justify-end right-10">
+                                <div className="flex pt-14 absolute justify-end right-6">
                                     <button
                                         className="bg-text-color text-white rounded-xl px-12 py-4 text-xl font-bold
               border-2 border-text-color transition-colors duration-300
@@ -120,6 +123,8 @@ const Course = () => {
                     </div>
                     <div>
                         <h1 className="text-[20px] text-gray-900 font-bold mb-4">Content</h1>
+                        {/*    Content start*/}
+
                         <div className="flex flex-wrap justify-between w-full">
                             {chapters && chapters.map((chapter: LearningUnitChildDto, index: number) => (
                                 <CardChapter
@@ -130,6 +135,7 @@ const Course = () => {
                                 />
                             ))}
                         </div>
+                        {/*<TimelineChapters chapters={chapters || []}/>*/}
                     </div>
                     </div>
                     ) : (
@@ -203,3 +209,63 @@ const CardChapter = ({
         </div>
     )
 }
+//
+// gsap.registerPlugin(ScrollTrigger);
+//
+// type Chapter = {
+//     id: number;
+//     name: string;
+//     numberOfExercise: number;
+// };
+//
+// type Props = {
+//     chapters: Chapter[];
+// };
+//
+// const TimelineChapters: React.FC<Props> = ({ chapters }) => {
+//     const containerRef = useRef<HTMLDivElement>(null);
+//
+//     useEffect(() => {
+//         gsap.utils.toArray('.chapter-card').forEach((card, i) => {
+//             gsap.fromTo(
+//                 card,
+//                 { x: i % 2 === 0 ? -50 : 50, opacity: 0 },
+//                 {
+//                     x: 0,
+//                     opacity: 1,
+//                     duration: 1,
+//                     ease: 'power2.out',
+//                     scrollTrigger: {
+//                         trigger: card as Element,
+//                         start: 'top 90%',
+//                         toggleActions: 'play none none none',
+//                     },
+//                 }
+//             );
+//         });
+//     }, [chapters]);
+//
+//     return (
+//         <div ref={containerRef} className="relative mx-auto w-full max-w-5xl px-4 py-12">
+//             <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-300" />
+//             <div className="grid grid-cols-3 gap-10">
+//                 {chapters.map((chapter, index) => (
+//                     <div
+//                         key={chapter.id}
+//                         className="chapter-card relative flex flex-col items-center text-center bg-white shadow-xl rounded-2xl p-4 h-[220px] w-[200px] mx-auto border border-gray-100"
+//                     >
+//                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+//                             <div className="w-4 h-4 bg-blue-500 rounded-full border-4 border-white shadow-lg" />
+//                         </div>
+//                         <div className="text-sm text-gray-400 mb-1">#{index + 1}</div>
+//                         <h3 className="text-lg font-semibold text-gray-800">{chapter.name}</h3>
+//                         <p className="text-sm text-gray-500 mt-2">Exercises: {chapter.numberOfExercise}</p>
+//                     </div>
+//                 ))}
+//             </div>
+//         </div>
+//     );
+// };
+
+
+

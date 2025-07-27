@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import {LoginDTO, LoginResponseDTO, SignupDTO} from "../../model/AuthDTO";
+import {UserDTO} from "../../model/UserDTO";
 
 
 export const authService = createApi({
@@ -22,14 +23,21 @@ export const authService = createApi({
                 body: credentials,
             }),
         }),
-        signup: builder.mutation<void, SignupDTO>({
+        signup: builder.mutation<string, SignupDTO>({
             query: (userData) => ({
                 url: '/auth/register',
                 method: 'POST',
                 body: userData,
+                responseHandler: (response) => response.text(),
+            }),
+        }),
+        getCurrentUser: builder.query<UserDTO, void>({
+            query: () => ({
+                url: '/auth/me',
+                method: 'GET',
             }),
         }),
     }),
 });
 
-export const { useLoginMutation, useSignupMutation } = authService;
+export const {useGetCurrentUserQuery, useLoginMutation, useSignupMutation } = authService;

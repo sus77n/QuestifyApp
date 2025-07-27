@@ -84,7 +84,7 @@ const Login = () => {
                                 <UserIcon
                                     className="absolute left-4 md:left-5 md:top-[119px] top-[34%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color"/>
                                 <PrimaryInput
-                                    placeholder="Email"
+                                    placeholder="Email or Username"
                                     w="w-[270px] md:w-[500px]"
                                     type="text"
                                     name="usernameOrEmail"

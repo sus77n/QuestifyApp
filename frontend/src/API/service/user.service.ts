@@ -14,13 +14,15 @@ export const userService = createApi({
         },
     }),
     endpoints: (builder) => ({
-        getCurrentUser: builder.query<UserDTO, void>({
-            query: () => ({
-                url: '/auth/user',
-                method: 'GET',
+
+        editUser: builder.mutation<UserDTO, Partial<UserDTO>>({
+            query: (userData) => ({
+                url: `/users/${userData.id}`,
+                method: 'PUT',
+                body: userData,
             }),
-        }),
+        })
     }),
 });
 
-export const { useGetCurrentUserQuery } = userService;
+export const { useEditUserMutation } = userService;
