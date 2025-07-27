@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PrimaryInput } from "../material/material";
+import {PrimaryInput, Spinner} from "../material/material";
 import { ChevronRightIcon, UserIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/solid';
 import { Link, useNavigate } from "react-router-dom";
 import { useSignupMutation } from '../../API/service/auth.service';
@@ -26,20 +26,18 @@ const Signup = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-
         try {
             const response = await signup(formData).unwrap();
-            toast.success('Account created successfully!', {
+            toast.success(response || 'Account created successfully!', {
                 autoClose: 2000,
                 onClose: () => navigate('/login')
             });
         } catch (error: any) {
-            const errorMessage = error?.data?.message || 'Signup failed. Please try again.';
-            toast.error(errorMessage, { autoClose: 3000 });
             console.error('Signup error:', error);
+            const errorMessage = error?.data || 'Signup failed. Please try again.';
+            toast.error(errorMessage, { autoClose: 3000 });
         }
     };
-
 
     return (
         <div className="relative flex flex-col h-screen w-full overflow-hidden">
@@ -101,18 +99,25 @@ const Signup = () => {
                                 />
                             </div>
 
-                            <button
-                                className="md:ml-[50px] ml-[65%] flex-shrink-0 mt-[20px]"
-                                style={{animation: 'bounceHorizontal 1s infinite'}}
-                                type="submit"
-                                disabled={isLoading}
-                            >
-                                <ChevronRightIcon
-                                    className={`w-12 h-12 md:w-20 md:h-20 text-background-color bg-text-color rounded-full p-2 ${
-                                        isLoading ? 'opacity-50' : ''
-                                    }`}
-                                />
-                            </button>
+                            {isLoading ? (
+                                <div className="md:ml-[50px] flex-shrink-0 mt-[100px] ml-[20px]">
+                                    <Spinner/>
+                                </div>
+                                ):(
+                                <button
+                                    className="md:ml-[50px] ml-[65%] flex-shrink-0 mt-[20px]"
+                                    style={{animation: 'bounceHorizontal 1s infinite'}}
+                                    type="submit"
+                                    disabled={isLoading}
+                                >
+                                    <ChevronRightIcon
+                                        className={`w-12 h-12 md:w-20 md:h-20 text-background-color bg-text-color rounded-full p-2 ${
+                                            isLoading ? 'opacity-50' : ''
+                                        }`}
+                                    />
+                                </button>
+                            )}
+
                         </div>
 
                         <div className="mt-[-40px] md:mt-8 flex flex-col md:flex-row md:justify-between md:w-[490px] gap-4">

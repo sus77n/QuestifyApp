@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from "./component/Login/Login";
 import Signup from "./component/Login/Signup";
 import HeroSection from "./component/HeroSection/HeroSection";
-import Topic from "./component/Student/Topic";
+import SubmitScreen from "./component/Student/SubmitScreen";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ProtectedRoute from "./component/ProtectedRoute";
@@ -33,7 +33,7 @@ function App() {
                     path="/topics/:courseId"
                     element={
                         <ProtectedRoute allowedRoles={['STUDENT']}>
-                            <Topic />
+                            <SubmitScreen />
                         </ProtectedRoute>
                     }
                 />
