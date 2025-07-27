@@ -42,17 +42,20 @@ public class SubmissionMapper {
             return null;
         }
 
-        return new Submission(
-                dto.id(),
-                exerciseRepository.findById(dto.exerciseId())
-                        .orElseThrow(() -> new EntityNotFoundException("Exercise with id: " + dto.exerciseId())),
-                userRepository.findById(dto.userId())
-                        .orElseThrow(() -> new EntityNotFoundException("User with id: " + dto.userId())),
-                dto.answer(),
-                dto.score(),
-                dto.submittedAt(),
-                optionRepository.findById(dto.selectedOptionId())
-                        .orElseThrow(() -> new EntityNotFoundException("Option with id: " + dto.selectedOptionId()))
-        );
+        Submission entity = new Submission();
+        entity.setId(dto.id());
+        entity.setExercise(exerciseRepository.findById(dto.exerciseId())
+                .orElseThrow(() -> new EntityNotFoundException("Exercise with id: " + dto.exerciseId())));
+        entity.setUser(userRepository.findById(dto.userId())
+                .orElseThrow(() -> new EntityNotFoundException("User with id: " + dto.userId())));
+        entity.setAnswer(dto.answer());
+        entity.setScore(dto.score());
+        entity.setSubmittedAt(dto.submittedAt());
+        if (dto.selectedOptionId() != null) {
+            entity.setSelectedOption(optionRepository.findById(dto.selectedOptionId())
+                    .orElseThrow(() -> new EntityNotFoundException("Option with id: " + dto.selectedOptionId())));
+        }
+
+        return entity;
     }
 }

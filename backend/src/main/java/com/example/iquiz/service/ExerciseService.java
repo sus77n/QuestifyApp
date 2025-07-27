@@ -72,4 +72,8 @@ public class ExerciseService {
     public void deleteExercise(Long exerciseId) {
         exerciseRepository.deleteById(exerciseId);
     }
+
+    public List<ExerciseResponseDto> getAllExercisesByUserId(Long userId) {
+        return null;
+    }
 }

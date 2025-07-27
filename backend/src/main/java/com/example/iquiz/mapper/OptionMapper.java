@@ -29,6 +29,7 @@ public class OptionMapper {
                 dto.id(),
                 dto.text(),
                 dto.isCorrect(),
+                dto.explanation(),
                 exerciseRepository.findById(dto.exerciseId())
                         .orElseThrow(() -> new EntityNotFoundException("Exercise with id: " + dto.exerciseId()))
         );

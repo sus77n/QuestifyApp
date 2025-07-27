@@ -27,7 +27,6 @@ public class Submission {
     private User user;
 
     @Lob
-    @Column(nullable = false)
     private String answer;
 
     @Column(nullable = false, precision = 5, scale = 2)

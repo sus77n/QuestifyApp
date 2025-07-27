@@ -8,7 +8,8 @@ import com.example.iquiz.mapper.SubmissionMapper;
 import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.OptionRepository;
 import com.example.iquiz.repository.SubmissionRepository;
-import com.example.iquiz.repository.UserRepository;
+import com.example.iquiz.utility.SubmissionUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +22,13 @@ public class SubmissionService {
     @Autowired
     private SubmissionRepository submissionRepository;
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
     private ExerciseRepository exerciseRepository;
     @Autowired
     private OptionRepository optionRepository;
     @Autowired
     private SubmissionMapper submissionMapper;
+    @Autowired
+    private SubmissionUtil submissionUtil;
 
     public SubmissionDto submit(SubmissionDto submissionDTO) {
 
@@ -44,11 +45,11 @@ public class SubmissionService {
             } else {
                 submission.setScore(BigDecimal.valueOf(0));
             }
-        } else  {
+        } else {
             if (exercise.getAnswer().contains(submissionDTO.answer())
-                    && (exercise.getAnswer().length()/2 <= submissionDTO.answer().length())) {
+                    && (exercise.getAnswer().length() / 2 <= submissionDTO.answer().length())) {
                 submission.setScore(BigDecimal.valueOf(100));
-            } else  {
+            } else {
                 submission.setScore(BigDecimal.valueOf(0));
             }
         }
@@ -57,38 +58,42 @@ public class SubmissionService {
         return submissionMapper.toDto(submission);
     }
 
+    @Transactional
     public Double submitAll(List<SubmissionDto> dtoList) {
-        List<Submission> submissions = new ArrayList<>();
-        BigDecimal score = BigDecimal.ZERO;
-
-        for (SubmissionDto submissionDTO : dtoList) {
-        Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId())
-                .orElseThrow(() -> new NullPointerException("exercise not found"));
-
-        Submission submission = submissionMapper.toEntity(submissionDTO);
-
-        if (submissionDTO.selectedOptionId() != 0) {
-            Option option = optionRepository.findById(submissionDTO.selectedOptionId()).orElse(null);
-            submission.setSelectedOption(option);
-            if (option.isCorrect()) {
-                submission.setScore(BigDecimal.valueOf(100));
-            } else {
-                submission.setScore(BigDecimal.valueOf(0));
-            }
-        } else  {
-            if (exercise.getAnswer().contains(submissionDTO.answer())
-                    && (exercise.getAnswer().length()/2 <= submissionDTO.answer().length())) {
-                submission.setScore(BigDecimal.valueOf(100));
-            } else  {
-                submission.setScore(BigDecimal.valueOf(0));
-            }
-        }
-        score.add(submission.getScore());
-        submissions.add(submission);
+        if (dtoList == null || dtoList.isEmpty()) {
+            return 0.0;
         }
 
-        submissionRepository.saveAll(submissions);
-        return score.doubleValue()/submissions.size();
+        try {
+            List<Submission> submissions = new ArrayList<>();
+            BigDecimal totalScore = BigDecimal.ZERO;
+
+            for (SubmissionDto submissionDTO : dtoList) {
+                Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId())
+                        .orElseThrow(() -> new RuntimeException("Exercise not found with id: " + submissionDTO.exerciseId()));
+
+                Option selectedOption = null;
+                if (submissionDTO.selectedOptionId() != null) {
+                    selectedOption = optionRepository.findById(submissionDTO.selectedOptionId())
+                            .orElseThrow(() -> new RuntimeException("Option not found with id: " + submissionDTO.selectedOptionId()));
+                }
+
+                Submission submission = submissionMapper.toEntity(submissionDTO);
+                submission.setSelectedOption(selectedOption);
+
+                BigDecimal submissionScore = submissionUtil.calculateScore(submissionDTO, exercise, selectedOption);
+                submission.setScore(submissionScore);
+                totalScore = totalScore.add(submissionScore);
+
+                submissions.add(submission);
+            }
+
+            submissionRepository.saveAll(submissions);
+            return submissionUtil.calculateAverageScore(totalScore, submissions.size());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing submissions: " + e.getMessage(), e);
+        }
     }
 
     public SubmissionDto getSubmissionByUserIdAndExerciseId(Long userId, Long exerciseId) {

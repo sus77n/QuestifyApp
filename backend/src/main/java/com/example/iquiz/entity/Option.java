@@ -26,6 +26,10 @@ public class Option {
     @Column(name = "is_correct", nullable = false)
     private boolean isCorrect;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String explanation;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     @JsonIgnore

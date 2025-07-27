@@ -20,11 +20,4 @@ public class SignupRequest {
     @Size(min = 8, max = 40, message = "Password must be 8-40 characters")
     private String password;
 
-    @Override
-    public String toString() {
-        return "SignupRequest{" +
-                "username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                '}';
-    }
 }

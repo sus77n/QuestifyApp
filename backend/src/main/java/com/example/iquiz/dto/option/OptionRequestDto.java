@@ -4,6 +4,7 @@ public record OptionRequestDto(
         Long id,
         String text,
         boolean isCorrect,
-        Long exerciseId
+        Long exerciseId,
+        String explanation
 ) {
 }

@@ -15,4 +15,5 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
     @Override
     <S extends Exercise> List<S> findAll(Example<S> example);
 
+
 }

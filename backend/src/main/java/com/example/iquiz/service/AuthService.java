@@ -1,53 +1,118 @@
 package com.example.iquiz.service;
 
+import com.example.iquiz.dto.AuthRequest;
+import com.example.iquiz.dto.AuthResponse;
 import com.example.iquiz.dto.SignupRequest;
+import com.example.iquiz.dto.UserDto;
 import com.example.iquiz.entity.User;
 import com.example.iquiz.enums.UserRole;
+import com.example.iquiz.exception.UserAlreadyExistsException;
+import com.example.iquiz.mapper.UserMapper;
 import com.example.iquiz.repository.UserRepository;
-import org.springframework.http.ResponseEntity;
+import com.example.iquiz.utility.JwtUtils;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import com.example.iquiz.security.UserDetailsImpl;
+
+import java.time.Instant;
 
 @Service
 public class AuthService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private JwtUtils jwtUtil;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    public void registerUser(SignupRequest request) {
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Username already exists");
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("Email already exists");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setRole(UserRole.STUDENT);
+
+        userRepository.save(user);
     }
 
-    public ResponseEntity<String> registerUser(SignupRequest signupRequest) {
-
-        if (userRepository.existsByUsername(signupRequest.getUsername())) {
-            throw new RuntimeException("Username already exists");
-        }
-
-        if (userRepository.existsByEmail(signupRequest.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-
+    public AuthResponse loginUser(AuthRequest authRequest, HttpServletResponse response) {
         try {
-            User user = new User();
-            user.setUsername(signupRequest.getUsername());
-            user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-            user.setEmail(signupRequest.getEmail());
-            user.setRole(UserRole.STUDENT);
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsernameOrEmail(),
+                            authRequest.getPassword()
+                    )
+            );
 
-            userRepository.save(user);
+            UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsService
+                    .loadUserByUsername(authRequest.getUsernameOrEmail());
+
+            Instant issuedAt = Instant.now();
+            Instant expiration = issuedAt.plusMillis(jwtUtil.getExpiration());
+            String jwtToken = jwtUtil.generateToken(userDetails);
+
+            response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+            response.setHeader(HttpHeaders.PRAGMA, "no-cache");
+            response.setHeader(HttpHeaders.EXPIRES, "0");
+            response.setHeader("X-Content-Type-Options", "no-sniff");
+
+            return new AuthResponse(
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    userDetails.getFirstName(),
+                    userDetails.getLastName(),
+                    jwtToken,
+                    expiration,
+                    userDetails.getCreatedAt(),
+                    UserRole.valueOf(
+                            userDetails.getAuthorities().stream()
+                                    .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                                    .findFirst()
+                                    .orElse("USER")
+                    )
+            );
+
+        } catch (BadCredentialsException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password", e);
+        } catch (DisabledException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account is disabled", e);
+        } catch (LockedException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account is locked", e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Login failed", e);
         }
-
-        return ResponseEntity.ok("Registered user successfully");
     }
 
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
+    public UserDto getCurrentUser(UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        return userMapper.toDto(user);
     }
 }
