@@ -17,21 +17,27 @@ const SubmitScreen = () => {
     const [selectedLesson, setSelectedLesson] = useState<LearningUnitDTO | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
     const userId = Number(localStorage.getItem("id")!);
-    const {data: course, isLoading: isLoadingCourse} = useGetLearningUnitByIdQuery(Number(courseId), {
-        skip: !courseId,
-    });
+    const courseIdNumber = Number(courseId);
+
+    const { data: course, isLoading: isLoadingCourse } = useGetLearningUnitByIdQuery(
+        { userId, id: courseIdNumber },
+        {
+            skip: !courseId,
+        }
+    );
 
     const chapters = course?.childUnits || [];
     const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
+
     useEffect(() => {
         const loadFirstUnit = async () => {
-            if (chapters.length > 0) {
+            if (chapters.length > 0 && userId) {
                 const firstChapter = chapters[0];
-                const res = await fetchUnit(firstChapter.id);
-                if (res.data) {
-                    setSelectedLesson(res.data);
-                    if (res.data.exercises?.length) {
-                        setSelectedExercise(res.data.exercises[0]);
+                const res = await fetchUnit({ userId, id: firstChapter.id }).unwrap();
+                if (res) {
+                    setSelectedLesson(res);
+                    if (res.exercises?.length) {
+                        setSelectedExercise(res.exercises[0]);
                     }
                 }
             }
@@ -99,7 +105,7 @@ const SubmitScreen = () => {
 
                 showAlert(
                     "Submission Successful",
-                    `Your score: ${response}`,
+                    `Your score for this lesson is:: ${response}`,
                     () => setSubmissions({})
                 );
             };
@@ -111,7 +117,11 @@ const SubmitScreen = () => {
                     submitAndHandleResponse
                 );
             } else {
-                await submitAndHandleResponse();
+                showConfirm(
+                    "Warning !!",
+                    "You are about to submit your answers. Are you sure?",
+                    submitAndHandleResponse
+                );
             }
 
         } catch (error) {
@@ -171,7 +181,9 @@ const SubmitScreen = () => {
     };
 
     const handleLessonChange = async (lessonId: number) => {
-        // Check if there are actual answers (not just empty/null values)
+        const userId = Number(localStorage.getItem("id"));
+        if (!userId || isNaN(userId)) return; // Optional safety check
+
         const hasActualAnswers = selectedLesson?.exercises?.some(exercise => {
             const submission = submissions[exercise.id];
             return (
@@ -180,37 +192,36 @@ const SubmitScreen = () => {
             );
         });
 
+        const fetchAndSetLesson = async () => {
+            const res = await fetchUnit({ userId, id: lessonId }).unwrap();
+            if (res) {
+                setSelectedLesson(res);
+                setSelectedExercise(res.exercises?.[0] || null);
+            }
+        };
+
         if (hasActualAnswers) {
             showConfirm(
                 "Unsaved Answers",
                 "You have unsaved answers in this lesson. Are you sure you want to switch?",
                 async () => {
-                    const newSubmissions = {...submissions};
+                    const newSubmissions = { ...submissions };
                     selectedLesson?.exercises?.forEach(exercise => {
                         delete newSubmissions[exercise.id];
                     });
                     setSubmissions(newSubmissions);
-
-                    // Load new lesson
-                    const res = await fetchUnit(lessonId);
-                    if (res.data) {
-                        setSelectedLesson(res.data);
-                        setSelectedExercise(res.data.exercises?.[0] || null);
-                    }
+                    await fetchAndSetLesson();
                 }
             );
         } else {
-            const res = await fetchUnit(lessonId);
-            if (res.data) {
-                setSelectedLesson(res.data);
-                setSelectedExercise(res.data.exercises?.[0] || null);
-            }
+            await fetchAndSetLesson();
         }
     };
+
     return (
         <div className="h-screen flex bg-light-background">
             <div className="m-[8px] bg-white h-[98vh] w-[28vw] rounded-xl flex flex-col overflow-y-auto">
-                <div className="flex justify-between align-middle text-white bg-text-color pt-3 pb-3 pl-5 ">
+                <div className="flex justify-between align-middle text-white bg-text-color pt-2 pb-2 pl-5 ">
                     <div className="flex-1">
                         {isLoadingCourse ? (
                             <p>Loading course data...</p>
@@ -380,13 +391,13 @@ export const ExerciseCard = ({
     const { data: options = []} = useGetExerciseOptionsQuery(
         exercise.id.toString(),
         {
-            skip: exercise.type !== 'Multiple Choice',
+            skip: exercise.type !== 'MULTIPLE_CHOICE',
         }
     );
 
     useEffect(() => {
         if (submission) {
-            if (exercise.type === 'Multiple Choice') {
+            if (exercise.type === 'MULTIPLE_CHOICE') {
                 setSelectedOptionId(submission.selectedOptionId ?? null);
             } else {
                 setShortAnswer(submission.answer ?? "");
@@ -420,7 +431,7 @@ export const ExerciseCard = ({
         <div className="p-6 rounded-lg">
             <h3 className="font-medium text-xl mb-4 text-gray-800">{exercise.question}</h3>
 
-            {exercise.type === 'Multiple Choice' && (
+            {exercise.type === 'MULTIPLE_CHOICE' && (
                 <div className="space-y-3 mb-6">
                     {options.map((option) => (
                         <div key={option.id} className="flex items-center">
@@ -445,7 +456,7 @@ export const ExerciseCard = ({
                 </div>
             )}
 
-            {exercise.type === 'Short Answer' && (
+            {exercise.type === 'SHORT_ANSWER' && (
                 <textarea
                     value={shortAnswer}
                     onChange={(e) => handleShortAnswerChange(e.target.value)}
@@ -489,14 +500,18 @@ const TopicCardDropdown = ({
     const handleToggle = async () => {
         setIsOpen(!isOpen);
 
+        const userId = Number(localStorage.getItem("id"));
+        if (!userId || isNaN(userId)) return;
+
         // only fetch if not already fetched
         if (!lessons.length && !isOpen) {
-            const res = await fetchUnit(childrenId);
-            if (res.data?.childUnits?.length) {
-                setLessons(res.data.childUnits);
+            const res = await fetchUnit({ userId, id: childrenId }).unwrap();
+            if (res?.childUnits?.length) {
+                setLessons(res.childUnits);
             }
         }
     };
+
 
     return (
         <div className="bg-white rounded-xl border-2 border-text-color mb-2">
