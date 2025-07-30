@@ -10,6 +10,7 @@ and save the result as a new file named
 Generate a total of **200 new questions**:
 - 100 questions of type: `MULTIPLE_CHOICE`
 - 100 questions of type: `SHORT_ANSWER`
+- Mix all of it
 
 ## Format
 Each question must strictly follow the format defined in  
