@@ -1,22 +1,22 @@
-# Prompt for Generating Questions – Lesson 1.1: Propositional Logic
+# Prompt for Generating Questions
 
 ## Task
 Generate a new practice question file based on the content in  
-**/questions/original/lesson1_1_propositionalLogic.md**  
+**/questions/original/*.md**  
 and save the result as a new file named  
-**/questions/generated/v1.md**
+**/questions/generated/*.md**
 
 ## Requirements
-Generate a total of **40 new questions**:
-- 20 questions of type: `Multiple Choice`
-- 20 questions of type: `Short Answer`
+Generate a total of **200 new questions**:
+- 100 questions of type: `MULTIPLE_CHOICE`
+- 100 questions of type: `SHORT_ANSWER`
 
 ## Format
 Each question must strictly follow the format defined in  
 **/templates/templateLesson.md**, including the following fields:
 
 - **EX <lesson_id>.<question_number>**
-- **Type**: (either `Multiple Choice` or `Short Answer`)
+- **Type**: (either `MULTIPLE_CHOICE` or `SHORT_ANSWER`)
 - **Question**: the main question text
 - **Options**: (only for Multiple Choice questions; exactly 4 options)
 - **Solution**: the correct answer (text or option letter)

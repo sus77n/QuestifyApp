@@ -2,18 +2,23 @@ package com.example.iquiz.service;
 
 import com.example.iquiz.dto.learningUnit.CourseDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
+import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.LearningUnitType;
 import com.example.iquiz.mapper.LearningUnitMapper;
 import com.example.iquiz.mapper.LearningUnitTypeMapper;
+import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.LearningUnitRepository;
 import com.example.iquiz.repository.LearningUnitTypeRepository;
 import com.example.iquiz.repository.SubmissionRepository;
 import com.example.iquiz.utility.LearningUnitUtil;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,18 +38,28 @@ public class LearningUnitService {
     private LearningUnitMapper learningUnitMapper;
 
     @Autowired
-    private LearningUnitTypeMapper learningUnitTypeMapper;
+    private ExerciseRepository exerciseRepository;
 
     public List<LearningUnitDto> getAllLearningUnitTypes() {
         return learningUnitRepository.findAll().stream().
-                map(learningUnit ->  learningUnitMapper.toDto(learningUnit))
+                map(learningUnit -> learningUnitMapper.toDto(learningUnit))
                 .toList();
     }
 
-    public LearningUnitDto getLearningUnitById(Long id) {
+    public LearningUnitDto getLearningUnitById(Long id, Long userId) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Learning Unit not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Learning Unit not found with id: " + id));
 
+        List<Exercise> allUnsubmitted = exerciseRepository
+                .findUnsubmittedExercisesByUserIdAndUnitId(learningUnit.getId(), userId);
+        if (allUnsubmitted.size() >= 5) {
+            Collections.shuffle(allUnsubmitted);
+
+            List<Exercise> selected = allUnsubmitted.stream()
+                    .limit(5)
+                    .toList();
+            learningUnit.setExercises(selected);
+        }
         return learningUnitMapper.toDto(learningUnit);
     }
 
@@ -77,27 +92,6 @@ public class LearningUnitService {
     public List<LearningUnitDto> getLearningUnitsByTypeLevel(int level) {
         List<LearningUnit> learningUnits = learningUnitRepository.findByTypeLevel(level);
         return learningUnits.stream().map(learningUnit -> learningUnitMapper.toDto(learningUnit)).collect(Collectors.toList());
-    }
-
-    private LearningUnitType getLearningUnitType(LearningUnitType type) throws Exception {
-        if (type == null) {
-            return null;
-        }
-
-        if (type.getId() != null) {
-            type = learningUnitTypeRepository.findById(type.getId()).orElse(null);
-        } else if (type.getName() != null) {
-            type = learningUnitTypeRepository.findByName(type.getName());
-        } else if (type.getLevel() != 0) {
-            type = learningUnitTypeRepository.findByLevel(type.getLevel());
-        } else {
-            try {
-                throw new Exception("Learning Type not found");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return type;
     }
 
     public long countByLearningUnitId(Long id) {

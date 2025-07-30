@@ -1,7 +1,6 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.UserDto;
-import com.example.iquiz.entity.User;
 import com.example.iquiz.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

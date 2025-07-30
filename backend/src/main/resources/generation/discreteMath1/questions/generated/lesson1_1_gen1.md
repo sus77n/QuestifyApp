@@ -1,3 +1,7 @@
+## #Course #Discrete Math 1 #CSE 106
+## #Topic #Propositional Logic
+## #Lesson #Propositional Logic
+
 ## EX 1.1.1
 **Type**: Multiple Choice  
 **Question**: Which of the following is a tautology?

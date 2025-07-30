@@ -1,3 +1,7 @@
+## #Course #Discrete Math 1 #CSE 106
+## #Topic #Propositional Logic
+## #Lesson #Predicate logic, quantifiers
+
 ## EX 1.3.1  
 **Type**: Multiple Choice  
 **Question**: What is the negation of the statement "∀x ∈ ℝ, P(x)"?

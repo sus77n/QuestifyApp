@@ -29,8 +29,8 @@ public class LearningUnitController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LearningUnitDto> getLearningUnitById(@PathVariable Long id) {
-        LearningUnitDto learningUnitDto = learningUnitService.getLearningUnitById(id);
+    public ResponseEntity<LearningUnitDto> getLearningUnitById(@PathVariable Long id, @RequestParam Long userId) {
+        LearningUnitDto learningUnitDto = learningUnitService.getLearningUnitById(id, userId);
         return ResponseEntity.ok(learningUnitDto);
     }
 
