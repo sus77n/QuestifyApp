@@ -100,7 +100,7 @@ const Course = () => {
                                         Total of exercises: {selectedCourse.numberOfExercise}
                                     </p>
                                     <p className="text-gray-400 text-md">
-                                        Created by: {(selectedCourse.createdBy?.firstName || "") + " " + (selectedCourse.createdBy?.lastName || "")}
+                                        Created by: {selectedCourse.createdBy}
                                     </p>
                                 </div>
                                 <div className="flex pt-14 absolute justify-end right-6">
