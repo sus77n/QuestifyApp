@@ -1,5 +1,4 @@
 import {LearningUnitChildDto} from "./LearningUnitChildDto";
-import {UserDTO} from "./UserDTO";
 import {LearningUnitType} from "./LearningUnitType";
 import {ExerciseDTO} from "./ExerciseDTO";
 
@@ -11,10 +10,11 @@ export interface LearningUnitDTO {
     type: LearningUnitType;
     status: number;
     createdAt: Date;
-    createdBy: UserDTO;
+    createdBy: string;
     childUnits?: LearningUnitChildDto[];
     exercises?: ExerciseDTO[];
     parentId: number;
+    numberOfComplete: number;
     numberOfExercise: number;
 }
 

@@ -3,7 +3,7 @@ import { useParams} from "react-router-dom";
 import {ChevronDownIcon, ChevronUpIcon, XCircleIcon} from "@heroicons/react/24/outline";
 import {useGetExerciseOptionsQuery} from "../../API/service/exercise.service";
 import {ExerciseDTO} from "../../model/ExerciseDTO";
-import {MyButtonAdvanced} from "../material/material";
+import {MyButtonAdvanced, Spinner} from "../material/material";
 import {useGetLearningUnitByIdQuery, useLazyGetLearningUnitByIdQuery} from "../../API/service/learningUnit.service";
 import {LearningUnitDTO} from "../../model/LearningUnitDTO";
 import {LearningUnitChildDto} from "../../model/LearningUnitChildDto";
@@ -224,7 +224,7 @@ const SubmitScreen = () => {
                 <div className="flex justify-between align-middle text-white bg-text-color pt-2 pb-2 pl-5 ">
                     <div className="flex-1">
                         {isLoadingCourse ? (
-                            <p>Loading course data...</p>
+                            <Spinner/>
                         ) : (
                             <>
                                 <h1 className="text-lg font-semibold text-white">{course?.code}</h1>
@@ -259,6 +259,8 @@ const SubmitScreen = () => {
                             childrenId={topic.id}
                             selectedLessonId={selectedLesson?.id ?? null}
                             onLessonClick={handleLessonChange}
+                            numberOfComplete={topic.numberOfComplete}
+                            numberOfExercise={topic.numberOfExercise}
                         />
                     ))}
                 </div>
@@ -486,12 +488,16 @@ const TopicCardDropdown = ({
                                childrenId,
                                onLessonClick,
                                selectedLessonId,
+                               numberOfComplete,
+                               numberOfExercise
                            }: {
     index: number;
     name: string;
     childrenId: number;
     onLessonClick: (lessonId: number) => void;
     selectedLessonId: number | null;
+    numberOfComplete: number | null;
+    numberOfExercise: number | null;
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [lessons, setLessons] = useState<LearningUnitChildDto[]>([]);
@@ -519,9 +525,21 @@ const TopicCardDropdown = ({
                 className="flex justify-between items-center p-3 rounded-xl cursor-pointer"
                 onClick={handleToggle}
             >
-                <h3 className="font-medium text-text-color">Chapter {index} : {name}</h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-text-color">
+                        Chapter {index} : {name}
+                        <span className={numberOfComplete !== numberOfExercise ? "text-yellow-500" : "text-green-500"}>
+                        ({numberOfComplete} / {numberOfExercise})
+                    </span>
+                    </h3>
+                    {numberOfComplete === numberOfExercise && (
+                        <svg className="w-4 h-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                    )}
+                </div>
                 {isOpen ? (
-                    <ChevronUpIcon className="w-5 h-5 text-gray-500 transition-transform" />
+                    <ChevronUpIcon className="w-5 h-5 text-text-color transition-transform" />
                 ) : (
                     <ChevronDownIcon className="w-5 h-5 text-gray-500 transition-transform" />
                 )}
@@ -537,6 +555,8 @@ const TopicCardDropdown = ({
                                 name={lesson.name}
                                 isSelected={selectedLessonId === lesson.id}
                                 onClick={() => onLessonClick(lesson.id)}
+                                numberOfComplete={lesson.numberOfComplete}
+                                numberOfExercise={lesson.numberOfExercise}
                             />
                         ))
                     ) : (
@@ -554,18 +574,32 @@ const LessonCard = ({
                         name,
                         isSelected,
                         onClick,
+                        numberOfComplete,
+                        numberOfExercise
                     }: {
     index: number;
     name: string;
     isSelected: boolean;
     onClick: () => void;
+    numberOfComplete: number | null;
+    numberOfExercise: number | null;
 }) => {
+
     return (
         <div
             className={`p-3 mb-2 ml-2 rounded-lg cursor-pointer ${isSelected ? 'bg-text-color' : 'hover:bg-light-background'}`}
             onClick={onClick}
         >
-            <h3 className={`font-medium text-text-color ${isSelected ? 'text-white' : 'text-text-color'}`}>Lesson {index}: {name}</h3>
+            <h3 className={`font-medium ${isSelected ? 'text-white' : 'text-text-color'}`}>
+                Lesson {index}: {name}
+                {isSelected ? (
+                    ` (${numberOfComplete} / ${numberOfExercise})`
+                ) : (
+                    <span className={numberOfComplete !== numberOfExercise ? "text-yellow-500" : "text-green-500"}>
+      {" "}({numberOfComplete} / {numberOfExercise})
+    </span>
+                )}
+            </h3>
         </div>
     );
 }
