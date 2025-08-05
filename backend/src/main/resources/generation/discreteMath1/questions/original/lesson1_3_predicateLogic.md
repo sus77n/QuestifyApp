@@ -5,7 +5,9 @@
 ---
 
 ### EX 1.3.1
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: What is the negation of the proposition "∀x ∈ ℕ, x > 0"?  
 **Options**:  
 - A. ∃x ∈ ℕ, x ≤ 0  
@@ -17,7 +19,9 @@
 ---
 
 ### EX 1.3.2
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Which of the following propositions is true for all real numbers x?  
 **Options**:  
 - A. ∃x ∈ ℝ, x^2 = -1  
@@ -29,7 +33,9 @@
 ---
 
 ### EX 1.3.3
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Which of the following propositions is an example of an existential quantifier?  
 **Options**:  
 - A. ∃x ∈ ℕ, x^2 = 4  
@@ -41,14 +47,20 @@
 ---
 
 ### EX 1.3.4
-**Type**: Short Answer  
+**ResponseType**: Short Answer  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Negate the statement: ∀x∈ℤ, (x ≡ 0 (mod 3) → P(x))  
 **Solution**: ∃x∈ℤ, (x ≡ 0 (mod 3)) ∧ ¬P(x)
 
 ---
 
 ### EX 1.3.5
-**Type**: Short Answer  
+**ResponseType**: Short Answer  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Let Q(x) mean "x is a perfect square". Negate the statement: ∃x∈ℕ, ∀y∈ℕ, (y > x → ¬Q(y))  
 **Solution**: ∀x∈ℕ, ∃y∈ℕ, (y > x) ∧ Q(y)
+
+---
 
