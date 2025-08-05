@@ -13,9 +13,10 @@ public record LearningUnitDto(
         String type,
         int status,
         LocalDateTime createdAt,
-        UserDto createdBy,
+        String createdBy,
         Long parentId,
         List<LearningUnitChildDto> childUnits,
         List<ExerciseResponseDto> exercises,
-        Long numberOfExercise
+        long numberOfComplete,
+        long numberOfExercise
 ) {}

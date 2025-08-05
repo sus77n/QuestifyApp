@@ -32,13 +32,15 @@ public class LearningUnitService {
     private LearningUnitTypeRepository learningUnitTypeRepository;
 
     @Autowired
-    private SubmissionRepository submissionRepository;
-
-    @Autowired
     private LearningUnitMapper learningUnitMapper;
 
     @Autowired
     private ExerciseRepository exerciseRepository;
+
+    @Autowired
+    private LearningUnitUtil learningUnitUtil;
+
+    private final int NUMBER_OF_EXERCISE = 5;
 
     public List<LearningUnitDto> getAllLearningUnitTypes() {
         return learningUnitRepository.findAll().stream().
@@ -52,15 +54,15 @@ public class LearningUnitService {
 
         List<Exercise> allUnsubmitted = exerciseRepository
                 .findUnsubmittedExercisesByUserIdAndUnitId(learningUnit.getId(), userId);
-        if (allUnsubmitted.size() >= 5) {
+        if (allUnsubmitted.size() >= NUMBER_OF_EXERCISE) {
             Collections.shuffle(allUnsubmitted);
 
             List<Exercise> selected = allUnsubmitted.stream()
-                    .limit(5)
+                    .limit(NUMBER_OF_EXERCISE)
                     .toList();
             learningUnit.setExercises(selected);
         }
-        return learningUnitMapper.toDto(learningUnit);
+        return learningUnitMapper.toDto(learningUnit, userId);
     }
 
     public LearningUnitDto saveLearningUnit(LearningUnitDto learningUnitDto) {
@@ -69,6 +71,7 @@ public class LearningUnitService {
         learningUnit = learningUnitRepository.save(learningUnit);
         return learningUnitMapper.toDto(learningUnit);
     }
+
 
     public LearningUnitDto updateLearningUnit(Long id, LearningUnitDto dto) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
@@ -96,7 +99,7 @@ public class LearningUnitService {
 
     public long countByLearningUnitId(Long id) {
         LearningUnit learningUnit = learningUnitRepository.findById(id).orElseThrow(() -> new NullPointerException("Learning Unit not found with id: " + id));
-        return LearningUnitUtil.countExercises(learningUnit);
+        return learningUnitUtil.countExercises(learningUnit);
     }
 
     public List<CourseDto> getAllCoursesWithUserId(Long userId) {
@@ -105,8 +108,8 @@ public class LearningUnitService {
         List<LearningUnit> courses = learningUnitRepository.findByTypeLevel(1);
 
         for (LearningUnit learningUnit : courses) {
-            Long totalExercise = countByLearningUnitId(learningUnit.getId());
-            Long completedExercises = getNumberOfCompletedExercise(userId, learningUnit);
+            Long totalExercise = learningUnitUtil.countExercises(learningUnit);
+            Long completedExercises = learningUnitUtil.getNumberOfCompletedExercise(userId, learningUnit);
             courseList.add(new CourseDto(
                     learningUnit.getId(),
                     learningUnit.getName(),
@@ -119,20 +122,4 @@ public class LearningUnitService {
         return courseList;
     }
 
-
-    private Long getNumberOfCompletedExercise(Long userId, LearningUnit learningUnit) {
-        if (learningUnit.getExercises() != null && learningUnit.getExercises().size() > 0) {
-            return submissionRepository.countPassedExercisesByUserIdAndLearningUnitId(userId, learningUnit.getId());
-        }
-
-        Long result = 0L;
-        for (LearningUnit lu : learningUnit.getChildren()) {
-            Long count = getNumberOfCompletedExercise(userId, lu);
-            if (count != null) {
-                result += count;
-            }
-        }
-
-        return result > 0 ? result : null;
-    }
 }

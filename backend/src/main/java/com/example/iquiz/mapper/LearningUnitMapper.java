@@ -13,7 +13,8 @@ public class LearningUnitMapper {
     @Autowired
     private ExerciseMapper exerciseMapper;
     @Autowired
-    private UserMapper userMapper;
+    private LearningUnitUtil learningUnitUtil;
+
 
     public LearningUnitDto toDto(LearningUnit unit) {
         if (unit == null) {
@@ -27,11 +28,33 @@ public class LearningUnitMapper {
                 unit.getType().getName(),
                 unit.getStatus(),
                 unit.getCreatedAt(),
-                userMapper.toDto(unit.getCreatedBy()),
+                unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
                 unit.getParent() != null ? unit.getParent().getId() : null,
                 unit.getChildren().stream().map(learningUnit -> toChildDto(learningUnit)).toList(),
                 unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
-                LearningUnitUtil.countExercises(unit)
+                0,
+                learningUnitUtil.countExercises(unit)
+        );
+    }
+
+    public LearningUnitDto toDto(LearningUnit unit, Long userId) {
+        if (unit == null) {
+            return null;
+        }
+        return new LearningUnitDto(
+                unit.getId(),
+                unit.getName(),
+                unit.getCode(),
+                unit.getDescription(),
+                unit.getType().getName(),
+                unit.getStatus(),
+                unit.getCreatedAt(),
+                unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
+                unit.getParent() != null ? unit.getParent().getId() : null,
+                unit.getChildren().stream().map(learningUnit -> toChildDto(userId, learningUnit)).toList(),
+                unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
+                learningUnitUtil.getNumberOfCompletedExercise(userId, unit),
+                learningUnitUtil.countExercises(unit)
         );
     }
 
@@ -59,7 +82,22 @@ public class LearningUnitMapper {
                 entity.getId(),
                 entity.getName(),
                 entity.getType() != null ? entity.getType().getName() : null,
-                LearningUnitUtil.countExercises(entity)
+                0,
+                learningUnitUtil.countExercises(entity)
+        );
+    }
+
+    public LearningUnitChildDto toChildDto(Long UserId, LearningUnit entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        return new LearningUnitChildDto(
+                entity.getId(),
+                entity.getName(),
+                entity.getType() != null ? entity.getType().getName() : null,
+                learningUnitUtil.getNumberOfCompletedExercise(UserId, entity),
+                learningUnitUtil.countExercises(entity)
         );
     }
 }
