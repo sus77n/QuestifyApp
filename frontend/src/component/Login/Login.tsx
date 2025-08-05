@@ -76,7 +76,7 @@ const Login = () => {
                 />
             </div>
             <main className="relative min-h-screen w-full justify-center items-center">
-                <div className="relative z-10 top-[23%] md:top-[200px] left-[7%] md:left-[10%]">
+                <div className="relative z-10 top-[30%] md:top-[250px] left-[7%] md:left-[10%]">
                     <h1 className="text-3xl md:text-5xl text-text-color font-bold mb-10">Welcome !</h1>
                     <form className="flex flex-col" onSubmit={handleSubmit}>
                         <div className="flex">

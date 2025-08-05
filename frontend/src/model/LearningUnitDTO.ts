@@ -26,3 +26,6 @@ export interface CourseDTO {
     totalOfExercise: number,
     completedExercises: number
 }
+export interface CourseWithIndex extends LearningUnitDTO {
+    index: number;
+}

@@ -55,7 +55,7 @@ const Signup = () => {
             </div>
 
             <main className="relative min-h-screen w-full justify-center items-center">
-                <div className="relative z-10 top-[32%] md:top-[200px] left-[7%] md:left-[10%]">
+                <div className="relative z-10 top-[35%] md:top-[200px] left-[7%] md:left-[10%]">
                     <h1 className="text-3xl md:text-5xl text-text-color font-bold mb-10">
                         Start your journey!
                     </h1>
@@ -122,7 +122,7 @@ const Signup = () => {
 
                         <div className="mt-[-40px] md:mt-8 flex flex-col md:flex-row md:justify-between md:w-[490px] gap-4">
                             <p className="text-white font-semibold">
-                                Have an account?
+                                Have an account ?
                                 <Link
                                     to="/login"
                                     className="text-text-color sm:ml-1 relative group transition-all duration-300 hover:text-text-color/90"
