@@ -3,7 +3,9 @@
 ---
 
 ## EX 1.2.1  
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Which of the following expressions is logically equivalent to the expression (P ∧ Q)→(P ∨ Q)?  
 **Options**:  
 - A. (P ∧ Q) ∨ (P ∨ Q)  
@@ -15,7 +17,9 @@
 ---
 
 ## EX 1.2.2  
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Which of the following laws is equivalent to P→Q?  
 **Options**:  
 - A. ¬P ∧ Q  
@@ -27,7 +31,9 @@
 ---
 
 ## EX 1.2.3  
-**Type**: Multiple Choice  
+**ResponseType**: Multiple Choice  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Logical expression P ∨ Q ∨ [(¬P ∧ Q) ∨ ¬Q] is logically equivalent to what below expression?  
 **Options**:  
 - A. P ∨ Q  
@@ -39,7 +45,9 @@
 ---
 
 ## EX 1.2.4  
-**Type**: Short Answer  
+**ResponseType**: Short Answer  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Given P, Q, R are propositions.  
 P: Triangle ABC is isosceles.  
 Q: Triangle ABC is equilateral.  
@@ -50,6 +58,8 @@ The statement "If ABC is an equilateral triangle, then three angles are equal an
 ---
 
 ## EX 1.2.5  
-**Type**: Short Answer  
+**ResponseType**: Short Answer  
+**Difficulty**: 1  
+**ExerciseType**:   
 **Question**: Logical expression (¬P → R) ∧ (Q → R) is logically equivalent to what below expression?  
 **Solution**: (P → Q) → R

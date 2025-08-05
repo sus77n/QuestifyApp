@@ -8,19 +8,17 @@ and save the result as a new file named
 
 ## Requirements
 Generate a total of **200 new questions**:
-- 100 questions of type: `MULTIPLE_CHOICE`
-- 100 questions of type: `SHORT_ANSWER`
+- 50 questions of response type: `MULTIPLE_CHOICE`
+- 50 questions of response type: `SHORT_ANSWER`
 
 ## Format
-Each question must strictly follow the format defined in  
-**/templates/template.md**, including the following fields:
-
 - **EX <lesson_id>.<question_number>**
-- **Type**: (either `MULTIPLE_CHOICE` or `SHORT_ANSWER`)
+- **ResponseType**: (either `Multiple Choice` or `Short Answer`)
+- **Difficulty**: from 1 to 5, where 1 is easiest and 5 is hardest
+- **ExerciseType**: (specify or leave blank)
 - **Question**: the main question text
 - **Options**: (only for Multiple Choice questions; exactly 4 options)
 - **Solution**: the correct answer (text or option letter)
-- **Difficulty**: from 1 to 5, where 1 is easiest and 5 is hardest
 
 ---
 
@@ -51,15 +49,12 @@ Each question must strictly follow the format defined in
 - Provide a mix of question types: some should require translation from English to logic, some from logic to English, and some symbolic manipulation.
 
 ## For Difficulty
-- Assign difficulty levels based on the complexity of the logic involved:
-  - **1**: Basic understanding of propositional logic.
-  - **2**: Simple applications or translations.
-  - **3**: Moderate complexity, involving multiple steps or concepts.
-  - **4**: Advanced reasoning or less common logical forms.
-  - **5**: Complex manipulations or deep understanding required.
+  - **1**: easy.
+  - **2**: medium.
+  - **3**: hard.
 
 ## Output Instructions
 - The output must be a plain Markdown file containing only the formatted questions.
 - Save it as:  
-  **/questions/generated/lesson1_1_gen1.md**
+  **/questions/generated/.md**
 - Do not include any comments, explanations, or metadata outside the expected format.
