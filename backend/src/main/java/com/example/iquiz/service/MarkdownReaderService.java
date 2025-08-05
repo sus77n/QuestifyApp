@@ -20,13 +20,14 @@ public class MarkdownReaderService {
 
     private static final Logger logger = LoggerFactory.getLogger(MarkdownReaderService.class);
 
-    private static final Pattern EXERCISE_PATTERN = Pattern.compile("^## EX (\\d+\\.\\d+\\.\\d+)");
-    private static final Pattern HEADER_PATTERN = Pattern.compile("^## #(Course|Topic|Lesson) #([^#]+)(?: #(.+))?");
-    private static final Pattern QUESTION_PATTERN = Pattern.compile("^\\*\\*Question\\*\\*:\\s*(.+)$");
-    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*Type\\*\\*:\\s*(.+)$");
-    private static final Pattern DIFFICULTY_PATTERN = Pattern.compile("^\\*\\*Difficulty\\*\\*:\\s*(\\d+)$");
-    private static final Pattern SOLUTION_PATTERN = Pattern.compile("^\\*\\*Solution\\*\\*:\\s*(.+)$");
-    private static final Pattern OPTION_PATTERN = Pattern.compile("^-\\s+([A-Z])\\.\\s+(.+)$");
+    private static final Pattern HEADER_PATTERN = Pattern.compile("^## #Course #([^#]+) #([^#]+)$|^## #Topic #([^#]+)$|^## #Lesson #([^#]+)$");
+    private static final Pattern EXERCISE_HEADER_PATTERN = Pattern.compile("^## Exercise$");
+    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*Type\\*\\*: (.+)$");
+    private static final Pattern QUESTION_PATTERN = Pattern.compile("^\\*\\*Question\\*\\*: (.+)$");
+    private static final Pattern OPTIONS_START_PATTERN = Pattern.compile("^\\*\\*Options\\*\\*:$");
+    private static final Pattern OPTION_PATTERN = Pattern.compile("^- ([A-Z])\\. (.+)$");
+    private static final Pattern SOLUTION_PATTERN = Pattern.compile("^\\*\\*Solution\\*\\*: (.+)$");
+    private static final Pattern DIFFICULTY_PATTERN = Pattern.compile("^\\*\\*Difficulty\\*\\*: (\\d+)$");
 
     private final LearningUnitRepository learningUnitRepository;
     private final LearningUnitTypeRepository learningUnitTypeRepository;
@@ -60,52 +61,46 @@ public class MarkdownReaderService {
             LearningUnit currentTopic = null;
             LearningUnit currentLesson = null;
             String line;
-
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
                 Matcher headerMatcher = HEADER_PATTERN.matcher(line);
                 if (headerMatcher.matches()) {
-                    String headerType = headerMatcher.group(1);
-                    String name = headerMatcher.group(2).trim();
-                    String code = headerMatcher.group(3) != null ? headerMatcher.group(3).trim() : null;
-
-                    switch (headerType) {
-                        case "Course" -> {
-                            currentCourse = findOrCreateLearningUnit(name, "COURSE", null, creator, code);
-                            currentTopic = null;
-                            currentLesson = null;
-                            result.incrementCoursesProcessed();
-                        }
-                        case "Topic" -> {
-                            if (currentCourse == null)
-                                throw new IllegalStateException("Topic defined without a Course context");
-                            currentTopic = findOrCreateLearningUnit(name, "TOPIC", currentCourse, creator, code);
-                            currentLesson = null;
-                            result.incrementTopicsProcessed();
-                        }
-                        case "Lesson" -> {
-                            if (currentTopic == null)
-                                throw new IllegalStateException("Lesson defined without a Topic context");
-                            currentLesson = findOrCreateLearningUnit(name, "LESSON", currentTopic, creator, code);
-                            result.incrementLessonsProcessed();
-                        }
+                    if (headerMatcher.group(1) != null) { // Course
+                        String courseTitle = headerMatcher.group(1).trim();
+                        String courseCode = headerMatcher.group(2).trim();
+                        currentCourse = findOrCreateLearningUnit(courseTitle, "COURSE", null, creator, courseCode);
+                        currentTopic = null;
+                        currentLesson = null;
+                        result.incrementCoursesProcessed();
+                    } else if (headerMatcher.group(3) != null) { // Topic
+                        if (currentCourse == null)
+                            throw new IllegalStateException("Topic defined without a Course context");
+                        String topicTitle = headerMatcher.group(3).trim();
+                        currentTopic = findOrCreateLearningUnit(topicTitle, "TOPIC", currentCourse, creator, null);
+                        currentLesson = null;
+                        result.incrementTopicsProcessed();
+                    } else if (headerMatcher.group(4) != null) { // Lesson
+                        if (currentTopic == null)
+                            throw new IllegalStateException("Lesson defined without a Topic context");
+                        String lessonTitle = headerMatcher.group(4).trim();
+                        currentLesson = findOrCreateLearningUnit(lessonTitle, "LESSON", currentTopic, creator, null);
+                        result.incrementLessonsProcessed();
                     }
                     continue;
                 }
 
-                Matcher exerciseMatcher = EXERCISE_PATTERN.matcher(line);
-                if (exerciseMatcher.matches() && currentLesson != null) {
-                    String exerciseCode = exerciseMatcher.group(1);
+                Matcher exerciseHeaderMatcher = EXERCISE_HEADER_PATTERN.matcher(line);
+                if (exerciseHeaderMatcher.matches() && currentLesson != null) {
                     try {
-                        Exercise exercise = parseExercise(reader, exerciseCode);
+                        Exercise exercise = parseExercise(reader);
                         exercise.setParent(currentLesson);
                         exerciseRepository.save(exercise);
                         result.incrementExercisesProcessed();
                     } catch (ExerciseParseException e) {
-                        logger.error("Failed to parse exercise {}: {}", exerciseCode, e.getMessage());
-                        result.addError("[" + exerciseCode + "] " + e.getMessage());
+                        logger.error("Failed to parse exercise: {}", e.getMessage());
+                        result.addError(e.getMessage());
                     }
                 }
             }
@@ -152,80 +147,78 @@ public class MarkdownReaderService {
         };
     }
 
-    private Exercise parseExercise(BufferedReader reader, String exerciseCode) throws IOException, ExerciseParseException {
+    private Exercise parseExercise(BufferedReader reader) throws IOException, ExerciseParseException {
         Exercise exercise = new Exercise();
         exercise.setCreatedAt(LocalDateTime.now());
         exercise.setUpdatedAt(LocalDateTime.now());
-
-//      exerciseTypeRepository.findByCode(exerciseCode).ifPresent(exercise::setExerciseCode);
-
         List<Option> options = new ArrayList<>();
         String line;
         String correctAnswer = null;
-
+        boolean optionsSection = false;
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (line.isEmpty()) continue;
             if (line.equals("---")) break;
-
-            Matcher questionMatcher = QUESTION_PATTERN.matcher(line);
-            if (questionMatcher.matches()) {
-                exercise.setQuestion(questionMatcher.group(1).trim());
-                continue;
-            }
 
             Matcher typeMatcher = TYPE_PATTERN.matcher(line);
             if (typeMatcher.matches()) {
                 exercise.setType(mapExerciseType(typeMatcher.group(1).trim()));
                 continue;
             }
-
-            Matcher difficultyMatcher = DIFFICULTY_PATTERN.matcher(line);
-            if (difficultyMatcher.matches()) {
-                exercise.setDifficulty(Integer.parseInt(difficultyMatcher.group(1)));
+            Matcher questionMatcher = QUESTION_PATTERN.matcher(line);
+            if (questionMatcher.matches()) {
+                exercise.setQuestion(questionMatcher.group(1).trim());
                 continue;
             }
-
+            Matcher optionsStartMatcher = OPTIONS_START_PATTERN.matcher(line);
+            if (optionsStartMatcher.matches()) {
+                optionsSection = true;
+                continue;
+            }
+            if (optionsSection) {
+                Matcher optionMatcher = OPTION_PATTERN.matcher(line);
+                if (optionMatcher.matches()) {
+                    String label = optionMatcher.group(1).trim();
+                    String text = optionMatcher.group(2).trim();
+                    Option option = new Option();
+                    option.setText(text);
+                    option.setExercise(exercise);
+                    options.add(option);
+                    continue;
+                } else {
+                    optionsSection = false;
+                }
+            }
             Matcher solutionMatcher = SOLUTION_PATTERN.matcher(line);
             if (solutionMatcher.matches()) {
                 correctAnswer = solutionMatcher.group(1).trim();
                 continue;
             }
-
-            Matcher optionMatcher = OPTION_PATTERN.matcher(line);
-            if (optionMatcher.matches()) {
-                String label = optionMatcher.group(1).trim();
-                String text = optionMatcher.group(2).trim();
-                Option option = new Option();
-                option.setText(text);
-                option.setExercise(exercise);
-                options.add(option);
+            Matcher difficultyMatcher = DIFFICULTY_PATTERN.matcher(line);
+            if (difficultyMatcher.matches()) {
+                exercise.setDifficulty(Integer.parseInt(difficultyMatcher.group(1)));
+                continue;
             }
         }
-
         if (exercise.getQuestion() == null)
-            throw new ExerciseParseException("Missing question for exercise " + exerciseCode);
+            throw new ExerciseParseException("Missing question for exercise");
         if (exercise.getType() == null)
-            throw new ExerciseParseException("Missing type for exercise " + exerciseCode);
-
+            throw new ExerciseParseException("Missing type for exercise");
         if ("SHORT_ANSWER".equals(exercise.getType())) {
             if (correctAnswer == null || correctAnswer.isEmpty()) {
-                System.out.println(correctAnswer);
-                throw new ExerciseParseException("Missing solution for SHORT_ANSWER exercise " + exerciseCode);
+                throw new ExerciseParseException("Missing solution for SHORT_ANSWER exercise");
             }
             exercise.setAnswer(correctAnswer);
             exercise.setOptions(null);
         } else {
             if (!options.isEmpty()) {
                 if (correctAnswer == null || correctAnswer.isEmpty()) {
-                    throw new ExerciseParseException("Missing solution for exercise " + exerciseCode);
+                    throw new ExerciseParseException("Missing solution for exercise");
                 }
                 setCorrectAnswers(options, correctAnswer, exercise.getType());
             }
             exercise.setOptions(options);
         }
-
-        exercise.setOptions(options);
         return exercise;
     }
 

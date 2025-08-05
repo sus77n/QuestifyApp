@@ -4,6 +4,7 @@ public record LearningUnitChildDto(
         Long id,
         String name,
         String type,
-        Long numberOfExercise
+        long numberOfComplete,
+        long numberOfExercise
 ) {
 }
