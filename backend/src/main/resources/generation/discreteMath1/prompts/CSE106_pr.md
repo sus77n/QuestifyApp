@@ -6,15 +6,20 @@ Generate a new practice question file based on the content in
 and save the result as a new file named  
 **/questions/generated/*.md**
 
+## Format for Header
+- ## #Course #[Course Title] #[Course Code]
+- ## #Topic #[Topic Title]
+- ## #Lesson #[Lesson Title]
+
 ## Requirements
 Generate a total of **200 new questions**:
 - 50 questions of response type: `MULTIPLE_CHOICE`
 - 50 questions of response type: `SHORT_ANSWER`
 
-## Format
+## Format for Questions
 - **EX <lesson_id>.<question_number>**
 - **ResponseType**: (either `Multiple Choice` or `Short Answer`)
-- **Difficulty**: from 1 to 5, where 1 is easiest and 5 is hardest
+- **Difficulty**: from 1 to 3, where 1 is easiest and 3 is hardest
 - **ExerciseType**: (specify or leave blank)
 - **Question**: the main question text
 - **Options**: (only for Multiple Choice questions; exactly 4 options)

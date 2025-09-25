@@ -61,6 +61,7 @@ public class LearningUnitService {
                     .limit(NUMBER_OF_EXERCISE)
                     .toList();
             learningUnit.setExercises(selected);
+
         }
         return learningUnitMapper.toDto(learningUnit, userId);
     }

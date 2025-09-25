@@ -1,6 +1,8 @@
 package com.example.iquiz.mapper;
 
+import com.example.iquiz.dto.submission.ResultDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
+import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.Submission;
 import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.OptionRepository;
@@ -57,5 +59,25 @@ public class SubmissionMapper {
         }
 
         return entity;
+    }
+
+
+    public ResultDto entityToResultDto(Submission submission) {
+        if (submission == null) {
+            return null;
+        }
+        Exercise exercise = submission.getExercise();
+
+        ResultDto resultDto = new ResultDto();
+        resultDto.setExerciseId(exercise.getId());
+        resultDto.setCorrectAnswer(exercise.getOptions() != null || !exercise.getOptions().isEmpty() ?
+                exercise.getOptions().stream()
+                        .map((option) -> option.isCorrect() ? option.getText() : null)
+                        .findFirst().orElse("")
+                : exercise.getAnswer()
+                );
+        resultDto.setScore(submission.getScore());
+
+        return resultDto;
     }
 }

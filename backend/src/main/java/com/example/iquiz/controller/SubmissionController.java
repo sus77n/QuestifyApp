@@ -1,5 +1,6 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.submission.ResultDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit-all")
-    public ResponseEntity<Double> submitAllSubmissions(@RequestBody List<SubmissionDto> submissionDTO) {
+    public ResponseEntity<List<ResultDto>> submitAllSubmissions(@RequestBody List<SubmissionDto> submissionDTO) {
         return ResponseEntity.ok(submissionService.submitAll(submissionDTO));
     }
 }

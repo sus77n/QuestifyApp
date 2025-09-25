@@ -41,6 +41,13 @@ public class LearningUnitMapper {
         if (unit == null) {
             return null;
         }
+
+        long numberOfCompletedExercises = learningUnitUtil.getNumberOfCompletedExercise(userId, unit);
+        long totalExercises = learningUnitUtil.countExercises(unit);
+        if (numberOfCompletedExercises >= totalExercises) {
+            numberOfCompletedExercises = totalExercises;
+        }
+
         return new LearningUnitDto(
                 unit.getId(),
                 unit.getName(),
@@ -53,8 +60,8 @@ public class LearningUnitMapper {
                 unit.getParent() != null ? unit.getParent().getId() : null,
                 unit.getChildren().stream().map(learningUnit -> toChildDto(userId, learningUnit)).toList(),
                 unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
-                learningUnitUtil.getNumberOfCompletedExercise(userId, unit),
-                learningUnitUtil.countExercises(unit)
+                numberOfCompletedExercises,
+                totalExercises
         );
     }
 

@@ -10,13 +10,15 @@ public class LearningUnitUtil {
 
     @Autowired
     private SubmissionRepository submissionRepository;
+    private int LIMIT_OF_EXERCISE = 5;
 
     public long getNumberOfCompletedExercise(Long userId, LearningUnit learningUnit) {
         if (learningUnit.getExercises() != null && learningUnit.getExercises().size() > 0) {
-            return submissionRepository.countPassedExercisesByUserIdAndLearningUnitId(userId, learningUnit.getId());
+            long count = submissionRepository.countPassedExercisesByUserIdAndLearningUnitId(userId, learningUnit.getId());
+            return count >= LIMIT_OF_EXERCISE ? LIMIT_OF_EXERCISE : count;
         }
 
-        long result = 0L;
+        long result = 0;
         for (LearningUnit lu : learningUnit.getChildren()) {
             result += getNumberOfCompletedExercise(userId, lu);
         }

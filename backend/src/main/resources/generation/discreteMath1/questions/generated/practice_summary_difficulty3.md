@@ -1,4 +1,6 @@
-# Practice Summary: Discrete Math 1 (Difficulty 3)
+## #Course #Discrete Math 1 #CSE 106
+## #Topic #Propositional Logic
+## #Lesson #Practice Discrete Math 1 (Difficulty 3)
 
 ---
 

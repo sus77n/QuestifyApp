@@ -1,4 +1,4 @@
-package com.example.iquiz.service;
+package com.example.iquiz.utility;
 
 import com.example.iquiz.entity.*;
 import com.example.iquiz.repository.*;
@@ -16,13 +16,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class MarkdownReaderService {
+public class MarkdownReaderUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(MarkdownReaderService.class);
+    private static final Logger logger = LoggerFactory.getLogger(MarkdownReaderUtil.class);
+    private static String BASE_DICTIONARY = "src/main/resources/generation/discreteMath1/questions/generated/";
 
     private static final Pattern HEADER_PATTERN = Pattern.compile("^## #Course #([^#]+) #([^#]+)$|^## #Topic #([^#]+)$|^## #Lesson #([^#]+)$");
-    private static final Pattern EXERCISE_HEADER_PATTERN = Pattern.compile("^## Exercise$");
-    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*Type\\*\\*: (.+)$");
+    private static final Pattern EXERCISE_HEADER_PATTERN = Pattern.compile("^## EX\\s+S\\d+\\.\\d+$");
+    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*ResponseType\\*\\*: (.+)$");
     private static final Pattern QUESTION_PATTERN = Pattern.compile("^\\*\\*Question\\*\\*: (.+)$");
     private static final Pattern OPTIONS_START_PATTERN = Pattern.compile("^\\*\\*Options\\*\\*:$");
     private static final Pattern OPTION_PATTERN = Pattern.compile("^- ([A-Z])\\. (.+)$");
@@ -36,12 +37,12 @@ public class MarkdownReaderService {
     private final ExerciseTypeRepository exerciseTypeRepository;
     private final UserRepository userRepository;
 
-    public MarkdownReaderService(LearningUnitRepository learningUnitRepository,
-                                 LearningUnitTypeRepository learningUnitTypeRepository,
-                                 ExerciseRepository exerciseRepository,
-                                 OptionRepository optionRepository,
-                                 ExerciseTypeRepository exerciseTypeRepository,
-                                 UserRepository userRepository) {
+    public MarkdownReaderUtil(LearningUnitRepository learningUnitRepository,
+                              LearningUnitTypeRepository learningUnitTypeRepository,
+                              ExerciseRepository exerciseRepository,
+                              OptionRepository optionRepository,
+                              ExerciseTypeRepository exerciseTypeRepository,
+                              UserRepository userRepository) {
         this.learningUnitRepository = learningUnitRepository;
         this.learningUnitTypeRepository = learningUnitTypeRepository;
         this.exerciseRepository = exerciseRepository;
@@ -56,7 +57,7 @@ public class MarkdownReaderService {
                 .orElseThrow(() -> new IllegalArgumentException("Creator user not found with ID: " + creatorId));
 
         ImportResult result = new ImportResult();
-        try (BufferedReader reader = new BufferedReader(new FileReader(markdownPath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(BASE_DICTIONARY + markdownPath))) {
             LearningUnit currentCourse = null;
             LearningUnit currentTopic = null;
             LearningUnit currentLesson = null;
@@ -67,7 +68,7 @@ public class MarkdownReaderService {
 
                 Matcher headerMatcher = HEADER_PATTERN.matcher(line);
                 if (headerMatcher.matches()) {
-                    if (headerMatcher.group(1) != null) { // Course
+                    if (headerMatcher.group(1) != null) {
                         String courseTitle = headerMatcher.group(1).trim();
                         String courseCode = headerMatcher.group(2).trim();
                         currentCourse = findOrCreateLearningUnit(courseTitle, "COURSE", null, creator, courseCode);
