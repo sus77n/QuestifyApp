@@ -1,5 +1,5 @@
 export interface LearningUnitType {
-    id: number;
-    type: string;
-    level: number;
+  id: number;
+  type: string;
+  level: number;
 }

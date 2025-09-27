@@ -1,4 +1,4 @@
 interface SubmitAnswerResponse {
-    isCorrect: boolean;
-    explaintion: string;
+  isCorrect: boolean;
+  explaintion: string;
 }

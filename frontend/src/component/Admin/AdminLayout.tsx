@@ -1,15 +1,15 @@
-import { Outlet } from 'react-router-dom';
-import ProtectedRoute from '../ProtectedRoute';
+import { Outlet } from "react-router-dom";
+import ProtectedRoute from "../ProtectedRoute";
 import Navbar from "../Navbar/Navbar";
 
 const AdminLayout = () => (
-    <ProtectedRoute allowedRoles={['ADMIN']}>
-        <div className="flex">
-            {/* Optional Admin Navbar */}
-            <Navbar />
-            <Outlet />
-        </div>
-    </ProtectedRoute>
+  <ProtectedRoute allowedRoles={["ADMIN"]}>
+    <div className="flex">
+      {/* Optional Admin Navbar */}
+      <Navbar />
+      <Outlet />
+    </div>
+  </ProtectedRoute>
 );
 
 export default AdminLayout;

@@ -1,0 +1,66 @@
+export const specialSymbols = [
+  {
+    group: "Logic",
+    symbols: [
+      { label: "∧", value: "∧", tooltip: "AND" },
+      { label: "∨", value: "∨", tooltip: "OR" },
+      { label: "¬", value: "¬", tooltip: "NOT" },
+      { label: "⇒", value: "⇒", tooltip: "Implies" },
+      { label: "⇔", value: "⇔", tooltip: "If and only if" },
+      { label: "∀", value: "∀", tooltip: "For all" },
+      { label: "∃", value: "∃", tooltip: "There exists" },
+      { label: "⊕", value: "⊕", tooltip: "XOR" },
+      { label: "⊤", value: "⊤", tooltip: "True" },
+      { label: "⊥", value: "⊥", tooltip: "False" },
+    ],
+  },
+  {
+    group: "Set Theory",
+    symbols: [
+      { label: "∈", value: "∈", tooltip: "Element of" },
+      { label: "∉", value: "∉", tooltip: "Not an element of" },
+      { label: "⊆", value: "⊆", tooltip: "Subset" },
+      { label: "⊂", value: "⊂", tooltip: "Proper subset" },
+      { label: "⊇", value: "⊇", tooltip: "Superset" },
+      { label: "∅", value: "∅", tooltip: "Empty set" },
+      { label: "∪", value: "∪", tooltip: "Union" },
+      { label: "∩", value: "∩", tooltip: "Intersection" },
+      { label: "\\", value: "\\", tooltip: "Set difference" },
+      { label: "ℕ", value: "ℕ", tooltip: "Natural numbers" },
+      { label: "ℤ", value: "ℤ", tooltip: "Integers" },
+      { label: "ℚ", value: "ℚ", tooltip: "Rational numbers" },
+      { label: "ℝ", value: "ℝ", tooltip: "Real numbers" },
+      { label: "ℂ", value: "ℂ", tooltip: "Complex numbers" },
+    ],
+  },
+  {
+    group: "Relations & Arithmetic",
+    symbols: [
+      { label: "=", value: "=", tooltip: "Equal" },
+      { label: "≠", value: "≠", tooltip: "Not equal" },
+      { label: "≤", value: "≤", tooltip: "Less than or equal" },
+      { label: "≥", value: "≥", tooltip: "Greater than or equal" },
+      { label: "≡", value: "≡", tooltip: "Equivalent / Congruent" },
+      { label: "mod", value: "mod", tooltip: "Modulo" },
+      { label: "|", value: "|", tooltip: "Divides" },
+      { label: "⌊x⌋", value: "⌊⌋", tooltip: "Floor" },
+      { label: "⌈x⌉", value: "⌈⌉", tooltip: "Ceiling" },
+    ],
+  },
+  {
+    group: "Combinatorics & Probability",
+    symbols: [
+      { label: "∑", value: "∑", tooltip: "Summation" },
+      { label: "∏", value: "∏", tooltip: "Product" },
+      { label: "P(A)", value: "P()", tooltip: "Probability" },
+      { label: "C(n,k)", value: "C(n,k)", tooltip: "Combination" },
+    ],
+  },
+  {
+    group: "Miscellaneous",
+    symbols: [
+      { label: "→", value: "→", tooltip: "Arrow" },
+      { label: "↔", value: "↔", tooltip: "Double arrow" },
+    ],
+  },
+];
