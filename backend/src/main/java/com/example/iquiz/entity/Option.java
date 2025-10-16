@@ -19,14 +19,12 @@ public class Option {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String text;
 
     @Column(name = "is_correct", nullable = false)
     private boolean isCorrect;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String explanation;
 

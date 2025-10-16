@@ -4,6 +4,7 @@ import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.service.ExerciseService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/exercises")
+@RequiredArgsConstructor
 public class ExerciseController {
-    @Autowired
-    private ExerciseService exerciseService;
+
+    private final ExerciseService exerciseService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ExerciseResponseDto> getExercise(@PathVariable Long id) {
@@ -22,14 +24,16 @@ public class ExerciseController {
     }
 
     @GetMapping("/{exerciseId}/options")
-    public ResponseEntity<List<OptionResponseDto>> getOptionsForExercise(
-            @PathVariable Long exerciseId) {
+    public ResponseEntity<List<OptionResponseDto>> getOptionsForExercise(@PathVariable Long exerciseId) {
         return ResponseEntity.ok(exerciseService.getOptionsByExerciseId(exerciseId));
     }
 
     @GetMapping
-    public ResponseEntity<List<ExerciseResponseDto>> getAllExercises() {
-        return ResponseEntity.ok(exerciseService.getAllExercises());
+    public ResponseEntity<List<ExerciseResponseDto>> getExercises(
+            @RequestParam(required = false) Long lessonId,
+            @RequestParam(required = false) Long typeId
+    ) {
+        return ResponseEntity.ok(exerciseService.getExercises(lessonId, typeId));
     }
 
     @PostMapping
@@ -38,13 +42,17 @@ public class ExerciseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExerciseResponseDto> updateExercise(@RequestBody ExerciseRequestDto dto, @PathVariable Long id) {
+    public ResponseEntity<ExerciseResponseDto> updateExercise(
+            @PathVariable Long id,
+            @RequestBody ExerciseRequestDto dto
+    ) {
         return ResponseEntity.ok(exerciseService.updateExercise(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteExercise(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteExercise(@PathVariable Long id) {
         exerciseService.deleteExercise(id);
-        return ResponseEntity.ok("Exercise has been deleted");
+        return ResponseEntity.noContent().build();
     }
 }
+

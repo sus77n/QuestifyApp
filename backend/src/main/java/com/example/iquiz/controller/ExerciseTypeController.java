@@ -2,6 +2,7 @@ package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ExerciseTypeDto;
 import com.example.iquiz.service.ExerciseTypeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,10 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/exercise-type")
+@RequestMapping("/api/exercise-types")
+@RequiredArgsConstructor
 public class ExerciseTypeController {
-    @Autowired
-    private ExerciseTypeService exerciseTypeService;
+
+    private final ExerciseTypeService exerciseTypeService;
 
     @GetMapping
     public ResponseEntity<List<ExerciseTypeDto>> getAllExerciseTypes() {
@@ -26,11 +28,22 @@ public class ExerciseTypeController {
 
     @PostMapping
     public ResponseEntity<ExerciseTypeDto> addExerciseType(@RequestBody ExerciseTypeDto dto) {
-        return ResponseEntity.ok(exerciseTypeService.saveExerciseType(dto));
+        ExerciseTypeDto created = exerciseTypeService.saveExerciseType(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExerciseTypeDto> updateExerciseType(@RequestBody ExerciseTypeDto dto, @PathVariable Long id) {
+    public ResponseEntity<ExerciseTypeDto> updateExerciseType(
+            @PathVariable Long id,
+            @RequestBody ExerciseTypeDto dto
+    ) {
         return ResponseEntity.ok(exerciseTypeService.updateExerciseType(id, dto));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteExerciseType(@PathVariable Long id) {
+        exerciseTypeService.deleteExerciseTypeById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
+

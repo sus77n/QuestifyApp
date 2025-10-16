@@ -1,5 +1,6 @@
 package com.example.iquiz.service;
 
+import com.example.iquiz.dto.submission.SubmissionBulkResponseDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.Option;
@@ -10,6 +11,7 @@ import com.example.iquiz.repository.OptionRepository;
 import com.example.iquiz.repository.SubmissionRepository;
 import com.example.iquiz.utility.SubmissionUtil;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,40 +20,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SubmissionService {
-    @Autowired
-    private SubmissionRepository submissionRepository;
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-    @Autowired
-    private OptionRepository optionRepository;
-    @Autowired
-    private SubmissionMapper submissionMapper;
-    @Autowired
-    private SubmissionUtil submissionUtil;
+
+    private final SubmissionRepository submissionRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final OptionRepository optionRepository;
+    private final SubmissionMapper submissionMapper;
+    private final SubmissionUtil submissionUtil;
 
     public SubmissionDto submit(SubmissionDto submissionDTO) {
-
         Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId())
-                .orElseThrow(() -> new NullPointerException("exercise not found"));
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
         Submission submission = submissionMapper.toEntity(submissionDTO);
 
-        if (submissionDTO.selectedOptionId() != 0) {
-            Option option = optionRepository.findById(submissionDTO.selectedOptionId()).orElse(null);
+        if (submissionDTO.selectedOptionId() != null) {
+            Option option = optionRepository.findById(submissionDTO.selectedOptionId())
+                    .orElseThrow(() -> new RuntimeException("Option not found"));
             submission.setSelectedOption(option);
-            if (option.isCorrect()) {
-                submission.setScore(BigDecimal.valueOf(100));
-            } else {
-                submission.setScore(BigDecimal.valueOf(0));
-            }
-        } else {
-            if (exercise.getAnswer().contains(submissionDTO.answer())
-                    && (exercise.getAnswer().length() / 2 <= submissionDTO.answer().length())) {
-                submission.setScore(BigDecimal.valueOf(100));
-            } else {
-                submission.setScore(BigDecimal.valueOf(0));
-            }
+            submission.setScore(option.isCorrect() ? BigDecimal.valueOf(100) : BigDecimal.ZERO);
+        } else if (submissionDTO.answer() != null) {
+            submission.setScore(
+                    submissionUtil.calculateScore(submissionDTO, exercise, null)
+            );
         }
 
         submissionRepository.save(submission);
@@ -59,45 +51,49 @@ public class SubmissionService {
     }
 
     @Transactional
-    public Double submitAll(List<SubmissionDto> dtoList) {
+    public SubmissionBulkResponseDto submitAll(List<SubmissionDto> dtoList) {
         if (dtoList == null || dtoList.isEmpty()) {
-            return 0.0;
+            return new SubmissionBulkResponseDto(0.0, 0, 0);
         }
 
-        try {
-            List<Submission> submissions = new ArrayList<>();
-            BigDecimal totalScore = BigDecimal.ZERO;
+        List<Submission> submissions = new ArrayList<>();
+        BigDecimal totalScore = BigDecimal.ZERO;
+        int correctCount = 0;
 
-            for (SubmissionDto submissionDTO : dtoList) {
-                Exercise exercise = exerciseRepository.findById(submissionDTO.exerciseId())
-                        .orElseThrow(() -> new RuntimeException("Exercise not found with id: " + submissionDTO.exerciseId()));
+        for (SubmissionDto dto : dtoList) {
+            Exercise exercise = exerciseRepository.findById(dto.exerciseId())
+                    .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
-                Option selectedOption = null;
-                if (submissionDTO.selectedOptionId() != null) {
-                    selectedOption = optionRepository.findById(submissionDTO.selectedOptionId())
-                            .orElseThrow(() -> new RuntimeException("Option not found with id: " + submissionDTO.selectedOptionId()));
-                }
+            Option selectedOption = dto.selectedOptionId() != null
+                    ? optionRepository.findById(dto.selectedOptionId())
+                    .orElseThrow(() -> new RuntimeException("Option not found"))
+                    : null;
 
-                Submission submission = submissionMapper.toEntity(submissionDTO);
-                submission.setSelectedOption(selectedOption);
+            Submission submission = submissionMapper.toEntity(dto);
+            submission.setSelectedOption(selectedOption);
 
-                BigDecimal submissionScore = submissionUtil.calculateScore(submissionDTO, exercise, selectedOption);
-                submission.setScore(submissionScore);
-                totalScore = totalScore.add(submissionScore);
+            BigDecimal score = submissionUtil.calculateScore(dto, exercise, selectedOption);
+            submission.setScore(score);
+            totalScore = totalScore.add(score);
 
-                submissions.add(submission);
+            if (score.compareTo(BigDecimal.ZERO) > 0) {
+                correctCount++;
             }
 
-            submissionRepository.saveAll(submissions);
-            return submissionUtil.calculateAverageScore(totalScore, submissions.size());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing submissions: " + e.getMessage(), e);
+            submissions.add(submission);
         }
+
+        submissionRepository.saveAll(submissions);
+
+        double avg = submissionUtil.calculateAverageScore(totalScore, submissions.size());
+        return new SubmissionBulkResponseDto(avg, submissions.size(), correctCount);
     }
+
 
     public SubmissionDto getSubmissionByUserIdAndExerciseId(Long userId, Long exerciseId) {
-        Submission submission = submissionRepository.findTopByUserIdAndExerciseIdOrderBySubmittedAtDesc(userId, exerciseId).orElse(null);
-        return submissionMapper.toDto(submission);
+        return submissionRepository.findTopByUserIdAndExerciseIdOrderBySubmittedAtDesc(userId, exerciseId)
+                .map(submissionMapper::toDto)
+                .orElse(null);
     }
 }
+

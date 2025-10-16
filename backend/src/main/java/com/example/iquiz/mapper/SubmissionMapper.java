@@ -6,20 +6,17 @@ import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.OptionRepository;
 import com.example.iquiz.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SubmissionMapper {
 
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private OptionRepository optionRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final UserRepository userRepository;
+    private final OptionRepository optionRepository;
 
     public SubmissionDto toDto(Submission submission) {
         if (submission == null) {
@@ -43,14 +40,13 @@ public class SubmissionMapper {
         }
 
         Submission entity = new Submission();
-        entity.setId(dto.id());
+
         entity.setExercise(exerciseRepository.findById(dto.exerciseId())
                 .orElseThrow(() -> new EntityNotFoundException("Exercise with id: " + dto.exerciseId())));
         entity.setUser(userRepository.findById(dto.userId())
                 .orElseThrow(() -> new EntityNotFoundException("User with id: " + dto.userId())));
         entity.setAnswer(dto.answer());
-        entity.setScore(dto.score());
-        entity.setSubmittedAt(dto.submittedAt());
+
         if (dto.selectedOptionId() != null) {
             entity.setSelectedOption(optionRepository.findById(dto.selectedOptionId())
                     .orElseThrow(() -> new EntityNotFoundException("Option with id: " + dto.selectedOptionId())));
@@ -59,3 +55,4 @@ public class SubmissionMapper {
         return entity;
     }
 }
+

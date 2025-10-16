@@ -2,6 +2,7 @@ package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.service.LearningUnitTypeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,9 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/learning-unit-types")
+@RequiredArgsConstructor
 public class LearningUnitTypeController {
-    @Autowired
-    private LearningUnitTypeService learningUnitTypeService;
+
+    private final LearningUnitTypeService learningUnitTypeService;
 
     @GetMapping
     public ResponseEntity<List<LearningUnitTypeDto>> getLearningUnitTypes() {
@@ -25,18 +27,22 @@ public class LearningUnitTypeController {
     }
 
     @PostMapping
-    public ResponseEntity<LearningUnitTypeDto> createLearningUnitType(@RequestBody LearningUnitTypeDto learningUnitTypeDto) {
-        return ResponseEntity.ok(learningUnitTypeService.saveLearningUnitType(learningUnitTypeDto));
+    public ResponseEntity<LearningUnitTypeDto> createLearningUnitType(@RequestBody LearningUnitTypeDto dto) {
+        LearningUnitTypeDto created = learningUnitTypeService.saveLearningUnitType(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LearningUnitTypeDto> updateLUT(@RequestBody LearningUnitTypeDto learningUnitTypeDto, @PathVariable Long id) {
-        return ResponseEntity.ok(learningUnitTypeService.updateLearningUnitType(id, learningUnitTypeDto));
+    public ResponseEntity<LearningUnitTypeDto> updateLearningUnitType(
+            @PathVariable Long id,
+            @RequestBody LearningUnitTypeDto dto
+    ) {
+        return ResponseEntity.ok(learningUnitTypeService.updateLearningUnitType(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteLearningUnitType(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLearningUnitType(@PathVariable Long id) {
         learningUnitTypeService.deleteLearningUnitTypeById(id);
-        return ResponseEntity.ok("Learning Unit Type has been deleted");
+        return ResponseEntity.noContent().build();
     }
 }

@@ -12,12 +12,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/options")
 public class OptionController {
-    @Autowired
-    private OptionService optionService;
 
-    @GetMapping
-    public ResponseEntity<List<OptionResponseDto>> findAll() {
-        return ResponseEntity.ok(optionService.getAllOptions());
+    private final OptionService optionService;
+
+    public OptionController(OptionService optionService) {
+        this.optionService = optionService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OptionResponseDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(optionService.getOptionById(id));
+    }
+
+    @GetMapping("/exercise/{exerciseId}")
+    public ResponseEntity<List<OptionResponseDto>> getByExerciseId(@PathVariable Long exerciseId) {
+        return ResponseEntity.ok(optionService.getOptionsByExerciseId(exerciseId));
     }
 
     @PostMapping
@@ -35,5 +44,5 @@ public class OptionController {
         optionService.deleteOptionById(id);
         return ResponseEntity.ok("Option has been deleted!");
     }
-
 }
+

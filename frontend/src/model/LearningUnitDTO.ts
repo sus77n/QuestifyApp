@@ -29,3 +29,16 @@ export interface CourseDTO {
 export interface CourseWithIndex extends LearningUnitDTO {
   index: number;
 }
+
+export interface LearningUnitWithChildren {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  type: LearningUnitType;
+  status: number;
+  createdAt: Date;
+  createdBy: string;
+  children: LearningUnitWithChildren[];
+  numberOfExercises: number;
+}

@@ -5,6 +5,7 @@ import com.example.iquiz.entity.ExerciseType;
 import com.example.iquiz.mapper.ExerciseTypeMapper;
 import com.example.iquiz.repository.ExerciseTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ExerciseTypeService {
     @Autowired
     private ExerciseTypeRepository exerciseTypeRepository;
@@ -38,10 +40,13 @@ public class ExerciseTypeService {
                 .orElseThrow(() -> new EntityNotFoundException("No exercise type id: " + id));
 
         exerciseType.setCode(dto.code());
+
         return exerciseTypeMapper.toDto(exerciseTypeRepository.save(exerciseType));
     }
 
     public void deleteExerciseTypeById(Long id) {
+        if (!exerciseTypeRepository.existsById(id)) {
+            throw new EntityNotFoundException("No exercise type id: " + id);
+        }
         exerciseTypeRepository.deleteById(id);
-    }
-}
+    }}

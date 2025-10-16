@@ -4,6 +4,7 @@ import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.entity.LearningUnitType;
 import com.example.iquiz.mapper.LearningUnitTypeMapper;
 import com.example.iquiz.repository.LearningUnitTypeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,48 +12,59 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LearningUnitTypeService {
 
-    @Autowired
-    private LearningUnitTypeRepository learningUnitTypeRepository;
-    
-    @Autowired
-    private LearningUnitTypeMapper learningUnitTypeMapper;
+    private final LearningUnitTypeRepository learningUnitTypeRepository;
+    private final LearningUnitTypeMapper learningUnitTypeMapper;
 
     public LearningUnitTypeDto getLearningUnitTypeById(Long id) {
-        return learningUnitTypeMapper.toDto(learningUnitTypeRepository.findById(id).get());
+        LearningUnitType type = learningUnitTypeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
+        return learningUnitTypeMapper.toDto(type);
     }
 
     public List<LearningUnitTypeDto> getLearningUnitTypes() {
-        return learningUnitTypeRepository.findAll().stream().map(learningUnitType -> learningUnitTypeMapper.toDto(learningUnitType)).collect(Collectors.toList());
+        return learningUnitTypeRepository.findAll().stream()
+                .map(learningUnitTypeMapper::toDto)
+                .toList();
     }
 
     public LearningUnitTypeDto getLearningUnitTypeByType(String type) {
-        return learningUnitTypeMapper.toDto(learningUnitTypeRepository.findByName(type));
+        return learningUnitTypeMapper.toDto(
+                learningUnitTypeRepository.findByName(type)
+        );
     }
 
-    public LearningUnitTypeDto saveLearningUnitType(LearningUnitTypeDto learningUnitTypeDto) {
-        LearningUnitType learningUnitType = learningUnitTypeMapper.toEntity(learningUnitTypeDto);
-        learningUnitTypeRepository.save(learningUnitType);
-        return learningUnitTypeMapper.toDto(learningUnitType);
+    public LearningUnitTypeDto saveLearningUnitType(LearningUnitTypeDto dto) {
+        LearningUnitType entity = learningUnitTypeMapper.toEntity(dto);
+        learningUnitTypeRepository.save(entity);
+        return learningUnitTypeMapper.toDto(entity);
     }
 
     public void deleteLearningUnitTypeById(Long id) {
+        if (!learningUnitTypeRepository.existsById(id)) {
+            throw new IllegalArgumentException("Learning Unit Type not found with id: " + id);
+        }
         learningUnitTypeRepository.deleteById(id);
     }
 
-    public LearningUnitTypeDto updateLearningUnitType(Long id, LearningUnitTypeDto learningUnitTypeDto) {
-        LearningUnitType learningUnitType = learningUnitTypeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Can not found unit type id:" + id));
+    public LearningUnitTypeDto updateLearningUnitType(Long id, LearningUnitTypeDto dto) {
+        LearningUnitType entity = learningUnitTypeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
 
-        learningUnitType.setName(learningUnitType.getName());
-        learningUnitType.setLevel(learningUnitType.getLevel());
+        entity.setName(dto.type());
+        entity.setLevel(dto.level());
 
-        if (learningUnitType.getLevel() == 0) {
-            learningUnitTypeRepository.findAll().forEach(l -> l.setLevel(l.getLevel() + 1));
+        // Nếu rule: nếu level = 0 thì shift tất cả level khác lên +1
+        if (dto.level() == 0) {
+            List<LearningUnitType> all = learningUnitTypeRepository.findAll();
+            all.forEach(l -> l.setLevel(l.getLevel() + 1));
+            learningUnitTypeRepository.saveAll(all);
         }
 
-        learningUnitTypeRepository.save(learningUnitType);
-        return learningUnitTypeMapper.toDto(learningUnitType);
+        learningUnitTypeRepository.save(entity);
+        return learningUnitTypeMapper.toDto(entity);
     }
 }
+

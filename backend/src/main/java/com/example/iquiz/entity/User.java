@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
@@ -29,8 +31,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Length(max = 50)
+    @Size(max = 50)
     @Column(unique = true, nullable = false, length = 50)
     private String username;
 
@@ -56,7 +57,11 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
-    @Column(updatable = false)
-    private LocalDateTime createdAt = java.time.LocalDateTime.now();
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

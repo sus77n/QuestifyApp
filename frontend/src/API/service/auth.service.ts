@@ -1,19 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { LoginDTO, LoginResponseDTO, SignupDTO } from "../../model/AuthDTO";
 import { UserDTO } from "../../model/UserDTO";
+import {customBaseQuery} from "../client/customBaseQuery";
 
 export const authService = createApi({
   reducerPath: "authService",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "/api",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: customBaseQuery,
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponseDTO, LoginDTO>({
       query: (credentials) => ({
