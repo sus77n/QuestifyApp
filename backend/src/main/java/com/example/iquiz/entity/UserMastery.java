@@ -27,7 +27,7 @@ public class UserMastery {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("exerciseTypeId")
     @JoinColumn(name = "exercise_type_id", nullable = false)
-    private ExerciseType exerciseType;
+    private ExerciseCategory exerciseCategory;
 
     @Column(name = "accuracy", nullable = false)
     private double accuracy = 0.0;

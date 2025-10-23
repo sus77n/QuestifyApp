@@ -13,7 +13,7 @@ public class AuthRequest {
 
 
     @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, max = 40, message = "Password must be 8-40 characters")
+//    @Size(min = 8, max = 40, message = "Password must be 8-40 characters")
     private String password;
 
 }

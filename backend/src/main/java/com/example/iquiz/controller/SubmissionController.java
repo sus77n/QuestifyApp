@@ -1,11 +1,11 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.submission.SubmissionBulkResponseDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,28 +15,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SubmissionController {
 
-    private final SubmissionService submissionService;
+    @Autowired
+    SubmissionService submissionService;
 
     // Nộp 1 bài
     @PostMapping
-    public ResponseEntity<SubmissionDto> submit(@RequestBody SubmissionDto submissionDto) {
-        return ResponseEntity.ok(submissionService.submit(submissionDto));
+    public ApiResponse<SubmissionDto> submit(@RequestBody SubmissionDto submissionDto) {
+        return ApiResponse.success(submissionService.submit(submissionDto), "Submission successful");
     }
 
     // Lấy submission mới nhất của user cho 1 exercise
     @GetMapping("/latest")
-    public ResponseEntity<SubmissionDto> getLatestSubmission(
+    public ApiResponse<SubmissionDto> getLatestSubmission(
             @RequestParam Long userId,
             @RequestParam Long exerciseId) {
-        return ResponseEntity.ok(
-                submissionService.getSubmissionByUserIdAndExerciseId(userId, exerciseId)
+        return ApiResponse.success(
+                submissionService.getSubmissionByUserIdAndExerciseId(userId, exerciseId),
+                "Latest submission retrieved successfully"
         );
     }
 
     // Nộp nhiều bài
     @PostMapping("/bulk")
-    public ResponseEntity<SubmissionBulkResponseDto> submitBulk(
+    public ApiResponse<SubmissionBulkResponseDto> submitBulk(
             @RequestBody List<SubmissionDto> submissions) {
-        return ResponseEntity.ok(submissionService.submitAll(submissions));
+        return ApiResponse.success(submissionService.submitAll(submissions), "Bulk submission successful");
     }
 }

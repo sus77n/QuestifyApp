@@ -4,7 +4,7 @@ import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.entity.Exercise;
-import com.example.iquiz.entity.ExerciseType;
+import com.example.iquiz.entity.ExerciseCategory;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.Option;
 import com.example.iquiz.mapper.ExerciseMapper;
@@ -15,7 +15,6 @@ import com.example.iquiz.repository.LearningUnitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,9 +56,9 @@ public class ExerciseService {
         exercise.setParent(parent);
 
         if (dto.exerciseTypeId() != null) {
-            ExerciseType type = exerciseTypeRepository.findById(dto.exerciseTypeId())
+            ExerciseCategory type = exerciseTypeRepository.findById(dto.exerciseTypeId())
                     .orElseThrow(() -> new RuntimeException("ExerciseType not found"));
-            exercise.setExerciseType(type);
+            exercise.setExerciseCategory(type);
         }
 
         exercise.setAnswer(dto.answer());
@@ -91,9 +90,9 @@ public class ExerciseService {
         exercise.setParent(parent);
 
         if (dto.exerciseTypeId() != null) {
-            ExerciseType type = exerciseTypeRepository.findById(dto.exerciseTypeId())
+            ExerciseCategory type = exerciseTypeRepository.findById(dto.exerciseTypeId())
                     .orElseThrow(() -> new RuntimeException("ExerciseType not found"));
-            exercise.setExerciseType(type);
+            exercise.setExerciseCategory(type);
         }
 
         if (dto.options() != null && !dto.options().isEmpty()) {
@@ -119,11 +118,11 @@ public class ExerciseService {
         List<Exercise> exercises;
 
         if (lessonId != null && typeId != null) {
-            exercises = exerciseRepository.findByParent_IdAndExerciseType_Id(lessonId, typeId);
+            exercises = exerciseRepository.findByParent_IdAndExerciseCategory_Id(lessonId, typeId);
         } else if (lessonId != null) {
             exercises = exerciseRepository.findByParent_Id(lessonId);
         } else if (typeId != null) {
-            exercises = exerciseRepository.findByExerciseType_Id(typeId);
+            exercises = exerciseRepository.findByExerciseCategory_Id(typeId);
         } else {
             exercises = exerciseRepository.findAll();
         }

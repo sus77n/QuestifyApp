@@ -12,7 +12,7 @@ public record AttemptStartResponseDto(
         List<QuestionDto> questions
 ) {
     public record QuestionDto(
-            Long exerciseId,
+            Long id,
             String question,
             List<OptionDto> options
     ) {}

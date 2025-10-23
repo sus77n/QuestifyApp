@@ -45,9 +45,9 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exercise_type_id", nullable = false) // tên cột FK trong bảng exercises
+    @JoinColumn(name = "exercise_category_id", nullable = false)
     @JsonBackReference
-    private ExerciseType exerciseType;
+    private ExerciseCategory exerciseCategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "learning_unit_id")

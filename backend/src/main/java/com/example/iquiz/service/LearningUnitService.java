@@ -46,7 +46,6 @@ public class LearningUnitService {
     public LearningUnitDto getLearningUnitById(Long id, Long userId) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Learning Unit not found with id: " + id));
-        // chỉ trả metadata, không random exercise ở đây
         return learningUnitMapper.toDto(learningUnit, userId);
     }
 
@@ -109,7 +108,7 @@ public class LearningUnitService {
     }
 
     public List<CourseDto> getAllCoursesWithUserId(Long userId) {
-        return learningUnitRepository.findByTypeLevel(1).stream()
+        return learningUnitRepository.findByTypeLevel(0).stream()
                 .map(course -> new CourseDto(
                         course.getId(),
                         course.getName(),

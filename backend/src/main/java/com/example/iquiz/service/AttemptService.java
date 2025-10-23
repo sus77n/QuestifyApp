@@ -4,8 +4,10 @@ import com.example.iquiz.dto.attempt.AttemptResponseDto;
 import com.example.iquiz.dto.attempt.AttemptStartResponseDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.entity.*;
+import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.*;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +35,9 @@ public class AttemptService {
         return attemptRepository.save(attempt);
     }
 
-    public Optional<Attempt> findById(Long id) {
-        return attemptRepository.findById(id);
+    public Attempt findById(Long id) {
+        return attemptRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt", "id", id));
     }
 
     public List<Attempt> findByUser(Long userId) {
@@ -71,7 +74,7 @@ public class AttemptService {
 
         // --- 1. Lấy config ---
         LessonConfig config = lessonConfigRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new RuntimeException("LessonConfig not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found for lessonId: ", "" ,lessonId));
 
         int totalQuestions = config.getQuestionsPerAttempt();
 
@@ -88,12 +91,13 @@ public class AttemptService {
                     .map(s -> s.getExercise().getId())
                     .collect(Collectors.toSet());
         }
+
         final Set<Long> finalUsedExerciseIds = usedExerciseIds; // fix lambda issue
 
         // --- 3. Chọn câu hỏi theo phân phối ---
         for (LessonTypeDistribution dist : distributions) {
-            List<Exercise> pool = exerciseRepository.findByParent_IdAndExerciseType_Id(
-                    lessonId, dist.getExerciseType().getId()
+            List<Exercise> pool = exerciseRepository.findByParent_IdAndExerciseCategory_Id(
+                    lessonId, dist.getExerciseCategory().getId()
             );
 
             // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
@@ -123,6 +127,7 @@ public class AttemptService {
             Collections.shuffle(all, random);
 
             int needMore = totalQuestions - selectedExercises.size();
+
             selectedExercises.addAll(all.subList(0, Math.min(needMore, all.size())));
         }
 
@@ -150,23 +155,29 @@ public class AttemptService {
     @Transactional
     public AttemptResponseDto submitAttempt(Long attemptId, List<SubmissionDto> submissions) {
         Attempt attempt = attemptRepository.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
 
         int correctCount = 0;
         List<AttemptResponseDto.FeedbackDto> feedbacks = new java.util.ArrayList<>();
 
         for (SubmissionDto dto : submissions) {
             Exercise exercise = exerciseRepository.findById(dto.exerciseId())
-                    .orElseThrow(() -> new RuntimeException("Exercise not found"));
+                    .orElseThrow(() -> new EntityNotFoundException("Exercise not found"));
 
             boolean correct = false;
             String expectedAnswer = exercise.getAnswer();
+            if (expectedAnswer == null) {
+                Option option = optionRepository.findCorrectOptionByExerciseId(exercise.getId());
+                if (option != null) {
+                    expectedAnswer = option.getText() + ". \n" + option.getExplanation();
+                }
+            }
             String userAnswer = dto.answer();
 
             Option selectedOption = null;
             if (dto.selectedOptionId() != null) {
                 selectedOption = optionRepository.findById(dto.selectedOptionId())
-                        .orElseThrow(() -> new RuntimeException("Option not found"));
+                        .orElseThrow(() -> new EntityNotFoundException("Option not found"));
                 correct = selectedOption.isCorrect();
                 userAnswer = selectedOption.getText();
             } else if (dto.answer() != null) {
@@ -179,6 +190,7 @@ public class AttemptService {
             Submission submission = new Submission();
             submission.setExercise(exercise);
             submission.setUser(attempt.getUser());
+            submission.setAttempt(attempt);
             submission.setAnswer(dto.answer());
             submission.setSelectedOption(selectedOption);
             submission.setScore(correct ? BigDecimal.ONE : BigDecimal.ZERO);

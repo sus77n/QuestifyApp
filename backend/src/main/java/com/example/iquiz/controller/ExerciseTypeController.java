@@ -1,10 +1,10 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ExerciseTypeDto;
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.service.ExerciseTypeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,33 +17,35 @@ public class ExerciseTypeController {
     private final ExerciseTypeService exerciseTypeService;
 
     @GetMapping
-    public ResponseEntity<List<ExerciseTypeDto>> getAllExerciseTypes() {
-        return ResponseEntity.ok(exerciseTypeService.getAllExerciseTypes());
+    public ApiResponse<List<ExerciseTypeDto>> getAllExerciseTypes() {
+        List<ExerciseTypeDto> types = exerciseTypeService.getAllExerciseTypes();
+        return ApiResponse.success(types, "Fetched all exercise types");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExerciseTypeDto> getExerciseType(@PathVariable Long id) {
-        return ResponseEntity.ok(exerciseTypeService.getExerciseTypeById(id));
+    public ApiResponse<ExerciseTypeDto> getExerciseType(@PathVariable Long id) {
+        ExerciseTypeDto type = exerciseTypeService.getExerciseTypeById(id);
+        return ApiResponse.success(type, "Fetched exercise type");
     }
 
     @PostMapping
-    public ResponseEntity<ExerciseTypeDto> addExerciseType(@RequestBody ExerciseTypeDto dto) {
+    public ApiResponse<ExerciseTypeDto> addExerciseType(@Valid @RequestBody ExerciseTypeDto dto) {
         ExerciseTypeDto created = exerciseTypeService.saveExerciseType(dto);
-        return ResponseEntity.status(201).body(created);
+        return ApiResponse.success(created, "Exercise type created successfully");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExerciseTypeDto> updateExerciseType(
+    public ApiResponse<ExerciseTypeDto> updateExerciseType(
             @PathVariable Long id,
-            @RequestBody ExerciseTypeDto dto
+            @Valid @RequestBody ExerciseTypeDto dto
     ) {
-        return ResponseEntity.ok(exerciseTypeService.updateExerciseType(id, dto));
+        ExerciseTypeDto updated = exerciseTypeService.updateExerciseType(id, dto);
+        return ApiResponse.success(updated, "Exercise type updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExerciseType(@PathVariable Long id) {
+    public ApiResponse<Void> deleteExerciseType(@PathVariable Long id) {
         exerciseTypeService.deleteExerciseTypeById(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success(null, "Exercise type deleted successfully");
     }
 }
-

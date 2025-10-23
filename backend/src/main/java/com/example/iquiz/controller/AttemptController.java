@@ -1,12 +1,13 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.attempt.AttemptResponseDto;
 import com.example.iquiz.dto.attempt.AttemptStartResponseDto;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.entity.Attempt;
 import com.example.iquiz.service.AttemptService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,50 +17,49 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AttemptController {
 
-    private final AttemptService attemptService;
+    @Autowired
+    AttemptService attemptService;
 
     @PostMapping
-    public ResponseEntity<Attempt> create(@RequestBody Attempt attempt) {
-        return ResponseEntity.ok(attemptService.save(attempt));
+    public ApiResponse<Attempt> create(@RequestBody Attempt attempt) {
+        return ApiResponse.success(attemptService.save(attempt), "Attempt created successfully");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Attempt> getById(@PathVariable Long id) {
-        return attemptService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ApiResponse<Attempt> getById(@PathVariable Long id) {
+        return ApiResponse.success(attemptService.findById(id), "Attempt found successfully");
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Attempt>> getByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(attemptService.findByUser(userId));
+    public ApiResponse<List<Attempt>> getByUser(@PathVariable Long userId) {
+        return ApiResponse.success(attemptService.findByUser(userId), "Attempts for user found successfully");
     }
 
     @GetMapping("/lesson/{lessonId}")
-    public ResponseEntity<List<Attempt>> getByLesson(@PathVariable Long lessonId) {
-        return ResponseEntity.ok(attemptService.findByLesson(lessonId));
+    public ApiResponse<List<Attempt>> getByLesson(@PathVariable Long lessonId) {
+        return ApiResponse.success(attemptService.findByLesson(lessonId), "Attempts for lesson found successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ApiResponse<Void> delete(@PathVariable Long id) {
         attemptService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success(null, "Attempt deleted successfully");
     }
 
     @PostMapping("/start")
-    public ResponseEntity<AttemptStartResponseDto> startAttempt(
+    public ApiResponse<AttemptStartResponseDto> startAttempt(
             @RequestParam Long userId,
             @RequestParam Long lessonId
     ) {
-        return ResponseEntity.ok(attemptService.startAttempt(userId, lessonId));
+        return ApiResponse.success(attemptService.startAttempt(userId, lessonId), "Attempt started successfully");
     }
 
 
     @PostMapping("/{attemptId}/submit")
-    public ResponseEntity<AttemptResponseDto> submitAttempt(
+    public ApiResponse<AttemptResponseDto> submitAttempt(
             @PathVariable Long attemptId,
             @RequestBody List<SubmissionDto> submissions
     ) {
-        return ResponseEntity.ok(attemptService.submitAttempt(attemptId, submissions));
+        return ApiResponse.success(attemptService.submitAttempt(attemptId, submissions), "Attempt submitted successfully");
     }
 }

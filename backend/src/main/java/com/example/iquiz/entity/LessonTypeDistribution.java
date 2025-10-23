@@ -23,7 +23,7 @@ public class LessonTypeDistribution {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("exerciseTypeId")
     @JoinColumn(name = "exercise_type_id", nullable = false)
-    private ExerciseType exerciseType;
+    private ExerciseCategory exerciseCategory;
 
     @Column(name = "base_weight", precision = 5, scale = 2, nullable = false)
     private BigDecimal baseWeight = BigDecimal.valueOf(1.0);

@@ -10,7 +10,10 @@ import java.util.List;
 @Repository
 public interface UserMasteryRepository extends JpaRepository<UserMastery, UserMasteryId> {
     List<UserMastery> findByUserId(Long userId);
+
     List<UserMastery> findByLessonId(Long lessonId);
-    List<UserMastery> findByExerciseTypeId(Long exerciseTypeId);
+
+    List<UserMastery> findByExerciseCategory_Id(Long exerciseCategoryId);
+
     List<UserMastery> findByUserIdAndLessonId(Long userId, Long lessonId);
 }

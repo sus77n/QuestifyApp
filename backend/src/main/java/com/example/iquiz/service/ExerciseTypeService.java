@@ -1,7 +1,7 @@
 package com.example.iquiz.service;
 
 import com.example.iquiz.dto.ExerciseTypeDto;
-import com.example.iquiz.entity.ExerciseType;
+import com.example.iquiz.entity.ExerciseCategory;
 import com.example.iquiz.mapper.ExerciseTypeMapper;
 import com.example.iquiz.repository.ExerciseTypeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,17 +31,17 @@ public class ExerciseTypeService {
     }
 
     public ExerciseTypeDto saveExerciseType(ExerciseTypeDto exerciseTypeDto) {
-        ExerciseType exerciseType = exerciseTypeMapper.toEntity(exerciseTypeDto);
-        return exerciseTypeMapper.toDto(exerciseTypeRepository.save(exerciseType));
+        ExerciseCategory exerciseCategory = exerciseTypeMapper.toEntity(exerciseTypeDto);
+        return exerciseTypeMapper.toDto(exerciseTypeRepository.save(exerciseCategory));
     }
 
     public ExerciseTypeDto updateExerciseType(Long id, ExerciseTypeDto dto) {
-        ExerciseType exerciseType = exerciseTypeRepository.findById(id)
+        ExerciseCategory exerciseCategory = exerciseTypeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No exercise type id: " + id));
 
-        exerciseType.setCode(dto.code());
+        exerciseCategory.setCode(dto.code());
 
-        return exerciseTypeMapper.toDto(exerciseTypeRepository.save(exerciseType));
+        return exerciseTypeMapper.toDto(exerciseTypeRepository.save(exerciseCategory));
     }
 
     public void deleteExerciseTypeById(Long id) {

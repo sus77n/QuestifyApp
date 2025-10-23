@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface LessonConfigRepository extends JpaRepository<LessonConfig, Long> {
     Optional<LessonConfig> findByLessonId(Long lessonId);
     void deleteByLessonId(Long lessonId);
-    boolean existsByLessonId(Long lessonId);
+
 }

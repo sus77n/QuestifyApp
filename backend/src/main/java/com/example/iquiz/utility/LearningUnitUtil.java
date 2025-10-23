@@ -1,6 +1,9 @@
 package com.example.iquiz.utility;
 
 import com.example.iquiz.entity.LearningUnit;
+import com.example.iquiz.entity.LessonConfig;
+import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.repository.LessonConfigRepository;
 import com.example.iquiz.repository.SubmissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,6 +13,9 @@ public class LearningUnitUtil {
 
     @Autowired
     private SubmissionRepository submissionRepository;
+
+    @Autowired
+    private LessonConfigRepository lessonConfigRepository;
 
     public long getNumberOfCompletedExercise(Long userId, LearningUnit learningUnit) {
         if (learningUnit.getExercises() != null && learningUnit.getExercises().size() > 0) {
@@ -28,7 +34,9 @@ public class LearningUnitUtil {
         long numberOfExercises = 0;
 
         if (unit.getExercises() != null && unit.getExercises().size() > 0) {
-            return unit.getExercises().size() >= 5 ? 5 : unit.getExercises().size();
+            LessonConfig lessonConfig = lessonConfigRepository.findByLessonId(unit.getId())
+                    .orElse(null);
+            return lessonConfig != null ? lessonConfig.getQuestionsPerAttempt() : 0;
         }
 
         for (LearningUnit lu : unit.getChildren()) {

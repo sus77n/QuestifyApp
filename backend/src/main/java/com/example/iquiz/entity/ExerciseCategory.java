@@ -14,8 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "exercise_types")
-public class ExerciseType {
+@Table(name = "exercise_categories")
+public class ExerciseCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +23,7 @@ public class ExerciseType {
     @Column(nullable = false, unique = true)
     private String code;
 
-    @OneToMany(mappedBy = "exerciseType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "exerciseCategory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Exercise> exercises;
 }

@@ -2,6 +2,7 @@ package com.example.iquiz.service;
 
 import com.example.iquiz.dto.lesssonConfig.LessonConfigDto;
 import com.example.iquiz.entity.LessonConfig;
+import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.LessonConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,14 @@ public class LessonConfigService {
         return toDto(repo.save(entity));
     }
 
-    public Optional<LessonConfigDto> findByLessonId(Long lessonId) {
-        return repo.findByLessonId(lessonId).map(this::toDto);
+    public LessonConfigDto findByLessonId(Long lessonId) {
+        return toDto(repo.findByLessonId(lessonId)
+                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found", "LessonConfig", lessonId)));
     }
 
     public LessonConfigDto update(Long lessonId, LessonConfigDto dto) {
         LessonConfig entity = repo.findByLessonId(lessonId)
-                .orElseThrow(() -> new RuntimeException("LessonConfig not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found", "LessonConfig", lessonId));
         entity.setQuestionsPerAttempt(dto.questionsPerAttempt());
         entity.setNoRepeatScope(dto.noRepeatScope());
         return toDto(repo.save(entity));

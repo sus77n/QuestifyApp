@@ -1,10 +1,10 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.entity.LessonTypeDistribution;
 import com.example.iquiz.entity.LessonTypeDistributionId;
 import com.example.iquiz.service.LessonTypeDistributionService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,27 +17,34 @@ public class LessonTypeDistributionController {
     private final LessonTypeDistributionService service;
 
     @PostMapping
-    public ResponseEntity<LessonTypeDistribution> create(@RequestBody LessonTypeDistribution dist) {
-        return ResponseEntity.ok(service.save(dist));
+    public ApiResponse<LessonTypeDistribution> create(@RequestBody LessonTypeDistribution dist) {
+        LessonTypeDistribution created = service.save(dist);
+        return ApiResponse.success(created, "Lesson type distribution created successfully");
     }
 
     @GetMapping("/{lessonId}/{exerciseTypeId}")
-    public ResponseEntity<LessonTypeDistribution> getById(@PathVariable Long lessonId, @PathVariable Long exerciseTypeId) {
+    public ApiResponse<LessonTypeDistribution> getById(
+            @PathVariable Long lessonId,
+            @PathVariable Long exerciseTypeId
+    ) {
         LessonTypeDistributionId id = new LessonTypeDistributionId(lessonId, exerciseTypeId);
-        return service.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        LessonTypeDistribution dist = service.findById(id);
+        return ApiResponse.success(dist, "Fetched lesson type distribution");
     }
 
     @GetMapping("/lesson/{lessonId}")
-    public ResponseEntity<List<LessonTypeDistribution>> getByLesson(@PathVariable Long lessonId) {
-        return ResponseEntity.ok(service.findByLesson(lessonId));
+    public ApiResponse<List<LessonTypeDistribution>> getByLesson(@PathVariable Long lessonId) {
+        List<LessonTypeDistribution> list = service.findByLesson(lessonId);
+        return ApiResponse.success(list, "Fetched all distributions for the lesson");
     }
 
     @DeleteMapping("/{lessonId}/{exerciseTypeId}")
-    public ResponseEntity<Void> delete(@PathVariable Long lessonId, @PathVariable Long exerciseTypeId) {
+    public ApiResponse<Void> delete(
+            @PathVariable Long lessonId,
+            @PathVariable Long exerciseTypeId
+    ) {
         LessonTypeDistributionId id = new LessonTypeDistributionId(lessonId, exerciseTypeId);
         service.delete(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success(null, "Lesson type distribution deleted successfully");
     }
 }

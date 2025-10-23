@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface LessonTypeDistributionRepository extends JpaRepository<LessonTypeDistribution, LessonTypeDistributionId> {
     List<LessonTypeDistribution> findByLessonId(Long lessonId);
-    List<LessonTypeDistribution> findByExerciseTypeId(Long exerciseTypeId);
+
+    List<LessonTypeDistribution> findByExerciseCategoryId(Long exerciseCategoryId);
 }
