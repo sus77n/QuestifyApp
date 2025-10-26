@@ -74,7 +74,7 @@ public class AttemptService {
 
         // --- 1. Lấy config ---
         LessonConfig config = lessonConfigRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found for lessonId: ", "" ,lessonId));
+                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found for lessonId: ", "", lessonId));
 
         int totalQuestions = config.getQuestionsPerAttempt();
 
@@ -96,9 +96,8 @@ public class AttemptService {
 
         // --- 3. Chọn câu hỏi theo phân phối ---
         for (LessonTypeDistribution dist : distributions) {
-            List<Exercise> pool = exerciseRepository.findByParent_IdAndExerciseCategory_Id(
-                    lessonId, dist.getExerciseCategory().getId()
-            );
+            // 123
+            List<Exercise> pool = exerciseRepository.findAll();
 
             // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
             if (config.isNoRepeatScope()) {

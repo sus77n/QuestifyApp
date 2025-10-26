@@ -4,13 +4,11 @@ import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.entity.Exercise;
-import com.example.iquiz.entity.ExerciseCategory;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.Option;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.OptionMapper;
 import com.example.iquiz.repository.ExerciseRepository;
-import com.example.iquiz.repository.ExerciseTypeRepository;
 import com.example.iquiz.repository.LearningUnitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,12 +26,10 @@ public class ExerciseService {
     private ExerciseMapper exerciseMapper;
     @Autowired
     private OptionMapper optionMapper;
-    @Autowired
-    private ExerciseTypeRepository exerciseTypeRepository;
 
     public List<ExerciseResponseDto> getAllExercises() {
         return exerciseRepository.findAll()
-                .stream().map(exercise ->  exerciseMapper.toDto(exercise)).collect(Collectors.toList());
+                .stream().map(exercise -> exerciseMapper.toDto(exercise)).collect(Collectors.toList());
     }
 
     public ExerciseResponseDto getExerciseById(Long exerciseId) {
@@ -54,12 +50,6 @@ public class ExerciseService {
         LearningUnit parent = learningUnitRepository.findById(dto.parentUnitId())
                 .orElseThrow(() -> new RuntimeException("Parent Unit not found"));
         exercise.setParent(parent);
-
-        if (dto.exerciseTypeId() != null) {
-            ExerciseCategory type = exerciseTypeRepository.findById(dto.exerciseTypeId())
-                    .orElseThrow(() -> new RuntimeException("ExerciseType not found"));
-            exercise.setExerciseCategory(type);
-        }
 
         exercise.setAnswer(dto.answer());
         exercise.setType(dto.type());
@@ -89,12 +79,6 @@ public class ExerciseService {
                 .orElseThrow(() -> new RuntimeException("Parent Unit not found"));
         exercise.setParent(parent);
 
-        if (dto.exerciseTypeId() != null) {
-            ExerciseCategory type = exerciseTypeRepository.findById(dto.exerciseTypeId())
-                    .orElseThrow(() -> new RuntimeException("ExerciseType not found"));
-            exercise.setExerciseCategory(type);
-        }
-
         if (dto.options() != null && !dto.options().isEmpty()) {
             List<Option> options = dto.options().stream()
                     .map(optionMapper::toEntity)
@@ -117,12 +101,13 @@ public class ExerciseService {
     public List<ExerciseResponseDto> getExercises(Long lessonId, Long typeId) {
         List<Exercise> exercises;
 
-        if (lessonId != null && typeId != null) {
-            exercises = exerciseRepository.findByParent_IdAndExerciseCategory_Id(lessonId, typeId);
-        } else if (lessonId != null) {
+//        if (lessonId != null && typeId != null) {
+//            exercises = exerciseRepository.findByParent_IdAndExerciseCategory_Id(lessonId, typeId);
+//        } else
+        if (lessonId != null) {
             exercises = exerciseRepository.findByParent_Id(lessonId);
-        } else if (typeId != null) {
-            exercises = exerciseRepository.findByExerciseCategory_Id(typeId);
+//        } else if (typeId != null) {
+//            exercises = exerciseRepository.findByExerciseCategory_Id(typeId);
         } else {
             exercises = exerciseRepository.findAll();
         }

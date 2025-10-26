@@ -32,9 +32,5 @@ public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
 
     // 🔹 đúng với entity
     List<Exercise> findByParent_Id(Long parentId);
-
-    List<Exercise> findByExerciseCategory_Id(Long exerciseTypeId);
-
-    List<Exercise> findByParent_IdAndExerciseCategory_Id(Long parentId, Long exerciseTypeId);
 }
 

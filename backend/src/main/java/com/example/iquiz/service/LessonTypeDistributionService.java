@@ -29,10 +29,6 @@ public class LessonTypeDistributionService {
         return repo.findByLessonId(lessonId);
     }
 
-    public List<LessonTypeDistribution> findByExerciseType(Long exerciseTypeId) {
-        return repo.findByExerciseCategoryId(exerciseTypeId);
-    }
-
     public void delete(LessonTypeDistributionId id) {
         repo.deleteById(id);
     }

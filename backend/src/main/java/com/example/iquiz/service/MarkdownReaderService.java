@@ -33,20 +33,17 @@ public class MarkdownReaderService {
     private final LearningUnitTypeRepository learningUnitTypeRepository;
     private final ExerciseRepository exerciseRepository;
     private final OptionRepository optionRepository;
-    private final ExerciseTypeRepository exerciseTypeRepository;
     private final UserRepository userRepository;
 
     public MarkdownReaderService(LearningUnitRepository learningUnitRepository,
                                  LearningUnitTypeRepository learningUnitTypeRepository,
                                  ExerciseRepository exerciseRepository,
                                  OptionRepository optionRepository,
-                                 ExerciseTypeRepository exerciseTypeRepository,
                                  UserRepository userRepository) {
         this.learningUnitRepository = learningUnitRepository;
         this.learningUnitTypeRepository = learningUnitTypeRepository;
         this.exerciseRepository = exerciseRepository;
         this.optionRepository = optionRepository;
-        this.exerciseTypeRepository = exerciseTypeRepository;
         this.userRepository = userRepository;
     }
 

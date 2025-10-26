@@ -32,7 +32,6 @@ public class LearningUnitService {
     private final LearningUnitRepository learningUnitRepository;
     private final LearningUnitTypeRepository learningUnitTypeRepository;
     private final LearningUnitMapper learningUnitMapper;
-    private final ExerciseRepository exerciseRepository;
     private final LearningUnitUtil learningUnitUtil;
     private final LearningUnitTreeMapper treeMapper;
 

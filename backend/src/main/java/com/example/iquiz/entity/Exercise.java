@@ -45,11 +45,6 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exercise_category_id", nullable = false)
-    @JsonBackReference
-    private ExerciseCategory exerciseCategory;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "learning_unit_id")
     private LearningUnit parent;
 
