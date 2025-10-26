@@ -53,6 +53,8 @@ const Login = () => {
           navigate("/admin/dashboard");
           break;
         case "TEACHER":
+          navigate("/teacher/courses");
+            break;
         case "STUDENT":
         default:
           navigate("/courses");

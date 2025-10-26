@@ -13,8 +13,116 @@ html {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
+  -ms-overflow-style: none;
   scrollbar-width: none; /* Firefox */
+}
+
+/* --- Table Header Style (global for all AntD tables) --- */
+.ant-table-thead > tr > th {
+  background-color: #02457A !important;
+  color: #fff !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid #888 !important;
+}
+
+.ant-table-column-sorter-up,
+.ant-table-column-sorter-down {
+  color: #fff !important;
+}
+
+.ant-table-column-sorter-up.active,
+.ant-table-column-sorter-down.active {
+  color: #fefefe !important;
+}
+
+.anticon-filter,
+.anticon-search {
+  color: #fff !important;
+}
+
+.anticon-filter:hover,
+.anticon-search:hover {
+  color: #fefefe !important;
+}
+
+.ant-table-filter-dropdown {
+  background-color: #fefefe !important;
+  color: #333 !important;
+}
+
+.ant-table-thead > tr > th .ant-table-column-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ======= 🔷 MODAL HEADER ======= */
+.ant-modal-content {
+  padding: 0 !important;
+}
+
+.ant-modal-header {
+  background-color: #02457A !important;
+  border-bottom: none !important;
+  padding: 10px 16px !important;
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+}
+
+.ant-modal-title {
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* ======= 🔷 CLOSE BUTTON ======= */
+.ant-modal-close {
+  color: #fff !important;
+  margin-top: 6px;
+  transition: color 0.2s ease;
+}
+.ant-modal-close:hover {
+  color: #cfd9e7 !important;
+}
+
+/* ======= 🔷 MODAL BODY ======= */
+.ant-modal-body {
+  padding: 20px 24px 8px 24px !important;
+}
+
+/* ======= 🔷 MODAL FOOTER ======= */
+.ant-modal-footer {
+  padding: 12px 24px !important;
+  border-top: 1px solid #f0f0f0 !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ======= 🔷 BUTTONS ======= */
+.ant-btn-primary {
+  background-color: #02457A !important;
+  border-color: #02457A !important;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: #0360a8 !important;
+  border-color: #0360a8 !important;
+}
+
+.ant-btn-default {
+  border-color: #ccc !important;
+  color: #555 !important;
+}
+
+.ant-btn-default:hover {
+  border-color: #888 !important;
+  color: #333 !important;
 }

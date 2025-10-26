@@ -24,12 +24,10 @@ const Course = () => {
             { skip: selectedCourseId === null }
         );
 
-
-
   const [isMobileView, setIsMobileView] = useState(false);
   const navigate = useNavigate();
   const { data: allCourses = [], isLoading: isAllCoursesLoading } =
-      useGetAllLearningUnitsByLevelQuery(0);
+      useGetAllLearningUnitsByLevelQuery(1);
 
   const chapters = selectedCourse?.children || [];
   const [searchQuery, setSearchQuery] = useState("");

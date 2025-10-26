@@ -24,8 +24,9 @@ const Navbar = () => {
       { icon: BookOpenIcon, label: "Courses", path: "/courses" },
     ],
     TEACHER: [
-      { icon: BookOpenIcon, label: "My courses", path: "/my-courses" },
-      { icon: BookOpenIcon, label: "Courses", path: "/courses" },
+      { icon: PresentationChartBarIcon, label: "Home", path: "/teacher/dashboard" },
+      { icon: BookOpenIcon, label: "Courses", path: "/teacher/courses" },
+
     ],
     ADMIN: [
       {

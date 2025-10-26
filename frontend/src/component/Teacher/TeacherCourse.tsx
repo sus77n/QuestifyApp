@@ -17,7 +17,7 @@ import type { ColumnType, ColumnsType } from "antd/es/table";
 import { LearningUnitDTO } from "../../model/LearningUnitDTO";
 import { useGetAllLearningUnitsByLevelQuery } from "../../API/service/learningUnit.service";
 
-export default function ManageCourse() {
+export default function TeacherCourse() {
   const {
     data: courses = [],
     isLoading,

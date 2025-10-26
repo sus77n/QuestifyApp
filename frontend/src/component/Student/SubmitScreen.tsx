@@ -453,10 +453,9 @@ const SubmitScreen = () => {
             <AttemptResult
                 result={attemptResult}
                 onBack={() => {
-                    setAttemptResult(null);
-                    setSubmissions({});
-                    setSelectedExercise(null);
-                    setClearVersion((v) => v + 1);
+                    if (course?.id) {
+                        navigate(`/topics/${course.id}`);
+                    }
                 }}
             />
         );
@@ -507,9 +506,9 @@ const SubmitScreen = () => {
 
                         <button
                             onClick={ () => navigate("/my-courses")}
-                            className="w-1/3 px-6 py-3 bg-text-color text-white rounded-xl font-semibold hover:bg-text-color/90 transition ml-[62%] mb-4"
+                            className="text-sm w-[100px] px-6 py-3 bg-text-color text-white rounded-xl font-semibold hover:bg-text-color/90 transition ml-[72%] mb-4"
                         >
-                            Go to My Courses
+                            Back
                         </button>
                     </div>
                 </div>
@@ -533,10 +532,10 @@ const SubmitScreen = () => {
                                 </button>
                             </div>
                             <p className="text-xl text-text-color ml-3 font-semibold">List of exercise</p>
-                            <div className="flex gap-1 overflow-y-auto">
+                            <div className="flex flex-wrap gap-1 overflow-y-auto max-h-[80%]">
                                 {selectedLesson?.exercises?.map((exe, i) => (
                                     <IndexExerciseButton
-                                        key={`${exe.id}-${clearVersion}`} // ⬅️ giữ nguyên
+                                        key={`${exe.id}-${clearVersion}`}
                                         index={i + 1}
                                         isDone={
                                             !!submissions[exe.id]?.selectedOptionId ||

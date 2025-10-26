@@ -36,4 +36,4 @@ export const userService = createApi({
   }),
 });
 
-export const { useEditUserMutation } = userService;
+export const { useEditUserMutation, useDeleteUserMutation, useGetAllUsersQuery, useGetUserByIdQuery } = userService;
