@@ -1,5 +1,10 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
+import {ApiResponse} from "../../model/api";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: "/api",
@@ -11,6 +16,12 @@ const rawBaseQuery = fetchBaseQuery({
     return headers;
   },
 });
+
+export interface CustomMeta {
+  success: boolean;
+  message: string;
+  errorCode: string | null;
+}
 
 export const customBaseQuery: BaseQueryFn<
     string | FetchArgs,
@@ -31,6 +42,20 @@ export const customBaseQuery: BaseQueryFn<
     } else if (status === 500) {
       window.location.href = "/500";
     }
+    return result;
+  }
+
+  if (result.data && typeof result.data === "object" && "data" in result.data) {
+    const apiRes = result.data as ApiResponse<unknown>;
+    return {
+      ...result,
+      data: apiRes.data,
+      meta: {
+        success: apiRes.success,
+        message: apiRes.message,
+        errorCode: apiRes.errorCode,
+      } as CustomMeta,
+    };
   }
 
   return result;

@@ -31,33 +31,44 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await login(formData).unwrap();
+      const result = await login(formData);
 
-      setAuth(response)
+      const typedResult = result as typeof result & {
+        meta?: { success: boolean; message: string; errorCode: string | null };
+      };
 
-      switch (response.role) {
+      const user = typedResult.data;
+      const message = typedResult.meta?.message || "Login successful!";
+
+      if (!user) {
+        throw new Error("No user data returned from server");
+      }
+
+      // Lưu user/token vào context hoặc localStorage
+      setAuth(user);
+      localStorage.setItem("token", user.token);
+
+      switch (user.role) {
         case "ADMIN":
           navigate("/admin/dashboard");
           break;
         case "TEACHER":
-          navigate("/courses");
-          break;
         case "STUDENT":
-          navigate("/courses");
-          break;
         default:
           navigate("/courses");
           break;
       }
 
-      toast.success("Login successful!");
+      toast.success(message);
     } catch (error: any) {
-      console.error("Login error:", error);
-      if (error.status === 500) {
+
+      if (error?.status === 500) {
         navigate("/500");
       }
+
       const backendMessage =
-        error?.data?.message || "Login failed. Please check your credentials.";
+          error?.data?.message || "Login failed. Please check your credentials.";
+
       toast.error(backendMessage);
     }
   };

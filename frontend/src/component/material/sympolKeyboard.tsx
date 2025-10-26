@@ -47,15 +47,15 @@ export const specialSymbols = [
       { label: "⌈x⌉", value: "⌈⌉", tooltip: "Ceiling" },
     ],
   },
-  {
-    group: "Combinatorics & Probability",
-    symbols: [
-      { label: "∑", value: "∑", tooltip: "Summation" },
-      { label: "∏", value: "∏", tooltip: "Product" },
-      { label: "P(A)", value: "P()", tooltip: "Probability" },
-      { label: "C(n,k)", value: "C(n,k)", tooltip: "Combination" },
-    ],
-  },
+  // {
+  //   group: "Combinatorics & Probability",
+  //   symbols: [
+  //     { label: "∑", value: "∑", tooltip: "Summation" },
+  //     { label: "∏", value: "∏", tooltip: "Product" },
+  //     { label: "P(A)", value: "P()", tooltip: "Probability" },
+  //     { label: "C(n,k)", value: "C(n,k)", tooltip: "Combination" },
+  //   ],
+  // },
   {
     group: "Miscellaneous",
     symbols: [

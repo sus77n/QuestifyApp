@@ -93,7 +93,7 @@ const MyCourse = () => {
               <h1 className="text-xl font-semibold text-white">
                 {selectedCourse.code}
               </h1>
-              <div className="w-16"></div> {/* Spacer for alignment */}
+              <div className="w-16"></div>
             </div>
 
             <div className="p-4">

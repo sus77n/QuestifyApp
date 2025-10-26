@@ -1,3 +1,5 @@
+import {ExerciseDTO} from "./ExerciseDTO";
+
 export interface AttemptDTO {
     id: number;
     userId: number;
@@ -8,11 +10,25 @@ export interface AttemptDTO {
 
 export interface AttemptStartResponseDTO {
     attemptId: number;
+    attemptNo: number;
     startTime: string;
+    questions: ExerciseDTO[];
+    lessonId: number;
+}
+
+//feedback on an exercise
+export interface AttemptChildDto{
+    exerciseId: number;
+    question: string;
+    correct: boolean;
+    userAnswer: string;
+    expectedAnswer: string;
 }
 
 export interface AttemptResponseDTO {
     attemptId: number;
     score: number;
     feedback?: string;
+    feedbacks: AttemptChildDto[];
+    submittedAt: string;
 }
