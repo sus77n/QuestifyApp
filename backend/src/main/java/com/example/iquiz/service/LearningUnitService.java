@@ -45,6 +45,11 @@ public class LearningUnitService {
     public LearningUnitDto getLearningUnitById(Long id, Long userId) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Learning Unit not found with id: " + id));
+
+        if (learningUnit.getType().getName().equalsIgnoreCase("lesson")) {
+            return learningUnitMapper.toLessonDto(learningUnit, userId);
+        }
+
         return learningUnitMapper.toDto(learningUnit, userId);
     }
 
@@ -107,7 +112,8 @@ public class LearningUnitService {
     }
 
     public List<CourseDto> getAllCoursesWithUserId(Long userId) {
-        return learningUnitRepository.findByTypeLevel(0).stream()
+        List<LearningUnit> courseUnit = learningUnitRepository.findAllByType_Name("Course");
+        return courseUnit.stream()
                 .map(course -> new CourseDto(
                         course.getId(),
                         course.getName(),

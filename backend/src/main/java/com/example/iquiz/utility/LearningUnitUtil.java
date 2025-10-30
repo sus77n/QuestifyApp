@@ -33,7 +33,7 @@ public class LearningUnitUtil {
     public long countExercises(LearningUnit unit) {
         long numberOfExercises = 0;
 
-        if (unit.getExercises() != null && unit.getExercises().size() > 0) {
+        if (unit.getType().getName().equalsIgnoreCase("lesson")) {
             LessonConfig lessonConfig = lessonConfigRepository.findByLessonId(unit.getId())
                     .orElse(null);
             return lessonConfig != null ? lessonConfig.getQuestionsPerAttempt() : 0;
