@@ -1,11 +1,17 @@
 package com.example.iquiz.mapper;
 
+import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
+import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
+import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.utility.LearningUnitUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Component
@@ -14,7 +20,8 @@ public class LearningUnitMapper {
     private ExerciseMapper exerciseMapper;
     @Autowired
     private LearningUnitUtil learningUnitUtil;
-
+    @Autowired
+    private ExerciseRepository exerciseRepository;
 
     public LearningUnitDto toDto(LearningUnit unit) {
         if (unit == null) {
@@ -32,6 +39,33 @@ public class LearningUnitMapper {
                 unit.getParent() != null ? unit.getParent().getId() : null,
                 unit.getChildren().stream().map(learningUnit -> toChildDto(learningUnit)).toList(),
                 unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
+                0,
+                learningUnitUtil.countExercises(unit)
+        );
+    }
+
+    public LearningUnitDto toLessonDto(LearningUnit unit, Long userId) {
+        if (unit == null) {
+            return null;
+        }
+
+        List<Exercise> exercises = new ArrayList<>();
+        unit.getChildren().stream().forEach(cate -> {
+            exercises.addAll(exerciseRepository.findByParent_Id(cate.getId()));
+        });
+
+        return new LearningUnitDto(
+                unit.getId(),
+                unit.getName(),
+                unit.getCode(),
+                unit.getDescription(),
+                unit.getType().getName(),
+                unit.getStatus(),
+                unit.getCreatedAt(),
+                unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
+                unit.getParent() != null ? unit.getParent().getId() : null,
+                unit.getChildren().stream().map(learningUnit -> toChildDto(userId, learningUnit)).toList(),
+                exercises.stream().map(exercise ->  exerciseMapper.toDto(exercise)).toList(),
                 0,
                 learningUnitUtil.countExercises(unit)
         );
@@ -59,9 +93,9 @@ public class LearningUnitMapper {
                 unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
                 unit.getParent() != null ? unit.getParent().getId() : null,
                 unit.getChildren().stream().map(learningUnit -> toChildDto(userId, learningUnit)).toList(),
-                unit.getExercises().stream().map(exercise -> exerciseMapper.toDto(exercise)).toList(),
-                numberOfCompletedExercises,
-                totalExercises
+                null,
+                learningUnitUtil.getNumberOfCompletedExercise(userId, unit),
+                learningUnitUtil.countExercises(unit)
         );
     }
 

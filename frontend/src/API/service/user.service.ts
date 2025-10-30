@@ -1,27 +1,39 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { UserDTO } from "../../model/UserDTO";
+import {customBaseQuery} from "../client/customBaseQuery";
 
 export const userService = createApi({
   reducerPath: "userService",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "/api",
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: customBaseQuery,
+  tagTypes: ["User"],
   endpoints: (builder) => ({
-    editUser: builder.mutation<UserDTO, Partial<UserDTO>>({
-      query: (userData) => ({
-        url: `/users/${userData.id}`,
+    getUserById: builder.query<UserDTO, number>({
+      query: (id) => `/users/${id}`,
+      providesTags: (result, error, id) => [{ type: "User", id }],
+    }),
+
+    getAllUsers: builder.query<UserDTO[], void>({
+      query: () => `/users`,
+      providesTags: ["User"],
+    }),
+
+    editUser: builder.mutation<UserDTO, Partial<UserDTO> & { id: number }>({
+      query: ({ id, ...data }) => ({
+        url: `/users/${id}`,
         method: "PUT",
-        body: userData,
+        body: data,
       }),
+      invalidatesTags: (result, error, { id }) => [{ type: "User", id }],
+    }),
+
+    deleteUser: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/users/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
     }),
   }),
 });
 
-export const { useEditUserMutation } = userService;
+export const { useEditUserMutation, useDeleteUserMutation, useGetAllUsersQuery, useGetUserByIdQuery } = userService;

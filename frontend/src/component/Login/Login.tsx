@@ -9,6 +9,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
+import {setAuth} from "../../utils/AuthUtils";
 
 const Login = () => {
   const [login, { isLoading }] = useLoginMutation();
@@ -30,37 +31,46 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await login(formData).unwrap();
+      const result = await login(formData);
 
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("id", response.id);
-      localStorage.setItem("role", response.role);
-      localStorage.setItem("username", response.username);
+      const typedResult = result as typeof result & {
+        meta?: { success: boolean; message: string; errorCode: string | null };
+      };
 
-      // Redirect based on role
-      switch (response.role) {
+      const user = typedResult.data;
+      const message = typedResult.meta?.message || "Login successful!";
+
+      if (!user) {
+        throw new Error("No user data returned from server");
+      }
+
+      // Lưu user/token vào context hoặc localStorage
+      setAuth(user);
+      localStorage.setItem("token", user.token);
+
+      switch (user.role) {
         case "ADMIN":
           navigate("/admin/dashboard");
           break;
         case "TEACHER":
-          navigate("/courses");
-          break;
+          navigate("/teacher/courses");
+            break;
         case "STUDENT":
-          navigate("/courses");
-          break;
         default:
           navigate("/courses");
           break;
       }
 
-      toast.success("Login successful!");
+      toast.success(message);
     } catch (error: any) {
-      console.error("Login error:", error);
-      if (error.status === 500) {
+
+      if (error?.status === 500) {
         navigate("/500");
       }
+
       const backendMessage =
-        error?.data?.message || "Login failed. Please check your credentials.";
+          error?.data?.message || "Login failed. Please check your credentials.";
+
       toast.error(backendMessage);
     }
   };
@@ -88,24 +98,29 @@ const Login = () => {
           <form className="flex flex-col" onSubmit={handleSubmit}>
             <div className="flex">
               <div className="flex flex-col gap-6">
-                <UserIcon className="absolute left-4 md:left-5 md:top-[119px] top-[34%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color" />
-                <PrimaryInput
-                  placeholder="Email or Username"
-                  w="w-[270px] md:w-[500px]"
-                  type="text"
-                  name="usernameOrEmail"
-                  value={formData.usernameOrEmail}
-                  onChange={handleInputChange}
-                />
-                <LockClosedIcon className="absolute left-4 md:left-5 md:top-[202px] top-[58%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color" />
-                <PrimaryInput
-                  placeholder="Password"
-                  w="w-[270px] md:w-[500px]"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                />
+                <div className="relative">
+                  <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 text-text-color" />
+                  <PrimaryInput
+                      placeholder="Email or Username"
+                      w="w-[270px] md:w-[500px]"
+                      type="text"
+                      name="usernameOrEmail"
+                      value={formData.usernameOrEmail}
+                      onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="relative">
+                  <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 text-text-color" />
+                  <PrimaryInput
+                      placeholder="Password"
+                      w="w-[270px] md:w-[500px]"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                  />
+                </div>
               </div>
               {isLoading ? (
                 <div className="md:ml-[50px] flex-shrink-0 mt-[50px] ml-[20px]">

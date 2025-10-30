@@ -1,42 +1,51 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.service.LearningUnitTypeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/learning-unit-types")
+@RequiredArgsConstructor
 public class LearningUnitTypeController {
-    @Autowired
-    private LearningUnitTypeService learningUnitTypeService;
+
+    private final LearningUnitTypeService learningUnitTypeService;
 
     @GetMapping
-    public ResponseEntity<List<LearningUnitTypeDto>> getLearningUnitTypes() {
-        return ResponseEntity.ok(learningUnitTypeService.getLearningUnitTypes());
+    public ApiResponse<List<LearningUnitTypeDto>> getLearningUnitTypes() {
+        List<LearningUnitTypeDto> types = learningUnitTypeService.getLearningUnitTypes();
+        return ApiResponse.success(types, "Fetched all learning unit types");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LearningUnitTypeDto> getLearningUnitTypeById(@PathVariable Long id) {
-        return ResponseEntity.ok(learningUnitTypeService.getLearningUnitTypeById(id));
+    public ApiResponse<LearningUnitTypeDto> getLearningUnitTypeById(@PathVariable Long id) {
+        LearningUnitTypeDto type = learningUnitTypeService.getLearningUnitTypeById(id);
+        return ApiResponse.success(type, "Fetched learning unit type details");
     }
 
     @PostMapping
-    public ResponseEntity<LearningUnitTypeDto> createLearningUnitType(@RequestBody LearningUnitTypeDto learningUnitTypeDto) {
-        return ResponseEntity.ok(learningUnitTypeService.saveLearningUnitType(learningUnitTypeDto));
+    public ApiResponse<LearningUnitTypeDto> createLearningUnitType(@Valid @RequestBody LearningUnitTypeDto dto) {
+        LearningUnitTypeDto created = learningUnitTypeService.saveLearningUnitType(dto);
+        return ApiResponse.success(created, "Learning unit type created successfully");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LearningUnitTypeDto> updateLUT(@RequestBody LearningUnitTypeDto learningUnitTypeDto, @PathVariable Long id) {
-        return ResponseEntity.ok(learningUnitTypeService.updateLearningUnitType(id, learningUnitTypeDto));
+    public ApiResponse<LearningUnitTypeDto> updateLearningUnitType(
+            @PathVariable Long id,
+            @Valid @RequestBody LearningUnitTypeDto dto
+    ) {
+        LearningUnitTypeDto updated = learningUnitTypeService.updateLearningUnitType(id, dto);
+        return ApiResponse.success(updated, "Learning unit type updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteLearningUnitType(@PathVariable Long id) {
+    public ApiResponse<Void> deleteLearningUnitType(@PathVariable Long id) {
         learningUnitTypeService.deleteLearningUnitTypeById(id);
-        return ResponseEntity.ok("Learning Unit Type has been deleted");
+        return ApiResponse.success(null, "Learning unit type deleted successfully");
     }
 }

@@ -11,8 +11,6 @@ public record ExerciseRequestDto(
         String answer,
         int difficulty,
         List<OptionRequestDto> options,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        Long parentUnitId
-) {
-}
+        Long parentUnitId,
+        Long exerciseTypeId
+) {}

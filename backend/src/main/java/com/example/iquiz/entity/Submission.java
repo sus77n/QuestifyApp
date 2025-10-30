@@ -29,7 +29,7 @@ public class Submission {
     @Lob
     private String answer;
 
-    @Column(nullable = false, precision = 5, scale = 2)
+    @Column(precision = 5, scale = 2)
     private BigDecimal score;
 
     @CreationTimestamp
@@ -37,5 +37,13 @@ public class Submission {
     private LocalDateTime submittedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "selected_option_id")
     private Option selectedOption;
+
+    @Lob
+    private String feedback;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attempt_id")
+    private Attempt attempt;
 }

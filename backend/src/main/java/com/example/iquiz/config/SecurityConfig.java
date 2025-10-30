@@ -55,11 +55,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
-                                "/api-docs/**",
+                                "/swagger-resources/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/swagger",
+                                "/swagger/**",
+                                "/api-docs",
+                                "/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -75,6 +78,18 @@ public class SecurityConfig {
                         })
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized or token expired\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Access denied\"}");
+                        })
                 );
 
         return http.build();
@@ -90,7 +105,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://iquiz.eiu.com.vn"
+                "https://iquiz.eiu.com.vn",
+                "http://10.70.174.5:3000"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

@@ -11,6 +11,7 @@ export interface LearningUnitDTO {
   status: number;
   createdAt: Date;
   createdBy: string;
+  updatedAt?: string;
   childUnits?: LearningUnitChildDto[];
   exercises?: ExerciseDTO[];
   parentId: number;
@@ -23,9 +24,24 @@ export interface CourseDTO {
   name: string;
   code: string;
   createdAt?: string;
+  updatedAt?: string;
   totalOfExercise: number;
   completedExercises: number;
 }
 export interface CourseWithIndex extends LearningUnitDTO {
   index: number;
+}
+
+export interface LearningUnitWithChildren {
+  id: number;
+  name: string;
+  code: string;
+  description: string;
+  type: LearningUnitType;
+  status: number;
+  createdAt: Date;
+  createdBy: string;
+  children: LearningUnitWithChildren[];
+  numberOfExercises: number;
+  updatedAt?: string;
 }

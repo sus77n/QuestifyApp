@@ -28,4 +28,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
             """)
     Long countPassedExercisesByUserIdAndLearningUnitId(Long userId, Long learningUnitId);
 
+    @Query("SELECT s FROM Submission s WHERE s.user.id = :userId AND s.exercise.parent.parent.id = :lessonId")
+    List<Submission> findByUserAndLesson(Long userId, Long lessonId);
+
 }

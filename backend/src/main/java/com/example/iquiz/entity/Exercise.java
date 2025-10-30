@@ -1,5 +1,6 @@
 package com.example.iquiz.entity;
 
+import com.example.iquiz.enums.ExerciseType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -30,8 +31,9 @@ public class Exercise {
     @Column(columnDefinition = "TEXT")
     private String answer;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String type;
+    private ExerciseType type;
 
     @Column(nullable = false)
     private int difficulty;
@@ -45,10 +47,7 @@ public class Exercise {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonBackReference
-    private ExerciseType exerciseCode;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "learning_unit_id")
     private LearningUnit parent;
 
     @OneToMany(

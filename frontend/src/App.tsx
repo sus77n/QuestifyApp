@@ -16,6 +16,9 @@ import {
   Error404Page,
   Error500Page,
 } from "./component/material/errorPage";
+import TeacherLayout from "./component/Teacher/TeacherLayout";
+import TeacherCourse from "./component/Teacher/TeacherCourse";
+import TeacherDashboard from "./component/Teacher/TeacherDashboard";
 
 function App() {
   return (
@@ -41,6 +44,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+          <Route path="/teacher" element={<TeacherLayout />}>
+              <Route path="courses" element={<TeacherCourse />} />
+              <Route path="dashboard" element={<TeacherDashboard/>} />
+          </Route>
+
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />

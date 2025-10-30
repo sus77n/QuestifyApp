@@ -1,6 +1,7 @@
 package com.example.iquiz.utility;
 
 import com.example.iquiz.entity.*;
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +35,17 @@ public class MarkdownReaderUtil {
     private final LearningUnitTypeRepository learningUnitTypeRepository;
     private final ExerciseRepository exerciseRepository;
     private final OptionRepository optionRepository;
-    private final ExerciseTypeRepository exerciseTypeRepository;
     private final UserRepository userRepository;
 
-    public MarkdownReaderUtil(LearningUnitRepository learningUnitRepository,
-                              LearningUnitTypeRepository learningUnitTypeRepository,
-                              ExerciseRepository exerciseRepository,
-                              OptionRepository optionRepository,
-                              ExerciseTypeRepository exerciseTypeRepository,
-                              UserRepository userRepository) {
+    public MarkdownReaderService(LearningUnitRepository learningUnitRepository,
+                                 LearningUnitTypeRepository learningUnitTypeRepository,
+                                 ExerciseRepository exerciseRepository,
+                                 OptionRepository optionRepository,
+                                 UserRepository userRepository) {
         this.learningUnitRepository = learningUnitRepository;
         this.learningUnitTypeRepository = learningUnitTypeRepository;
         this.exerciseRepository = exerciseRepository;
         this.optionRepository = optionRepository;
-        this.exerciseTypeRepository = exerciseTypeRepository;
         this.userRepository = userRepository;
     }
 
@@ -163,7 +161,7 @@ public class MarkdownReaderUtil {
 
             Matcher typeMatcher = TYPE_PATTERN.matcher(line);
             if (typeMatcher.matches()) {
-                exercise.setType(mapExerciseType(typeMatcher.group(1).trim()));
+                exercise.setType(ExerciseType.valueOf(mapExerciseType(typeMatcher.group(1).trim())));
                 continue;
             }
             Matcher questionMatcher = QUESTION_PATTERN.matcher(line);
@@ -216,7 +214,7 @@ public class MarkdownReaderUtil {
                 if (correctAnswer == null || correctAnswer.isEmpty()) {
                     throw new ExerciseParseException("Missing solution for exercise");
                 }
-                setCorrectAnswers(options, correctAnswer, exercise.getType());
+                setCorrectAnswers(options, correctAnswer, exercise.getType().toString());
             }
             exercise.setOptions(options);
         }

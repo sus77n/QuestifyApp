@@ -9,11 +9,13 @@ module.exports = {
         "dark-text": "#001B48",
         danger: "#dc2626",
         "light-danger": "#ef4444",
-        // 'primary': '#02457A',
         primary: "#4335A7",
         secondary: "#c2d6ff",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/aspect-ratio"),
+  ],
 };

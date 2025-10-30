@@ -6,15 +6,20 @@ import com.example.iquiz.dto.SignupRequest;
 import com.example.iquiz.dto.UserDto;
 import com.example.iquiz.entity.User;
 import com.example.iquiz.enums.UserRole;
+import com.example.iquiz.exception.ApiException;
+import com.example.iquiz.exception.ErrorCode;
+import com.example.iquiz.exception.UnauthorizedException;
 import com.example.iquiz.exception.UserAlreadyExistsException;
 import com.example.iquiz.mapper.UserMapper;
 import com.example.iquiz.repository.UserRepository;
 import com.example.iquiz.utility.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +45,7 @@ public class AuthService {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    @Transactional
     public void registerUser(SignupRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -59,6 +65,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    @Transactional
     public AuthResponse loginUser(AuthRequest authRequest, HttpServletResponse response) {
         try {
             authenticationManager.authenticate(
@@ -98,13 +105,15 @@ public class AuthService {
             );
 
         } catch (BadCredentialsException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password", e);
+            throw new UnauthorizedException("Invalid username or password");
         } catch (DisabledException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account is disabled", e);
+            throw new ApiException("User account is disabled", ErrorCode.FORBIDDEN, e);
         } catch (LockedException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account is locked", e);
+            throw new ApiException("User account is locked", ErrorCode.FORBIDDEN, e);
+        } catch (AuthenticationException e) {
+            throw new ApiException("Authentication failed", ErrorCode.UNAUTHORIZED, e);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Login failed", e);
+            throw new ApiException("Unexpected error during login", ErrorCode.INTERNAL_SERVER_ERROR, e);
         }
     }
 

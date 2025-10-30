@@ -68,37 +68,43 @@ const Signup = () => {
           <form className="flex flex-col" onSubmit={handleSubmit}>
             <div className="md:flex">
               <div className="flex flex-col gap-6">
-                <EnvelopeIcon className="absolute left-4 md:left-5 md:top-[119px] top-[31%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color" />
-                <PrimaryInput
-                  placeholder="Email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="relative">
+                  <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 text-text-color" />
+                  <PrimaryInput
+                      placeholder="Email"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                  />
+                </div>
 
-                <UserIcon className="absolute left-4 md:left-5 md:top-[202px] top-[53%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color" />
-                <PrimaryInput
-                  placeholder="Username"
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="relative">
+                  <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 text-text-color" />
+                  <PrimaryInput
+                      placeholder="Username"
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                  />
+                </div>
 
-                <LockClosedIcon className="absolute left-4 md:left-5 md:top-[285px] top-[75%] transform -translate-y-1/2 h-5 w-5 md:h-8 md:w-8 text-text-color" />
-                <PrimaryInput
-                  placeholder="Password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={8}
-                  maxLength={40}
-                />
+                <div className="relative">
+                  <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-8 w-8 text-text-color" />
+                  <PrimaryInput
+                      placeholder="Password"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      minLength={8}
+                      maxLength={40}
+                  />
+                </div>
               </div>
 
               {isLoading ? (

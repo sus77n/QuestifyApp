@@ -1,66 +1,92 @@
 package com.example.iquiz.controller;
 
+import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.learningUnit.CourseDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
+import com.example.iquiz.dto.learningUnit.LearningUnitTreeDto;
 import com.example.iquiz.service.LearningUnitService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/learning-units")
+@RequiredArgsConstructor
 public class LearningUnitController {
 
-    @Autowired
-    private LearningUnitService learningUnitService;
+    private final LearningUnitService learningUnitService;
 
     @GetMapping
-    public ResponseEntity<List<LearningUnitDto>> getAll() {
-        return ResponseEntity.ok(learningUnitService.getAllLearningUnitTypes());
+    public ApiResponse<List<LearningUnitDto>> getAll() {
+        List<LearningUnitDto> list = learningUnitService.getAllLearningUnits();
+        return ApiResponse.success(list, "Fetched all learning units");
     }
 
     @PostMapping
-    public ResponseEntity<LearningUnitDto> createLearningUnit(@RequestBody LearningUnitDto learningUnitDto) {
-        LearningUnitDto created = learningUnitService.saveLearningUnit(learningUnitDto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ApiResponse<LearningUnitDto> createLearningUnit(@Valid @RequestBody LearningUnitDto dto) {
+        LearningUnitDto created = learningUnitService.saveLearningUnit(dto);
+        return ApiResponse.success(created, "Learning unit created successfully");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LearningUnitDto> getLearningUnitById(@PathVariable Long id, @RequestParam Long userId) {
-        LearningUnitDto learningUnitDto = learningUnitService.getLearningUnitById(id, userId);
-        return ResponseEntity.ok(learningUnitDto);
+    public ApiResponse<LearningUnitDto> getLearningUnitById(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long userId
+    ) {
+        LearningUnitDto dto = learningUnitService.getLearningUnitById(id, userId);
+        return ApiResponse.success(dto, "Fetched learning unit details");
+    }
+
+    @GetMapping("/getLearningUnitWithChildren/{id}")
+    public ApiResponse<LearningUnitTreeDto> getLearningUnitWithChildren(@PathVariable Long id) {
+        LearningUnitTreeDto tree = learningUnitService.getLearningUnitWithChildren(id);
+        return ApiResponse.success(tree, "Fetched learning unit with children");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LearningUnitDto> updateLearningUnit(@PathVariable Long id, @RequestBody LearningUnitDto learningUnitDto) {
-        LearningUnitDto updated = learningUnitService.updateLearningUnit(id, learningUnitDto);
-        return ResponseEntity.ok(updated);
+    public ApiResponse<LearningUnitDto> updateLearningUnit(
+            @PathVariable Long id,
+            @Valid @RequestBody LearningUnitDto dto
+    ) {
+        LearningUnitDto updated = learningUnitService.updateLearningUnit(id, dto);
+        return ApiResponse.success(updated, "Learning unit updated successfully");
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteLearningUnit(@PathVariable Long id) {
+        learningUnitService.deleteLearningUnit(id);
+        return ApiResponse.success(null, "Learning unit deleted successfully");
     }
 
     @GetMapping("/type/level/{level}")
-    public ResponseEntity<List<LearningUnitDto>> getLearningUnitsByTypeLevel(@PathVariable int level) {
-        return ResponseEntity.ok(learningUnitService.getLearningUnitsByTypeLevel(level));
+    public ApiResponse<List<LearningUnitDto>> getLearningUnitsByTypeLevel(@PathVariable int level) {
+        List<LearningUnitDto> list = learningUnitService.getLearningUnitsByTypeLevel(level);
+        return ApiResponse.success(list, "Fetched learning units by type level");
     }
 
     @GetMapping("/count/{id}")
-    public ResponseEntity<Long> countLearningUnitById(@PathVariable Long id) {
-        return ResponseEntity.ok(learningUnitService.countByLearningUnitId(id));
+    public ApiResponse<Long> countLearningUnitById(@PathVariable Long id) {
+        Long count = learningUnitService.countByLearningUnitId(id);
+        return ApiResponse.success(count, "Counted learning units successfully");
     }
 
-    @GetMapping("/completed-courses/{userId}")
-    public ResponseEntity<List<CourseDto>> getAllCompletedCourses(@PathVariable Long userId) {
-        return ResponseEntity.ok(learningUnitService.getAllCoursesWithUserId(userId)
-                .stream().filter((c) -> c.completedExercises() == c.totalOfExercise()).toList());
+    @GetMapping("/courses/completed/{userId}")
+    public ApiResponse<List<CourseDto>> getCompletedCourses(@PathVariable Long userId) {
+        List<CourseDto> completed = learningUnitService.getAllCoursesWithUserId(userId).stream()
+                .filter(c -> c.completedExercises() != null &&
+                        c.completedExercises().equals(c.totalOfExercise()))
+                .toList();
+        return ApiResponse.success(completed, "Fetched completed courses");
     }
 
-    @GetMapping("/incompleted-courses/{userId}")
-    public ResponseEntity<List<CourseDto>> getAllIncompletedCourses(@PathVariable Long userId) {
-        return ResponseEntity.ok(learningUnitService.getAllCoursesWithUserId(userId)
-                .stream().filter((c) ->  c.completedExercises() != null
-                        && (c.completedExercises() < c.totalOfExercise()))
-                .toList());
+    @GetMapping("/courses/incompleted/{userId}")
+    public ApiResponse<List<CourseDto>> getIncompletedCourses(@PathVariable Long userId) {
+        List<CourseDto> incompleted = learningUnitService.getAllCoursesWithUserId(userId).stream()
+                .filter(c -> c.completedExercises() != null &&
+                        c.completedExercises() < c.totalOfExercise())
+                .toList();
+        return ApiResponse.success(incompleted, "Fetched incompleted courses");
     }
 }

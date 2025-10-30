@@ -4,6 +4,7 @@ import { exerciseService } from "./API/service/exercise.service";
 import { userService } from "./API/service/user.service";
 import { learningUnitService } from "./API/service/learningUnit.service";
 import { submissionService } from "./API/service/submission.service";
+import {attemptService} from "./API/service/attempt.service";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     [userService.reducerPath]: userService.reducer,
     [learningUnitService.reducerPath]: learningUnitService.reducer,
     [submissionService.reducerPath]: submissionService.reducer,
+    [attemptService.reducerPath]: attemptService.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -20,5 +22,6 @@ export const store = configureStore({
       userService.middleware,
       learningUnitService.middleware,
       submissionService.middleware,
+        attemptService.middleware,
     ),
 });

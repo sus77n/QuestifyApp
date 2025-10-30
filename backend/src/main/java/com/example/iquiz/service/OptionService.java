@@ -1,5 +1,4 @@
 package com.example.iquiz.service;
-
 import com.example.iquiz.dto.option.OptionRequestDto;
 import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.entity.Exercise;
@@ -7,43 +6,66 @@ import com.example.iquiz.entity.Option;
 import com.example.iquiz.mapper.OptionMapper;
 import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.OptionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class OptionService {
-    @Autowired
-    private OptionRepository optionRepository;
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-    @Autowired
-    private OptionMapper optionMapper;
 
-    public List<OptionResponseDto> getAllOptions () {
+    private final OptionRepository optionRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final OptionMapper optionMapper;
+
+    public List<OptionResponseDto> getAllOptions() {
         return optionRepository.findAll().stream()
-                .map(option -> optionMapper.toDto(option)).collect(Collectors.toList());
+                .map(optionMapper::toDto)
+                .toList();
     }
 
     public OptionResponseDto getOptionById(Long id) {
-        return optionMapper.toDto(optionRepository.findById(id).orElse(null));
+        Option option = optionRepository.findById(id)
+                .orElseThrow(() -> new NullPointerException("Option not found with id: " + id));
+        return optionMapper.toDto(option);
     }
 
+    public List<OptionResponseDto> getOptionsByExerciseId(Long exerciseId) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NullPointerException("Exercise not found with id: " + exerciseId));
+        return exercise.getOptions().stream()
+                .map(optionMapper::toDto)
+                .toList();
+    }
+
+    @Transactional
     public OptionResponseDto saveOption(OptionRequestDto dto) {
+        Exercise exercise = exerciseRepository.findById(dto.exerciseId())
+                .orElseThrow(() -> new NullPointerException("Exercise not found with id: " + dto.exerciseId()));
+
         Option option = optionMapper.toEntity(dto);
+        option.setExercise(exercise);
 
         optionRepository.save(option);
         return optionMapper.toDto(option);
     }
 
-    public OptionResponseDto updateOption(Long id,OptionRequestDto dto) {
-        Option option = optionRepository.findById(id).orElseThrow(() -> new NullPointerException("option not found"));
+    @Transactional
+    public OptionResponseDto updateOption(Long id, OptionRequestDto dto) {
+        Option option = optionRepository.findById(id)
+                .orElseThrow(() -> new NullPointerException("Option not found with id: " + id));
 
-        Exercise exercise = exerciseRepository.findById(dto.exerciseId())
-                .orElseThrow(() -> new NullPointerException("exercise not found"));
-        option.setExercise(exercise);
+        if (dto.exerciseId() != null) {
+            Exercise exercise = exerciseRepository.findById(dto.exerciseId())
+                    .orElseThrow(() -> new NullPointerException("Exercise not found with id: " + dto.exerciseId()));
+            option.setExercise(exercise);
+        }
+
+        option.setText(dto.text());
+        option.setCorrect(dto.isCorrect());
+        option.setExplanation(dto.explanation());
 
         optionRepository.save(option);
         return optionMapper.toDto(option);

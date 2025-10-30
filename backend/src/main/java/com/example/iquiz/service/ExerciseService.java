@@ -5,6 +5,8 @@ import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
+import com.example.iquiz.entity.Option;
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.OptionMapper;
 import com.example.iquiz.repository.ExerciseRepository;
@@ -12,7 +14,6 @@ import com.example.iquiz.repository.LearningUnitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ public class ExerciseService {
 
     public List<ExerciseResponseDto> getAllExercises() {
         return exerciseRepository.findAll()
-                .stream().map(exercise ->  exerciseMapper.toDto(exercise)).collect(Collectors.toList());
+                .stream().map(exercise -> exerciseMapper.toDto(exercise)).collect(Collectors.toList());
     }
 
     public ExerciseResponseDto getExerciseById(Long exerciseId) {
@@ -45,28 +46,49 @@ public class ExerciseService {
 
     public ExerciseResponseDto updateExercise(Long exerciseId, ExerciseRequestDto dto) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new NullPointerException("Exercise with id: " + exerciseId + " does not exist"));
+                .orElseThrow(() -> new RuntimeException("Exercise not found"));
 
         LearningUnit parent = learningUnitRepository.findById(dto.parentUnitId())
-                .orElseThrow(() -> new NullPointerException("Parent Unit with id: " + dto.parentUnitId() + " does not exist"));
+                .orElseThrow(() -> new RuntimeException("Parent Unit not found"));
         exercise.setParent(parent);
 
-        exercise.setUpdatedAt(LocalDateTime.now());
         exercise.setAnswer(dto.answer());
-        exercise.setType(dto.type());
+        exercise.setType(ExerciseType.valueOf(dto.type()));
         exercise.setQuestion(dto.question());
+        exercise.setDifficulty(dto.difficulty());
 
-        exerciseRepository.save(exercise);
-        return exerciseMapper.toDto(exercise);
+        // --- clear options cũ ---
+        exercise.getOptions().clear();
+
+        // --- add lại options từ DTO ---
+        if (dto.options() != null && !dto.options().isEmpty()) {
+            List<Option> newOptions = dto.options().stream()
+                    .map(optionMapper::toEntity)
+                    .peek(op -> op.setExercise(exercise))
+                    .toList();
+            exercise.getOptions().addAll(newOptions);
+        }
+
+        return exerciseMapper.toDto(exerciseRepository.save(exercise));
     }
+
 
     public ExerciseResponseDto saveExercise(ExerciseRequestDto dto) {
         Exercise exercise = exerciseMapper.toEntity(dto);
-        exercise.setUpdatedAt(LocalDateTime.now());
-        exercise.setCreatedAt(LocalDateTime.now());
 
-        exerciseRepository.save(exercise);
-        return exerciseMapper.toDto(exercise);
+        LearningUnit parent = learningUnitRepository.findById(dto.parentUnitId())
+                .orElseThrow(() -> new RuntimeException("Parent Unit not found"));
+        exercise.setParent(parent);
+
+        if (dto.options() != null && !dto.options().isEmpty()) {
+            List<Option> options = dto.options().stream()
+                    .map(optionMapper::toEntity)
+                    .peek(op -> op.setExercise(exercise))
+                    .toList();
+            exercise.setOptions(options);
+        }
+
+        return exerciseMapper.toDto(exerciseRepository.save(exercise));
     }
 
     public void deleteExercise(Long exerciseId) {
@@ -76,4 +98,24 @@ public class ExerciseService {
     public List<ExerciseResponseDto> getAllExercisesByUserId(Long userId) {
         return null;
     }
+
+    public List<ExerciseResponseDto> getExercises(Long lessonId, Long typeId) {
+        List<Exercise> exercises;
+
+//        if (lessonId != null && typeId != null) {
+//            exercises = exerciseRepository.findByParent_IdAndExerciseCategory_Id(lessonId, typeId);
+//        } else
+        if (lessonId != null) {
+            exercises = exerciseRepository.findByParent_Id(lessonId);
+//        } else if (typeId != null) {
+//            exercises = exerciseRepository.findByExerciseCategory_Id(typeId);
+        } else {
+            exercises = exerciseRepository.findAll();
+        }
+
+        return exercises.stream()
+                .map(exerciseMapper::toDto)
+                .toList();
+    }
+
 }
