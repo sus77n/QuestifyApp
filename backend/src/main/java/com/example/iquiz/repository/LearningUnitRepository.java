@@ -15,4 +15,6 @@ public interface LearningUnitRepository extends JpaRepository<LearningUnit, Long
     List<LearningUnit> findByTypeLevel(int typeLevel);
 
     Optional<LearningUnit> findByNameAndTypeId(String name, Long typeId);
+
+    List<LearningUnit> findAllByType_Name(String typeName);
 }

@@ -6,6 +6,9 @@ import com.example.iquiz.dto.SignupRequest;
 import com.example.iquiz.dto.UserDto;
 import com.example.iquiz.entity.User;
 import com.example.iquiz.enums.UserRole;
+import com.example.iquiz.exception.ApiException;
+import com.example.iquiz.exception.ErrorCode;
+import com.example.iquiz.exception.UnauthorizedException;
 import com.example.iquiz.exception.UserAlreadyExistsException;
 import com.example.iquiz.mapper.UserMapper;
 import com.example.iquiz.repository.UserRepository;
@@ -102,13 +105,15 @@ public class AuthService {
             );
 
         } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Invalid credentials", e);
+            throw new UnauthorizedException("Invalid username or password");
         } catch (DisabledException e) {
-            throw new DisabledException("User account disabled", e);
+            throw new ApiException("User account is disabled", ErrorCode.FORBIDDEN, e);
         } catch (LockedException e) {
-            throw new LockedException("User account locked", e);
+            throw new ApiException("User account is locked", ErrorCode.FORBIDDEN, e);
         } catch (AuthenticationException e) {
-            throw new AuthenticationServiceException("Authentication failed", e);
+            throw new ApiException("Authentication failed", ErrorCode.UNAUTHORIZED, e);
+        } catch (Exception e) {
+            throw new ApiException("Unexpected error during login", ErrorCode.INTERNAL_SERVER_ERROR, e);
         }
     }
 

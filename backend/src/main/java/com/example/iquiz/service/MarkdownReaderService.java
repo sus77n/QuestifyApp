@@ -1,6 +1,7 @@
 package com.example.iquiz.service;
 
 import com.example.iquiz.entity.*;
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,7 +160,7 @@ public class MarkdownReaderService {
 
             Matcher typeMatcher = TYPE_PATTERN.matcher(line);
             if (typeMatcher.matches()) {
-                exercise.setType(mapExerciseType(typeMatcher.group(1).trim()));
+                exercise.setType(ExerciseType.valueOf(mapExerciseType(typeMatcher.group(1).trim())));
                 continue;
             }
             Matcher questionMatcher = QUESTION_PATTERN.matcher(line);
@@ -212,7 +213,7 @@ public class MarkdownReaderService {
                 if (correctAnswer == null || correctAnswer.isEmpty()) {
                     throw new ExerciseParseException("Missing solution for exercise");
                 }
-                setCorrectAnswers(options, correctAnswer, exercise.getType());
+                setCorrectAnswers(options, correctAnswer, exercise.getType().toString());
             }
             exercise.setOptions(options);
         }

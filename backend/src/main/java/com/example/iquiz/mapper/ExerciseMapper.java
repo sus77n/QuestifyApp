@@ -3,6 +3,7 @@ package com.example.iquiz.mapper;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.entity.Exercise;
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.repository.LearningUnitRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class ExerciseMapper {
         return new ExerciseResponseDto(
                 entity.getId(),
                 entity.getQuestion(),
-                entity.getType(),
+                entity.getType().toString(),
                 new ArrayList<>()
         );
     }
@@ -30,7 +31,7 @@ public class ExerciseMapper {
         }
         Exercise entity = new Exercise();
         entity.setQuestion(dto.question());
-        entity.setType(dto.type());
+        entity.setType(ExerciseType.valueOf(dto.type()));
         entity.setAnswer(dto.answer());
         entity.setDifficulty(dto.difficulty());
         entity.setParent(learningUnitRepository.findById(dto.parentUnitId())

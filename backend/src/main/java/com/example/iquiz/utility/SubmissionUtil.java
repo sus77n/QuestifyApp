@@ -3,6 +3,7 @@ package com.example.iquiz.utility;
 import com.example.iquiz.dto.submission.SubmissionDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.Option;
+import com.example.iquiz.enums.ExerciseType;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -15,10 +16,10 @@ public class SubmissionUtil {
     private static final double MINIMUM_MATCH_THRESHOLD = 0.5;
 
     public BigDecimal calculateScore(SubmissionDto submission, Exercise exercise, Option selectedOption) {
-        if (submission.selectedOptionId() != null && selectedOption != null) {
+        if (exercise.getType() == ExerciseType.MULTIPLE_CHOICE && selectedOption != null) {
             return calculateMultipleChoiceScore(selectedOption);
-        } else if (submission.answer() != null && exercise.getAnswer() != null) {
-            return calculateTextAnswerScore(submission.answer(), exercise.getAnswer());
+        } else if (exercise.getType() == ExerciseType.SHORT_ANSWER && exercise.getAnswer() != null) {
+            return calculateShortAnswerScore(submission.answer(), exercise.getAnswer());
         }
         return ZERO_SCORE;
     }
@@ -27,7 +28,7 @@ public class SubmissionUtil {
         return selectedOption.isCorrect() ? FULL_SCORE : ZERO_SCORE;
     }
 
-    private BigDecimal calculateTextAnswerScore(String submittedAnswer, String correctAnswer) {
+    private BigDecimal calculateShortAnswerScore(String submittedAnswer, String correctAnswer) {
         String normalizedSubmission = submittedAnswer.toLowerCase().trim();
         String normalizedCorrect = correctAnswer.toLowerCase().trim();
 

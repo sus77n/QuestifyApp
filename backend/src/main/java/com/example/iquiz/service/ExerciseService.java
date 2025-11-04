@@ -6,6 +6,7 @@ import com.example.iquiz.dto.option.OptionResponseDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.Option;
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.OptionMapper;
 import com.example.iquiz.repository.ExerciseRepository;
@@ -52,7 +53,7 @@ public class ExerciseService {
         exercise.setParent(parent);
 
         exercise.setAnswer(dto.answer());
-        exercise.setType(dto.type());
+        exercise.setType(ExerciseType.valueOf(dto.type()));
         exercise.setQuestion(dto.question());
         exercise.setDifficulty(dto.difficulty());
 

@@ -7,7 +7,7 @@ import com.example.iquiz.entity.*;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.*;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.example.iquiz.utility.SubmissionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class AttemptService {
     private final UserRepository userRepository;
     private final LearningUnitRepository learningUnitRepository;
     private final LessonConfigRepository lessonConfigRepository;
-    private final LessonTypeDistributionRepository lessonTypeDistributionRepository;
+    private final SubmissionUtil submissionUtil;
 
 
     public Attempt save(Attempt attempt) {
@@ -37,7 +37,7 @@ public class AttemptService {
 
     public Attempt findById(Long id) {
         return attemptRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Attempt", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt", "Id", id));
     }
 
     public List<Attempt> findByUser(Long userId) {
@@ -48,10 +48,6 @@ public class AttemptService {
         return attemptRepository.findByLessonId(lessonId);
     }
 
-    public List<Attempt> findByUserAndLesson(Long userId, Long lessonId) {
-        return attemptRepository.findByUserIdAndLessonId(userId, lessonId);
-    }
-
     public void delete(Long id) {
         attemptRepository.deleteById(id);
     }
@@ -59,9 +55,9 @@ public class AttemptService {
     @Transactional
     public AttemptStartResponseDto startAttempt(Long userId, Long lessonId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "Id", userId));
         LearningUnit lesson = learningUnitRepository.findById(lessonId)
-                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LearningUnit", "Id", lessonId));
 
         int attemptNo = attemptRepository.findByUserIdAndLessonId(userId, lessonId).size() + 1;
 
@@ -74,11 +70,10 @@ public class AttemptService {
 
         // --- 1. Lấy config ---
         LessonConfig config = lessonConfigRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found for lessonId: ", "", lessonId));
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "Id", lessonId));
 
         int totalQuestions = config.getQuestionsPerAttempt();
 
-        List<LessonTypeDistribution> distributions = lessonTypeDistributionRepository.findByLessonId(lessonId);
 
         List<Exercise> selectedExercises = new ArrayList<>();
         Random random = new Random();
@@ -95,28 +90,33 @@ public class AttemptService {
         final Set<Long> finalUsedExerciseIds = usedExerciseIds; // fix lambda issue
 
         // --- 3. Chọn câu hỏi theo phân phối ---
-        for (LessonTypeDistribution dist : distributions) {
-            // 123
-            List<Exercise> pool = exerciseRepository.findAll();
-
-            // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
-            if (config.isNoRepeatScope()) {
-                pool.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
-            }
-
-            // Tính số câu cần lấy
-            int toPick = Math.min(pool.size(), Math.max(dist.getMinPerAttempt(),
-                    (int) Math.round(dist.getBaseWeight().doubleValue() * totalQuestions)));
-
-            toPick = Math.min(toPick, dist.getMaxPerAttempt());
-
-            Collections.shuffle(pool, random);
-            selectedExercises.addAll(pool.subList(0, Math.min(toPick, pool.size())));
-        }
+//        List<LessonTypeDistribution> distributions = lessonTypeDistributionRepository.findByLessonId(lessonId);
+//        for (LessonTypeDistribution dist : distributions) {
+//            // 123
+//            List<Exercise> pool = exerciseRepository.findAll();
+//
+//            // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
+//            if (config.isNoRepeatScope()) {
+//                pool.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
+//            }
+//
+//            // Tính số câu cần lấy
+//            int toPick = Math.min(pool.size(), Math.max(dist.getMinPerAttempt(),
+//                    (int) Math.round(dist.getBaseWeight().doubleValue() * totalQuestions)));
+//
+//            toPick = Math.min(toPick, dist.getMaxPerAttempt());
+//
+//            Collections.shuffle(pool, random);
+//            selectedExercises.addAll(pool.subList(0, Math.min(toPick, pool.size())));
+//        }
 
         // --- 4. Nếu tổng chưa đủ (do min/max/noRepeatScope giới hạn), bổ sung ngẫu nhiên ---
         if (selectedExercises.size() < totalQuestions) {
-            List<Exercise> all = exerciseRepository.findByParent_Id(lessonId);
+            List<Exercise> all = exerciseRepository.findByParent_IdIn(
+                    lesson.getChildren().stream()
+                            .map(LearningUnit::getId)
+                            .toList()
+            );
 
             if (config.isNoRepeatScope()) {
                 all.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
@@ -154,16 +154,15 @@ public class AttemptService {
     @Transactional
     public AttemptResponseDto submitAttempt(Long attemptId, List<SubmissionDto> submissions) {
         Attempt attempt = attemptRepository.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt", "Id", attemptId));
 
         int correctCount = 0;
         List<AttemptResponseDto.FeedbackDto> feedbacks = new java.util.ArrayList<>();
 
         for (SubmissionDto dto : submissions) {
             Exercise exercise = exerciseRepository.findById(dto.exerciseId())
-                    .orElseThrow(() -> new EntityNotFoundException("Exercise not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Exercise", "Id", dto.exerciseId()));
 
-            boolean correct = false;
             String expectedAnswer = exercise.getAnswer();
             if (expectedAnswer == null) {
                 Option option = optionRepository.findCorrectOptionByExerciseId(exercise.getId());
@@ -171,17 +170,17 @@ public class AttemptService {
                     expectedAnswer = option.getText() + ". \n" + option.getExplanation();
                 }
             }
-            String userAnswer = dto.answer();
 
+            // Kiểm tra đáp án - chưa nâng cấp #123
             Option selectedOption = null;
             if (dto.selectedOptionId() != null) {
                 selectedOption = optionRepository.findById(dto.selectedOptionId())
-                        .orElseThrow(() -> new EntityNotFoundException("Option not found"));
-                correct = selectedOption.isCorrect();
-                userAnswer = selectedOption.getText();
-            } else if (dto.answer() != null) {
-                correct = dto.answer().trim().equalsIgnoreCase(expectedAnswer.trim());
+                        .orElse(null);
             }
+            BigDecimal score = submissionUtil.calculateScore(dto, exercise, selectedOption);
+            boolean correct = score.compareTo(BigDecimal.valueOf(50)) >= 0;
+
+            String userAnswer = dto.answer() != null ? dto.answer() : selectedOption.getText();
 
             if (correct) correctCount++;
 
@@ -192,7 +191,7 @@ public class AttemptService {
             submission.setAttempt(attempt);
             submission.setAnswer(dto.answer());
             submission.setSelectedOption(selectedOption);
-            submission.setScore(correct ? BigDecimal.ONE : BigDecimal.ZERO);
+            submission.setScore(score);
             submission.setSubmittedAt(LocalDateTime.now());
             submissionRepository.save(submission);
 
