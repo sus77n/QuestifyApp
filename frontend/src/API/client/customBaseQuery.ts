@@ -33,9 +33,13 @@ export const customBaseQuery: BaseQueryFn<
   if (result.error) {
     const status = result.error.status;
     if (status === 401) {
+      const currentPath = window.location.pathname;
+      if (currentPath.includes("/login")) {
+        return result;
+      }
       localStorage.clear();
       window.location.href = "/login";
-    } else if (status === 403) {
+    }else if (status === 403) {
       window.location.href = "/403";
     } else if (status === 404) {
       window.location.href = "/404";

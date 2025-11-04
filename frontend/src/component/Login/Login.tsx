@@ -44,7 +44,6 @@ const Login = () => {
         throw new Error("No user data returned from server");
       }
 
-      // Lưu user/token vào context hoặc localStorage
       setAuth(user);
       localStorage.setItem("token", user.token);
 
@@ -54,7 +53,7 @@ const Login = () => {
           break;
         case "TEACHER":
           navigate("/teacher/courses");
-            break;
+          break;
         case "STUDENT":
         default:
           navigate("/courses");
@@ -63,17 +62,21 @@ const Login = () => {
 
       toast.success(message);
     } catch (error: any) {
-
       if (error?.status === 500) {
         navigate("/500");
+        return;
       }
 
       const backendMessage =
-          error?.data?.message || "Login failed. Please check your credentials.";
+          error?.data?.message ||
+          (error?.status === 401
+              ? "Invalid username or password."
+              : "Login failed. Please try again.");
 
       toast.error(backendMessage);
     }
   };
+
 
   return (
     <div className="relative flex flex-col h-screen w-full overflow-hidden">

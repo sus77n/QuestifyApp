@@ -32,14 +32,17 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      const response = await signup(formData).unwrap();
-      toast.success(response || "Account created successfully!", {
+      const result = await signup(formData);
+
+      const response = result as typeof result & {
+        meta?: { success: boolean; message: string; errorCode: string | null };
+      };
+      toast.success(response?.meta?.message || "Account created successfully!", {
         autoClose: 2000,
         onClose: () => navigate("/login"),
       });
     } catch (error: any) {
-      console.error("Signup error:", error);
-      const errorMessage = error?.data || "Signup failed. Please try again.";
+      const errorMessage = error?.data.message() || "Signup failed. Please try again.";
       toast.error(errorMessage, { autoClose: 3000 });
     }
   };
