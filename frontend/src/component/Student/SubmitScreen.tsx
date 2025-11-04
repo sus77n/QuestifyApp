@@ -464,8 +464,20 @@ const SubmitScreen = () => {
     return (
         <div className="h-screen flex bg-light-background">
             <div className="h-screen flex bg-light-background relative overflow-hidden">
+
+                {/* Overlay */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-gray-800/40 z-30 flex items-center justify-center text-white text-xl font-semibold"
+                        onClick={() => setIsSidebarOpen(false)}
+                    >
+                        <p className="ml-[30%] pointer-events-none">  Select a lesson to begin</p>
+                    </div>
+                )}
+
                 <div className={`fixed top-0 left-0 z-40 h-full w-[28vw] min-w-[320px] transition-transform duration-500 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
                     <div className="bg-white h-full rounded-r-xl flex flex-col shadow-2xl">
+
                         {/* Header */}
                         <div className="flex justify-between items-center text-white bg-text-color py-3 px-5 rounded-tr-xl">
                             <div className="flex-1">
@@ -600,7 +612,7 @@ const SubmitScreen = () => {
                         </>
                     ) : (
                         <div className="mb-2 h-[70px] bg-white items-center justify-center rounded-xl flex">
-                            <p className="text-sm text-gray-500">Select a lesson to begin</p>
+                            {/*<p className="text-sm text-gray-500">Select a lesson to begin</p>*/}
                         </div>
                     )
                 ) : (
@@ -615,7 +627,11 @@ const SubmitScreen = () => {
                             <div>
                                 <ExerciseCard
                                     key={`${selectedExercise.id}-${clearVersion}`}
-                                    exercise={selectedExercise}
+                                    exercise={{
+                                        ...selectedExercise,
+                                        lessonExercises: selectedLesson.exercises,
+                                        setSelectedExercise,
+                                    }}
                                     submission={submissions[selectedExercise.id]}
                                     onSubmissionChange={(submission) => {
                                         setSubmissions((prev) => ({
@@ -624,19 +640,20 @@ const SubmitScreen = () => {
                                         }));
                                     }}
                                 />
+
                             </div>
                         ) : (
                             <div className="h-full flex items-center justify-center">
                                 <p className="text-gray-500">
                                     {selectedLesson.exercises?.length === 0
                                         ? "No exercises available"
-                                        : "Please select an exercise"}
+                                        : ""}
                                 </p>
                             </div>
                         )
                     ) : (
                         <div className="h-full flex items-center justify-center">
-                            <p className="text-gray-500">Select a lesson to begin</p>
+                            {/*<p className="text-gray-500">Select a lesson to begin</p>*/}
                         </div>
                     )}
                 </div>
@@ -693,7 +710,10 @@ export const ExerciseCard = ({
         const textarea = textareaRef.current;
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const newValue = shortAnswer.substring(0, start) + symbol + shortAnswer.substring(end);
+        const newValue =
+            shortAnswer.substring(0, start) +
+            symbol +
+            shortAnswer.substring(end);
         setShortAnswer(newValue);
         onSubmissionChange({
             exerciseId: exercise.id,
@@ -720,84 +740,117 @@ export const ExerciseCard = ({
         setShortAnswer(submission?.answer ?? "");
     }, [submission, exercise.id]);
 
+    const handleNextQuestion = () => {
+        const allExercises = (exercise as any).lessonExercises; // danh sách toàn bộ câu hỏi
+        const setSelectedExercise = (exercise as any).setSelectedExercise; // callback từ parent
+        if (!allExercises || !setSelectedExercise) return;
+
+        const currentIndex = allExercises.findIndex(
+            (e: ExerciseDTO) => e.id === exercise.id
+        );
+        if (currentIndex < allExercises.length - 1) {
+            setSelectedExercise(allExercises[currentIndex + 1]);
+        }
+    };
+
     return (
-        <div className="p-6 rounded-lg">
-            <h3 className="font-medium text-xl mb-4 text-gray-800">{exercise.question}</h3>
-            { exercise.options?.length != 0 ? (
-                <div className="space-y-3 mb-6">
-                    {exercise?.options?.map((option) => (
-                        <div key={option.id} className="flex items-center">
-                            <input
-                                type="radio"
-                                id={`ex-${exercise.id}-opt-${option.id}`}
-                                name={`exercise-${exercise.id}`}
-                                checked={selectedOptionId === option.id}
-                                onChange={() => handleOptionChange(option.id)}
-                                className="hidden"
-                            />
-                            <label
-                                htmlFor={`ex-${exercise.id}-opt-${option.id}`}
-                                className={`flex items-center space-x-3 cursor-pointer w-full py-2 px-3 rounded-lg transition-all duration-200
-                  ${selectedOptionId === option.id ? "bg-blue-50" : "hover:bg-gray-50"}`}
-                            >
-                                <OptionIndicator isSelected={selectedOptionId === option.id} />
-                                <span className="text-gray-700">{option.text}</span>
-                            </label>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div>
-    <textarea
-        ref={textareaRef}
-        value={shortAnswer}
-        onChange={(e) => setShortAnswer(e.target.value)} // ✅ local only
-        onBlur={() =>
-            onSubmissionChange({
-                exerciseId: exercise.id,
-                selectedOptionId: null,
-                answer: shortAnswer,
-            })
-        } // ✅ sync khi blur
-        className="w-full p-3 border border-gray-300 rounded-lg"
-        rows={4}
-        placeholder="Type your answer here..."
-    />
+        <div className="p-6 rounded-lg flex flex-col justify-between min-h-[400px]">
+            <div>
+                <h3 className="font-medium text-xl mb-4 text-gray-800">
+                    {exercise.question}
+                </h3>
 
-                    <div className="mt-3">
-                        <button
-                            type="button"
-                            onClick={() => setShowSymbols(!showSymbols)}
-                            className="px-3 py-2 border rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
-                        >
-                            {showSymbols ? "Hide" : "Show special symbols"}
-                        </button>
+                {exercise.options?.length !== 0 ? (
+                    <div className="space-y-3 mb-6">
+                        {exercise?.options?.map((option) => (
+                            <div key={option.id} className="flex items-center">
+                                <input
+                                    type="radio"
+                                    id={`ex-${exercise.id}-opt-${option.id}`}
+                                    name={`exercise-${exercise.id}`}
+                                    checked={selectedOptionId === option.id}
+                                    onChange={() => handleOptionChange(option.id)}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor={`ex-${exercise.id}-opt-${option.id}`}
+                                    className={`flex items-center space-x-3 cursor-pointer w-full py-2 px-3 rounded-lg transition-all duration-200
+                    ${
+                                        selectedOptionId === option.id
+                                            ? "bg-blue-50"
+                                            : "hover:bg-gray-50"
+                                    }`}
+                                >
+                                    <OptionIndicator
+                                        isSelected={selectedOptionId === option.id}
+                                    />
+                                    <span className="text-gray-700">{option.text}</span>
+                                </label>
+                            </div>
+                        ))}
                     </div>
-
-                    {showSymbols && (
-                        <div className="space-y-4 mt-4">
-                            {specialSymbols.map((group) => (
-                                <div key={group.group}>
-                                    <h3 className="font-semibold text-gray-700 mb-2">{group.group}</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {group.symbols.map((s) => (
-                                            <button
-                                                key={s.value}
-                                                onClick={() => handleInsertSymbol(s.value)}
-                                                title={s.tooltip}
-                                                type="button"
-                                                className="px-3 py-2 border rounded-lg hover:bg-gray-100"
-                                            >
-                                                {s.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
+                ) : (
+                    <div>
+            <textarea
+                ref={textareaRef}
+                value={shortAnswer}
+                onChange={(e) => setShortAnswer(e.target.value)}
+                onBlur={() =>
+                    onSubmissionChange({
+                        exerciseId: exercise.id,
+                        selectedOptionId: null,
+                        answer: shortAnswer,
+                    })
+                }
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                rows={4}
+                placeholder="Type your answer here..."
+            />
+                        <div className="mt-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowSymbols(!showSymbols)}
+                                className="px-3 py-2 border rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
+                            >
+                                {showSymbols ? "Hide" : "Show special symbols"}
+                            </button>
                         </div>
-                    )}
-                </div>
-            )}
+                        {showSymbols && (
+                            <div className="space-y-4 mt-4">
+                                {specialSymbols.map((group) => (
+                                    <div key={group.group}>
+                                        <h3 className="font-semibold text-gray-700 mb-2">
+                                            {group.group}
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {group.symbols.map((s) => (
+                                                <button
+                                                    key={s.value}
+                                                    onClick={() => handleInsertSymbol(s.value)}
+                                                    title={s.tooltip}
+                                                    type="button"
+                                                    className="px-3 py-2 border rounded-lg hover:bg-gray-100"
+                                                >
+                                                    {s.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div className="flex justify-end">
+                <button
+                    onClick={handleNextQuestion}
+                    className="px-5 py-2 bg-text-color text-white rounded-lg font-semibold hover:bg-text-color/90 transition"
+                >
+                    Next →
+                </button>
+            </div>
         </div>
     );
 };
