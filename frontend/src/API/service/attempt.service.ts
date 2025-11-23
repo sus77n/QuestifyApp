@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { customBaseQuery } from "../client/customBaseQuery";
 import {AttemptDTO, AttemptResponseDTO, AttemptStartResponseDTO} from "../../model/AttemptDTO";
 import {SubmissionDTO} from "../../model/SubmissionDTO";
+import {parseExercise} from "../../utils/exerciseFormatter";
 
 export const attemptService = createApi({
     reducerPath: "attemptService",
@@ -41,10 +42,17 @@ export const attemptService = createApi({
             invalidatesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        startAttempt: builder.mutation<AttemptStartResponseDTO, { userId: number; lessonId: number }>({
+        startAttempt: builder.mutation<
+            AttemptStartResponseDTO,
+            { userId: number; lessonId: number }
+        >({
             query: ({ userId, lessonId }) => ({
                 url: `/attempts/start?userId=${userId}&lessonId=${lessonId}`,
                 method: "POST",
+            }),
+            transformResponse: (response: AttemptStartResponseDTO) => ({
+                ...response,
+                exercises: response.questions.map(parseExercise),
             }),
         }),
 
@@ -58,6 +66,7 @@ export const attemptService = createApi({
                 body: submissions,
             }),
         }),
+
     }),
 });
 

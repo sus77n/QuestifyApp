@@ -1,4 +1,4 @@
-import {ExerciseDTO} from "./ExerciseDTO";
+import {ExerciseDTO, ExerciseType} from "./ExerciseDTO";
 
 export interface AttemptDTO {
     id: number;
@@ -19,10 +19,12 @@ export interface AttemptStartResponseDTO {
 //feedback on an exercise
 export interface AttemptChildDto{
     exerciseId: number;
+    exerciseType: ExerciseType;
     question: string;
     correct: boolean;
     userAnswer: string;
     expectedAnswer: string;
+    score: number;
 }
 
 export interface AttemptResponseDTO {

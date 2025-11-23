@@ -4,24 +4,22 @@ import type {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query";
-import {ApiResponse} from "../../model/api";
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  errorCode?: string | null;
+}
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: "/api",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token");
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
+    if (token) headers.set("Authorization", `Bearer ${token}`);
     return headers;
   },
 });
-
-export interface CustomMeta {
-  success: boolean;
-  message: string;
-  errorCode: string | null;
-}
 
 export const customBaseQuery: BaseQueryFn<
     string | FetchArgs,
@@ -32,35 +30,31 @@ export const customBaseQuery: BaseQueryFn<
 
   if (result.error) {
     const status = result.error.status;
+
     if (status === 401) {
-      const currentPath = window.location.pathname;
-      if (currentPath.includes("/login")) {
-        return result;
-      }
       localStorage.clear();
-      window.location.href = "/login";
-    }else if (status === 403) {
-      window.location.href = "/403";
-    } else if (status === 404) {
-      window.location.href = "/404";
-    } else if (status === 500) {
-      window.location.href = "/500";
+      if (!window.location.pathname.includes("/login"))
+        window.location.href = "/login";
     }
+    if (status === 403) window.location.href = "/403";
+    if (status === 404) window.location.href = "/404";
+    if (status === 500) window.location.href = "/500";
+
     return result;
   }
 
-  if (result.data && typeof result.data === "object" && "data" in result.data) {
-    const apiRes = result.data as ApiResponse<unknown>;
+  const apiRes = result.data as ApiResponse<unknown>;
+
+  if (!apiRes.success) {
     return {
-      ...result,
-      data: apiRes.data,
-      meta: {
-        success: apiRes.success,
-        message: apiRes.message,
-        errorCode: apiRes.errorCode,
-      } as CustomMeta,
+      error: {
+        status: 400,
+        data: apiRes,
+      },
     };
   }
 
-  return result;
+  return {
+    data: apiRes.data,
+  };
 };

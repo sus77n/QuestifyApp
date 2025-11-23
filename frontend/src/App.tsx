@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./component/Login/Login";
 import Signup from "./component/Login/Signup";
 import HeroSection from "./component/HeroSection/HeroSection";
-import SubmitScreen from "./component/Student/SubmitScreen";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./component/ProtectedRoute";
@@ -19,6 +18,7 @@ import {
 import TeacherLayout from "./component/Teacher/TeacherLayout";
 import TeacherCourse from "./component/Teacher/TeacherCourse";
 import TeacherDashboard from "./component/Teacher/TeacherDashboard";
+import SubmitScreen from "./component/Student/SubmitScreen/SubmitScreen";
 
 function App() {
   return (

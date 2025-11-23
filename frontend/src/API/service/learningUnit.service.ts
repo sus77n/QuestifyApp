@@ -26,8 +26,7 @@ export const learningUnitService = createApi({
     }),
 
     getLearningUnitWithChildren: builder.query<LearningUnitWithChildren, { id: number }>({
-      query: ({ id }) =>
-          `/learning-units/getLearningUnitWithChildren/${id}`,
+      query: ({ id }) => `/learning-units/getLearningUnitWithChildren/${id}`,
     }),
 
     getAllLearningUnitsByLevel: builder.query<LearningUnitDTO[], number>({

@@ -31,18 +31,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const result = await login(formData);
-
-      const typedResult = result as typeof result & {
-        meta?: { success: boolean; message: string; errorCode: string | null };
-      };
-
-      const user = typedResult.data;
-      const message = typedResult.meta?.message || "Login successful!";
-
-      if (!user) {
-        throw new Error("No user data returned from server");
-      }
+      const user = await login(formData).unwrap();
 
       setAuth(user);
       localStorage.setItem("token", user.token);
@@ -54,26 +43,22 @@ const Login = () => {
         case "TEACHER":
           navigate("/teacher/courses");
           break;
-        case "STUDENT":
         default:
           navigate("/courses");
-          break;
       }
 
-      toast.success(message);
+      toast.success("Login successful!");
+
     } catch (error: any) {
-      if (error?.status === 500) {
-        navigate("/500");
-        return;
-      }
-
-      const backendMessage =
+      const msg =
           error?.data?.message ||
           (error?.status === 401
               ? "Invalid username or password."
               : "Login failed. Please try again.");
 
-      toast.error(backendMessage);
+      toast.error(msg);
+
+      if (error?.status === 500) navigate("/500");
     }
   };
 
