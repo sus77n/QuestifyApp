@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface LessonConfigRepository extends JpaRepository<LessonConfig, Long> {
-    Optional<LessonConfig> findByLessonId(Long lessonId);
-    void deleteByLessonId(Long lessonId);
+public interface LessonConfigRepository extends JpaRepository<LessonConfig, UUID> {
+    Optional<LessonConfig> findByLessonId(UUID lessonId);
+    void deleteByLessonId(UUID lessonId);
 
 }

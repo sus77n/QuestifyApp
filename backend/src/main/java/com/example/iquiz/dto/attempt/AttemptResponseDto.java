@@ -1,23 +1,18 @@
 package com.example.iquiz.dto.attempt;
 
+import com.example.iquiz.dto.attemptDetail.ResultDto;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record AttemptResponseDto(
-        Long attemptId,
-        Long userId,
-        Long lessonId,
+        UUID attemptId,
+        UUID userId,
+        UUID lessonId,
         BigDecimal score,
         String status,
         LocalDateTime submittedAt,
-        List<FeedbackDto> feedbacks
-) {
-    public record FeedbackDto(
-            Long exerciseId,
-            String question,
-            boolean correct,
-            String userAnswer,
-            String expectedAnswer
-    ) {}
-}
+        List<ResultDto> feedbacks
+) {}

@@ -1,5 +1,6 @@
 package com.example.iquiz.entity;
 
+import com.example.iquiz.enums.AttemptStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "attempts")
@@ -20,8 +22,8 @@ import java.util.List;
 public class Attempt {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -34,7 +36,9 @@ public class Attempt {
     @Column(name = "attempt_no", nullable = false)
     private int attemptNo;
 
-    private int status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AttemptStatus attemptStatus;
 
     @Column(precision = 5, scale = 2)
     private BigDecimal score;
@@ -50,5 +54,5 @@ public class Attempt {
     private LocalDateTime submittedAt;
 
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Submission> submissions;
+    private List<AttemptDetail> attemptDetails;
 }

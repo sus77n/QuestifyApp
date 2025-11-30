@@ -2,9 +2,10 @@ package com.example.iquiz.dto.learningUnit;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record LearningUnitTreeDto(
-        Long id,
+        UUID id,
         String name,
         String code,
         String description,
@@ -16,25 +17,25 @@ public record LearningUnitTreeDto(
         List<ChildDto> children // Chapter hoặc Lesson
 ) {
     public record ChildDto(
-            Long id,
+            UUID id,
             String name,
             String code,
             String description,
             String type,    // Chapter / Lesson
             int status,
             LocalDateTime createdAt,
-            Long parentId,
+            UUID parentId,
             List<GrandChildDto> children // Nếu là Chapter thì children = lessons
     ) {}
 
     public record GrandChildDto(
-            Long id,
+            UUID id,
             String name,
             String code,
             String description,
             String type,  // Lesson
             int status,
             LocalDateTime createdAt,
-            Long parentId
+            UUID parentId
     ) {}
 }

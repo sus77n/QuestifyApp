@@ -2,17 +2,23 @@ package com.example.iquiz.service;
 
 import com.example.iquiz.dto.attempt.AttemptResponseDto;
 import com.example.iquiz.dto.attempt.AttemptStartResponseDto;
-import com.example.iquiz.dto.submission.SubmissionDto;
+import com.example.iquiz.dto.attemptDetail.ResultDto;
+import com.example.iquiz.dto.exercise.ExerciseResponseDto;
+import com.example.iquiz.dto.attemptDetail.AttemptDetailDto;
 import com.example.iquiz.entity.*;
+import com.example.iquiz.enums.AttemptStatus;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.repository.*;
 
+import com.example.iquiz.utility.ExerciseTypeUtil;
 import com.example.iquiz.utility.SubmissionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,37 +29,38 @@ public class AttemptService {
 
     private final AttemptRepository attemptRepository;
     private final ExerciseRepository exerciseRepository;
-    private final OptionRepository optionRepository;
-    private final SubmissionRepository submissionRepository;
+    private final AttemptDetailRepository attemptDetailRepository;
     private final UserRepository userRepository;
     private final LearningUnitRepository learningUnitRepository;
     private final LessonConfigRepository lessonConfigRepository;
     private final SubmissionUtil submissionUtil;
+    private final LessonTypeDistributionRepository lessonTypeDistributionRepository;
+    private final ExerciseMapper exerciseMapper;
 
 
     public Attempt save(Attempt attempt) {
         return attemptRepository.save(attempt);
     }
 
-    public Attempt findById(Long id) {
+    public Attempt findById(UUID id) {
         return attemptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Attempt", "Id", id));
     }
 
-    public List<Attempt> findByUser(Long userId) {
+    public List<Attempt> findByUser(UUID userId) {
         return attemptRepository.findByUserId(userId);
     }
 
-    public List<Attempt> findByLesson(Long lessonId) {
+    public List<Attempt> findByLesson(UUID lessonId) {
         return attemptRepository.findByLessonId(lessonId);
     }
 
-    public void delete(Long id) {
+    public void delete(UUID id) {
         attemptRepository.deleteById(id);
     }
 
     @Transactional
-    public AttemptStartResponseDto startAttempt(Long userId, Long lessonId) {
+    public AttemptStartResponseDto startAttempt(UUID userId, UUID lessonId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "Id", userId));
         LearningUnit lesson = learningUnitRepository.findById(lessonId)
@@ -65,50 +72,49 @@ public class AttemptService {
         attempt.setUser(user);
         attempt.setLesson(lesson);
         attempt.setAttemptNo(attemptNo);
+        attempt.setAttemptStatus(AttemptStatus.IN_PROGRESS);
         attempt.setStartedAt(LocalDateTime.now());
         attemptRepository.save(attempt);
 
         // --- 1. Lấy config ---
         LessonConfig config = lessonConfigRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lesson", "Id", lessonId));
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson Config", "Id", lessonId));
 
-        int totalQuestions = config.getQuestionsPerAttempt();
-
-
-        List<Exercise> selectedExercises = new ArrayList<>();
-        Random random = new Random();
 
         // --- 2. Nếu noRepeatScope = true -> lấy danh sách exercise đã dùng ---
-        Set<Long> usedExerciseIds = new HashSet<>();
+        Set<UUID> usedExerciseIds = new HashSet<>();
         if (config.isNoRepeatScope()) {
-            List<Submission> pastSubmissions = submissionRepository.findByUserAndLesson(userId, lessonId);
-            usedExerciseIds = pastSubmissions.stream()
+            List<AttemptDetail> pastAttemptDetails = attemptDetailRepository.findByUserAndLesson(userId, lessonId);
+            usedExerciseIds = pastAttemptDetails.stream()
                     .map(s -> s.getExercise().getId())
                     .collect(Collectors.toSet());
         }
 
-        final Set<Long> finalUsedExerciseIds = usedExerciseIds; // fix lambda issue
+        final Set<UUID> finalUsedExerciseIds = usedExerciseIds; // fix lambda issue
 
+        List<Exercise> selectedExercises = new ArrayList<>();
+        Random random = new Random();
+        int totalQuestions = config.getQuestionsPerAttempt();
         // --- 3. Chọn câu hỏi theo phân phối ---
-//        List<LessonTypeDistribution> distributions = lessonTypeDistributionRepository.findByLessonId(lessonId);
-//        for (LessonTypeDistribution dist : distributions) {
-//            // 123
-//            List<Exercise> pool = exerciseRepository.findAll();
-//
-//            // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
-//            if (config.isNoRepeatScope()) {
-//                pool.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
-//            }
-//
-//            // Tính số câu cần lấy
-//            int toPick = Math.min(pool.size(), Math.max(dist.getMinPerAttempt(),
-//                    (int) Math.round(dist.getBaseWeight().doubleValue() * totalQuestions)));
-//
-//            toPick = Math.min(toPick, dist.getMaxPerAttempt());
-//
-//            Collections.shuffle(pool, random);
-//            selectedExercises.addAll(pool.subList(0, Math.min(toPick, pool.size())));
-//        }
+        List<LessonTypeDistribution> distributions = lessonTypeDistributionRepository.findByLessonId(lessonId);
+        for (LessonTypeDistribution dist : distributions) {
+            // 123
+            List<Exercise> pool = exerciseRepository.findAll();
+
+            // Nếu có noRepeatScope, loại bỏ câu hỏi đã dùng
+            if (config.isNoRepeatScope()) {
+                pool.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
+            }
+
+            // Tính số câu cần lấy
+            int toPick = Math.min(pool.size(), Math.max(dist.getMinPerAttempt(),
+                    (int) Math.round(dist.getBaseWeight().doubleValue() * totalQuestions)));
+
+            toPick = Math.min(toPick, dist.getMaxPerAttempt());
+
+            Collections.shuffle(pool, random);
+            selectedExercises.addAll(pool.subList(0, Math.min(toPick, pool.size())));
+        }
 
         // --- 4. Nếu tổng chưa đủ (do min/max/noRepeatScope giới hạn), bổ sung ngẫu nhiên ---
         if (selectedExercises.size() < totalQuestions) {
@@ -118,10 +124,7 @@ public class AttemptService {
                             .toList()
             );
 
-            if (config.isNoRepeatScope()) {
-                all.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
-            }
-
+            all.removeIf(ex -> finalUsedExerciseIds.contains(ex.getId()));
             all.removeAll(selectedExercises);
             Collections.shuffle(all, random);
 
@@ -131,14 +134,8 @@ public class AttemptService {
         }
 
         // --- 5. Convert sang DTO ---
-        List<AttemptStartResponseDto.QuestionDto> questionDtos = selectedExercises.stream()
-                .map(ex -> new AttemptStartResponseDto.QuestionDto(
-                        ex.getId(),
-                        ex.getQuestion(),
-                        ex.getOptions().stream()
-                                .map(op -> new AttemptStartResponseDto.OptionDto(op.getId(), op.getText()))
-                                .toList()
-                ))
+        List<ExerciseResponseDto> questionDtos = selectedExercises.stream()
+                .map(exerciseMapper::toDto)
                 .toList();
 
         return new AttemptStartResponseDto(
@@ -152,62 +149,51 @@ public class AttemptService {
     }
 
     @Transactional
-    public AttemptResponseDto submitAttempt(Long attemptId, List<SubmissionDto> submissions) {
+    public AttemptResponseDto submitAttempt(UUID attemptId, List<AttemptDetailDto> submissions) {
+
         Attempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attempt", "Id", attemptId));
+        attempt.setAttemptStatus(AttemptStatus.SUBMITTED);
 
         int correctCount = 0;
-        List<AttemptResponseDto.FeedbackDto> feedbacks = new java.util.ArrayList<>();
+        List<ResultDto> feedbacks = new ArrayList<>();
 
-        for (SubmissionDto dto : submissions) {
+        for (AttemptDetailDto dto : submissions) {
+
             Exercise exercise = exerciseRepository.findById(dto.exerciseId())
                     .orElseThrow(() -> new ResourceNotFoundException("Exercise", "Id", dto.exerciseId()));
 
-            String expectedAnswer = exercise.getAnswer();
-            if (expectedAnswer == null) {
-                Option option = optionRepository.findCorrectOptionByExerciseId(exercise.getId());
-                if (option != null) {
-                    expectedAnswer = option.getText() + ". \n" + option.getExplanation();
-                }
-            }
+            String userAnswerJson = dto.userAnswerJson();
+            String expectedAnswerJson = exercise.getCorrectAnswerJson();
 
-            // Kiểm tra đáp án - chưa nâng cấp #123
-            Option selectedOption = null;
-            if (dto.selectedOptionId() != null) {
-                selectedOption = optionRepository.findById(dto.selectedOptionId())
-                        .orElse(null);
-            }
-            BigDecimal score = submissionUtil.calculateScore(dto, exercise, selectedOption);
-            boolean correct = score.compareTo(BigDecimal.valueOf(50)) >= 0;
+            List<String> userAnswers = submissionUtil.parseAnswers(userAnswerJson, exercise);
+            List<String> expectedAnswers = submissionUtil.parseAnswers(expectedAnswerJson, exercise);
 
-            String userAnswer = dto.answer() != null ? dto.answer() : selectedOption.getText();
+            BigDecimal score = submissionUtil.calculateScore(exercise, userAnswerJson);
+            if (score.compareTo(BigDecimal.valueOf(50)) >= 0) correctCount++;
 
-            if (correct) correctCount++;
+            AttemptDetail detail = new AttemptDetail();
+            detail.setExercise(exercise);
+            detail.setAttempt(attempt);
+            detail.setUserAnswerJson(userAnswerJson);
+            detail.setScore(score);
+            attemptDetailRepository.save(detail);
 
-            // Lưu submission
-            Submission submission = new Submission();
-            submission.setExercise(exercise);
-            submission.setUser(attempt.getUser());
-            submission.setAttempt(attempt);
-            submission.setAnswer(dto.answer());
-            submission.setSelectedOption(selectedOption);
-            submission.setScore(score);
-            submission.setSubmittedAt(LocalDateTime.now());
-            submissionRepository.save(submission);
-
-            // Thêm feedback
-            feedbacks.add(new AttemptResponseDto.FeedbackDto(
+            feedbacks.add(new ResultDto(
                     exercise.getId(),
                     exercise.getQuestion(),
-                    correct,
-                    userAnswer,
-                    expectedAnswer
+                    exercise.getType().name(),
+                    userAnswers,
+                    expectedAnswers,
+                    score
             ));
         }
 
-        // Tính điểm tổng
-        BigDecimal score = BigDecimal.valueOf((double) correctCount / submissions.size() * 100);
-        attempt.setScore(score);
+        BigDecimal finalScore = BigDecimal.valueOf((double) correctCount / submissions.size() * 100)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        attempt.setScore(finalScore);
+        attempt.setAttemptStatus(AttemptStatus.GRADED);
         attempt.setSubmittedAt(LocalDateTime.now());
         attemptRepository.save(attempt);
 
@@ -215,11 +201,12 @@ public class AttemptService {
                 attempt.getId(),
                 attempt.getUser().getId(),
                 attempt.getLesson().getId(),
-                score,
-                attempt.getStatus() == 1 ? "PASSED" : "FAILED",
+                finalScore,
+                attempt.getAttemptStatus().name(),
                 attempt.getSubmittedAt(),
                 feedbacks
         );
     }
+
 
 }

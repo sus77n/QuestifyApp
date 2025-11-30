@@ -1,10 +1,11 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
-import com.example.iquiz.service.MarkdownReaderService;
+import com.example.iquiz.utility.MarkdownReaderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/markdown")
@@ -15,8 +16,8 @@ public class MarkdownController {
     @GetMapping("/read")
     public ApiResponse<String> readMarkdown(
             @RequestParam String filename,
-            @RequestParam Long userId) {
-        markdownReaderService.parseAndSaveMarkdown(fullPath, userId);
+            @RequestParam UUID userId) {
+        markdownReaderUtil.parseAndSaveMarkdown(filename, userId);
         return ApiResponse.success(null, "Markdown read successfully");
     }
 }

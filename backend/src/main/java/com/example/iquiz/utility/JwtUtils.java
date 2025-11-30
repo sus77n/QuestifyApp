@@ -19,7 +19,7 @@ public class JwtUtils {
 
     private final String secret = "NguyenQuangMinh,BuiNguyenHaiNgan,DangMinhThuan:LamCapstone123!";
     private final SecretKey secretKey = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
-    private long expiration = 1000 * 60 * 60;
+    private long expiration = 1000 * 60 * 60 * 24;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

@@ -1,24 +1,17 @@
 package com.example.iquiz.dto.attempt;
 
+import com.example.iquiz.dto.exercise.ExerciseResponseDto;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record AttemptStartResponseDto(
-        Long attemptId,
-        Long userId,
-        Long lessonId,
+        UUID attemptId,
+        UUID userId,
+        UUID lessonId,
         int attemptNo,
         LocalDateTime startedAt,
-        List<QuestionDto> questions
+        List<ExerciseResponseDto> questions
 ) {
-    public record QuestionDto(
-            Long id,
-            String question,
-            List<OptionDto> options
-    ) {}
-
-    public record OptionDto(
-            Long id,
-            String text
-    ) {}
 }

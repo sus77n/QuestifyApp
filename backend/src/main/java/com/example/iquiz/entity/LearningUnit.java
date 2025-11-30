@@ -11,7 +11,9 @@ import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "learning_units")
@@ -19,8 +21,8 @@ import java.util.List;
 public class LearningUnit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
     private String name;
@@ -44,7 +46,7 @@ public class LearningUnit {
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY,
             cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<LearningUnit> children;
+    private List<LearningUnit> children = new ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -59,7 +61,7 @@ public class LearningUnit {
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<Exercise> exercises;
+    private List<Exercise> exercises = new ArrayList<>();
 
     @Column(nullable = false)
     private int status = 1;

@@ -1,6 +1,9 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.*;
+import com.example.iquiz.dto.auth.AuthRequest;
+import com.example.iquiz.dto.auth.AuthResponse;
+import com.example.iquiz.dto.auth.SignupRequest;
 import com.example.iquiz.exception.UnauthorizedException;
 import com.example.iquiz.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;

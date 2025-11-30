@@ -1,20 +1,18 @@
-# Lesson 1.1: Propositional Logic
-
----
+## #Course #Discrete Mathematics 1 #C1
+## #Topic #Propositional Logic #C1-CH1
+## #Lesson #Propositional Logic #C1-CH1-L1
+## #Exercise Category #General Practice #C1-CH1-L1-EC1
 
 ## EX 1.1.1
-**ResponseType**: Multiple Choice  
-**Difficulty**: 1  
-**ExerciseType**:   
+**ExerciseType**: MULTIPLE_CHOICE    
+**Difficulty**: 2
 **Question**: What is a valid propositional sentence?  
 **Options**:  
 - A. A proposition that can be an exclamation.  
 - B. A sentence whose logical value is always true.  
 - C. A sentence whose logical value can be determined.  
 - D. A sentence whose logical value cannot be determined.  
-**Solution**: C
-
----
+  **Answer**: { "correctAnswers": ["C"] }
 
 ## EX 1.1.2
 **ResponseType**: Multiple Choice  

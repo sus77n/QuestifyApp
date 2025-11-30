@@ -3,9 +3,10 @@ package com.example.iquiz.dto;
 import com.example.iquiz.enums.UserRole;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record UserDto(
-        Long id,
+        UUID id,
         String username,
         String email,
         String firstName,

@@ -5,8 +5,10 @@ import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
 public record LearningUnitDto(
-        Long id,
+        UUID id,
         String name,
         String code,
         String description,
@@ -14,9 +16,8 @@ public record LearningUnitDto(
         int status,
         LocalDateTime createdAt,
         String createdBy,
-        Long parentId,
-        List<LearningUnitChildDto> childUnits,
-        List<ExerciseResponseDto> exercises,
-        long numberOfComplete,
+        UUID parentId,
+        List<LearningUnitDto> childUnits,
+        Long numberOfComplete,
         long numberOfExercise
 ) {}

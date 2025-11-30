@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,7 +20,7 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{id}")
-    public ApiResponse<UserDto> getUserById(@PathVariable Long id) {
+    public ApiResponse<UserDto> getUserById(@PathVariable UUID id) {
         return ApiResponse.success(userService.getUserById(id), "User retrieved successfully");
     }
 
@@ -29,12 +30,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<UserDto> editUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+    public ApiResponse<UserDto> editUser(@PathVariable UUID id, @Valid @RequestBody UserDto userDto) {
         return ApiResponse.success(userService.updateUser(id, userDto), "User updated successfully");
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
+    public ApiResponse<Void> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ApiResponse.success(null, "User has been deleted!");
     }

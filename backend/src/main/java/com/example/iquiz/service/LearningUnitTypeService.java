@@ -2,6 +2,7 @@ package com.example.iquiz.service;
 
 import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.entity.LearningUnitType;
+import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.mapper.LearningUnitTypeMapper;
 import com.example.iquiz.repository.LearningUnitTypeRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,7 +20,7 @@ public class LearningUnitTypeService {
     private final LearningUnitTypeRepository learningUnitTypeRepository;
     private final LearningUnitTypeMapper learningUnitTypeMapper;
 
-    public LearningUnitTypeDto getLearningUnitTypeById(Long id) {
+    public LearningUnitTypeDto getLearningUnitTypeById(UUID id) {
         LearningUnitType type = learningUnitTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
         return learningUnitTypeMapper.toDto(type);
@@ -33,6 +35,8 @@ public class LearningUnitTypeService {
     public LearningUnitTypeDto getLearningUnitTypeByType(String type) {
         return learningUnitTypeMapper.toDto(
                 learningUnitTypeRepository.findByName(type)
+                        .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", type))
+
         );
     }
 
@@ -42,14 +46,14 @@ public class LearningUnitTypeService {
         return learningUnitTypeMapper.toDto(entity);
     }
 
-    public void deleteLearningUnitTypeById(Long id) {
+    public void deleteLearningUnitTypeById(UUID id) {
         if (!learningUnitTypeRepository.existsById(id)) {
             throw new IllegalArgumentException("Learning Unit Type not found with id: " + id);
         }
         learningUnitTypeRepository.deleteById(id);
     }
 
-    public LearningUnitTypeDto updateLearningUnitType(Long id, LearningUnitTypeDto dto) {
+    public LearningUnitTypeDto updateLearningUnitType(UUID id, LearningUnitTypeDto dto) {
         LearningUnitType entity = learningUnitTypeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
 

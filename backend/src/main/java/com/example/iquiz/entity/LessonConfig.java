@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "lesson_configs")
 @Getter
@@ -16,7 +18,7 @@ public class LessonConfig {
 
     @Id
     @Column(name = "lesson_id")
-    private Long lessonId; // PK đồng thời là FK
+    private UUID lessonId; // PK đồng thời là FK
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // dùng lesson_id làm cả PK và FK

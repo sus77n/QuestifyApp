@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,12 +23,12 @@ public class LessonConfigService {
         return toDto(repo.save(entity));
     }
 
-    public LessonConfigDto findByLessonId(Long lessonId) {
+    public LessonConfigDto findByLessonId(UUID lessonId) {
         return toDto(repo.findByLessonId(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found", "LessonConfig", lessonId)));
     }
 
-    public LessonConfigDto update(Long lessonId, LessonConfigDto dto) {
+    public LessonConfigDto update(UUID lessonId, LessonConfigDto dto) {
         LessonConfig entity = repo.findByLessonId(lessonId)
                 .orElseThrow(() -> new ResourceNotFoundException("LessonConfig not found", "LessonConfig", lessonId));
         entity.setQuestionsPerAttempt(dto.questionsPerAttempt());
@@ -35,7 +36,7 @@ public class LessonConfigService {
         return toDto(repo.save(entity));
     }
 
-    public void delete(Long lessonId) {
+    public void delete(UUID lessonId) {
         repo.deleteByLessonId(lessonId);
     }
 

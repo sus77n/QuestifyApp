@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "exercises")
@@ -22,14 +23,39 @@ import java.util.List;
 @AllArgsConstructor
 public class Exercise {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;
 
-    @Column(columnDefinition = "TEXT")
-    private String answer;
+    /**
+     * DEFAULT JSON FORMAT FOR ALL TYPES:
+     * {
+     *   "correctAnswers": [ ... ],  // Primary correct answers
+     *   "config": { ... }           // Optional configuration
+     * }
+     *
+     * SPECIFIC STRUCTURES:
+     *
+     * MULTIPLE_CHOICE/SELECT_MULTIPLE/TRUE_FALSE:
+     *   { "correctAnswers": [1, 3] }  // Array of correct option IDs
+     *
+     * SHORT_ANSWER:
+     *   { "correctAnswers": ["encapsulation"] }  // Array of acceptable answers
+     *
+     * MATCHING:
+     *   { "correctAnswers": [{"leftId": 1, "rightId": 3}, {"leftId": 2, "rightId": 1}] }
+     *
+     * REORDERING:
+     *   { "correctAnswers": ["1", "3", "4", "2"] }  // Correct order ids
+     *
+     * FILL_IN_THE_BLANK:
+     *   { "correctAnswers": ["oxygen", "hydrogen"] }  // Answers for each blank in order
+     */
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String correctAnswerJson;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -56,7 +82,6 @@ public class Exercise {
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
-    @JsonManagedReference
-    private List<Option> options = new ArrayList<>();
+    private List<Answer> predefinedAnswers = new ArrayList<>();
 
 }

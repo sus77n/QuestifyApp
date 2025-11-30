@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 public class UserDetailsImpl implements UserDetails {
 
-    private final Long id;
+    private final UUID id;
     private final String username;
     private final String email;
     private final String firstName;
@@ -27,7 +28,7 @@ public class UserDetailsImpl implements UserDetails {
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    private UserDetailsImpl(Long id, String username, String email, String firstName, String lastName, LocalDateTime createdAt, String password,
+    private UserDetailsImpl(UUID id, String username, String email, String firstName, String lastName, LocalDateTime createdAt, String password,
                             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;

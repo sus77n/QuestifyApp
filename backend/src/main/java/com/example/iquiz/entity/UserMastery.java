@@ -27,8 +27,8 @@ public class UserMastery {
     @Column(name = "accuracy", nullable = false)
     private double accuracy = 0.0;
 
-    @Column(name = "attempt_count", nullable = false)
-    private int attemptCount = 0;
+    @Column(name = "wrong_count", nullable = false)
+    private int wrongCount = 0;
 
     @Column(name = "correct_count", nullable = false)
     private int correctCount = 0;

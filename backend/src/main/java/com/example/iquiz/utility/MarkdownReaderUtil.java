@@ -2,10 +2,13 @@ package com.example.iquiz.utility;
 
 import com.example.iquiz.entity.*;
 import com.example.iquiz.enums.ExerciseType;
+import com.example.iquiz.exception.ApiException;
+import com.example.iquiz.exception.ErrorCode;
+import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
@@ -16,296 +19,299 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service
+@Component
 public class MarkdownReaderUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(MarkdownReaderUtil.class);
-    private static String BASE_DICTIONARY = "src/main/resources/generation/discreteMath1/questions/generated/";
+    private static final String BASE_DICTIONARY =
+            "src/main/resources/generation/discreteMath1/questions/generated/";
 
-    private static final Pattern HEADER_PATTERN = Pattern.compile("^## #Course #([^#]+) #([^#]+)$|^## #Topic #([^#]+)$|^## #Lesson #([^#]+)$");
-    private static final Pattern EXERCISE_HEADER_PATTERN = Pattern.compile("^## EX\\s+S\\d+\\.\\d+$");
-    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*ResponseType\\*\\*: (.+)$");
-    private static final Pattern QUESTION_PATTERN = Pattern.compile("^\\*\\*Question\\*\\*: (.+)$");
-    private static final Pattern OPTIONS_START_PATTERN = Pattern.compile("^\\*\\*Options\\*\\*:$");
-    private static final Pattern OPTION_PATTERN = Pattern.compile("^- ([A-Z])\\. (.+)$");
-    private static final Pattern SOLUTION_PATTERN = Pattern.compile("^\\*\\*Solution\\*\\*: (.+)$");
+    // ====== HEADER PATTERNS ======
+    private static final Pattern COURSE_PATTERN =
+            Pattern.compile("^##\\s+#Course\\s+#(.+)\\s+#(.+)$");
+    private static final Pattern TOPIC_PATTERN =
+            Pattern.compile("^##\\s+#Topic\\s+#(.+)\\s+#(.+)$");
+    private static final Pattern LESSON_PATTERN =
+            Pattern.compile("^##\\s+#Lesson\\s+#(.+)\\s+#(.+)$");
+    private static final Pattern EXERCISE_CATEGORY_PATTERN =
+            Pattern.compile("^##\\s+#Exercise Category\\s+#(.+)\\s+#(.+)$");
+
+
+    // ====== EXERCISE PATTERNS ======
+    private static final Pattern EX_PATTERN = Pattern.compile("^###\\s+EX\\s+.+$");
+
     private static final Pattern DIFFICULTY_PATTERN = Pattern.compile("^\\*\\*Difficulty\\*\\*: (\\d+)$");
+    private static final Pattern TYPE_PATTERN = Pattern.compile("^\\*\\*ExerciseType\\*\\*: (.+)$");
+    private static final Pattern QUESTION_PATTERN = Pattern.compile("^\\*\\*Question\\*\\*: (.+)$");
 
+    // ====== OPTION BLOCK PATTERNS ======
+    private static final Pattern OPTIONS_PATTERN = Pattern.compile("^\\*\\*Options\\*\\*:$");
+    private static final Pattern OPTIONS_LEFT_PATTERN = Pattern.compile("^\\*\\*OptionsLeft\\*\\*:$");
+    private static final Pattern OPTIONS_RIGHT_PATTERN = Pattern.compile("^\\*\\*OptionsRight\\*\\*:$");
+
+    private static final Pattern OPTION_LINE_PATTERN = Pattern.compile("^-\\s+(\\d+)\\.\\s+(.+)$");
+
+    // ====== ANSWER JSON PATTERN ======
+    private static final Pattern ANSWER_JSON_PATTERN = Pattern.compile("^\\*\\*Answer\\*\\*: (\\{.*}$)");
+
+    // ====== REPOSITORIES ======
     private final LearningUnitRepository learningUnitRepository;
     private final LearningUnitTypeRepository learningUnitTypeRepository;
     private final ExerciseRepository exerciseRepository;
-    private final OptionRepository optionRepository;
+    private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
+    private final LessonConfigRepository lessonConfigRepository;
 
-    public MarkdownReaderService(LearningUnitRepository learningUnitRepository,
-                                 LearningUnitTypeRepository learningUnitTypeRepository,
-                                 ExerciseRepository exerciseRepository,
-                                 OptionRepository optionRepository,
-                                 UserRepository userRepository) {
+    public MarkdownReaderUtil(
+            LearningUnitRepository learningUnitRepository,
+            LearningUnitTypeRepository learningUnitTypeRepository,
+            ExerciseRepository exerciseRepository,
+            AnswerRepository answerRepository,
+            UserRepository userRepository,
+            LessonConfigRepository lessonConfigRepository) {
         this.learningUnitRepository = learningUnitRepository;
         this.learningUnitTypeRepository = learningUnitTypeRepository;
         this.exerciseRepository = exerciseRepository;
-        this.optionRepository = optionRepository;
+        this.answerRepository = answerRepository;
         this.userRepository = userRepository;
+        this.lessonConfigRepository = lessonConfigRepository;
     }
 
     @Transactional
-    public ImportResult parseAndSaveMarkdown(String markdownPath, Long creatorId) {
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new IllegalArgumentException("Creator user not found with ID: " + creatorId));
+    public void parseAndSaveMarkdown(String markdownPath, UUID creatorId) {
 
-        ImportResult result = new ImportResult();
+        User creator = userRepository.findById(creatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", creatorId));
+
         try (BufferedReader reader = new BufferedReader(new FileReader(BASE_DICTIONARY + markdownPath))) {
-            LearningUnit currentCourse = null;
-            LearningUnit currentTopic = null;
-            LearningUnit currentLesson = null;
+
+            LearningUnit course = null;
+            LearningUnit topic = null;
+            LearningUnit lesson = null;
+            LearningUnit exCate = null;
+
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
-                Matcher headerMatcher = HEADER_PATTERN.matcher(line);
-                if (headerMatcher.matches()) {
-                    if (headerMatcher.group(1) != null) {
-                        String courseTitle = headerMatcher.group(1).trim();
-                        String courseCode = headerMatcher.group(2).trim();
-                        currentCourse = findOrCreateLearningUnit(courseTitle, "COURSE", null, creator, courseCode);
-                        currentTopic = null;
-                        currentLesson = null;
-                        result.incrementCoursesProcessed();
-                    } else if (headerMatcher.group(3) != null) { // Topic
-                        if (currentCourse == null)
-                            throw new IllegalStateException("Topic defined without a Course context");
-                        String topicTitle = headerMatcher.group(3).trim();
-                        currentTopic = findOrCreateLearningUnit(topicTitle, "TOPIC", currentCourse, creator, null);
-                        currentLesson = null;
-                        result.incrementTopicsProcessed();
-                    } else if (headerMatcher.group(4) != null) { // Lesson
-                        if (currentTopic == null)
-                            throw new IllegalStateException("Lesson defined without a Topic context");
-                        String lessonTitle = headerMatcher.group(4).trim();
-                        currentLesson = findOrCreateLearningUnit(lessonTitle, "LESSON", currentTopic, creator, null);
-                        result.incrementLessonsProcessed();
-                    }
+                // ====== COURSE ======
+                Matcher mc = COURSE_PATTERN.matcher(line);
+                if (mc.matches()) {
+                    course = findOrCreateLearningUnit(mc.group(1).trim(), "Course", null, creator, mc.group(2).trim());
+                    topic = null;
+                    lesson = null;
+                    exCate = null;
                     continue;
                 }
 
-                Matcher exerciseHeaderMatcher = EXERCISE_HEADER_PATTERN.matcher(line);
-                if (exerciseHeaderMatcher.matches() && currentLesson != null) {
-                    try {
-                        Exercise exercise = parseExercise(reader);
-                        exercise.setParent(currentLesson);
-                        exerciseRepository.save(exercise);
-                        result.incrementExercisesProcessed();
-                    } catch (ExerciseParseException e) {
-                        logger.error("Failed to parse exercise: {}", e.getMessage());
-                        result.addError(e.getMessage());
-                    }
+                // ====== TOPIC ======
+                Matcher mt = TOPIC_PATTERN.matcher(line);
+                if (mt.matches()) {
+                    topic = findOrCreateLearningUnit(mt.group(1).trim(), "Topic", course, creator, mt.group(2).trim());
+                    lesson = null;
+                    continue;
                 }
+
+                // ====== LESSON ======
+                Matcher ml = LESSON_PATTERN.matcher(line);
+                if (ml.matches()) {
+                    lesson = findOrCreateLearningUnit(ml.group(1).trim(), "Lesson", topic, creator, ml.group(2).trim());
+
+                    // ====== Lesson Config ======
+                    LessonConfig config = lessonConfigRepository.findByLessonId(lesson.getId()).orElse(null);
+                    if (config == null) {
+                        config = new LessonConfig();
+                        config.setLesson(lesson);
+                        config.setQuestionsPerAttempt(10);
+                        config.setPassThreshold(70);
+                        config.setNoRepeatScope(true);
+                        lessonConfigRepository.save(config);
+                    }
+
+                    continue;
+                }
+
+                // ====== Exercise Category ======
+                Matcher mec = EXERCISE_CATEGORY_PATTERN.matcher(line);
+                if (mec.matches()) {
+                    exCate = findOrCreateLearningUnit(mec.group(1).trim(), "Exercise Category", lesson, creator, mec.group(2).trim());
+
+                    continue;
+                }
+
+                // ====== EXERCISE BLOCK ======
+                if (EX_PATTERN.matcher(line).matches() && lesson != null) {
+                    Exercise ex = parseExercise(reader);
+                    ex.setParent(exCate);
+
+                    exerciseRepository.save(ex);
+                }
+
             }
+
         } catch (IOException e) {
-            throw new RuntimeException("Error reading markdown content", e);
+            throw new ApiException("Error reading markdown file", ErrorCode.INTERNAL_SERVER_ERROR);
         }
-        return result;
     }
 
-    private LearningUnit findOrCreateLearningUnit(String name, String typeName, LearningUnit parent, User creator, String code) {
-        LearningUnitType type = learningUnitTypeRepository.findByName(typeName);
-        if (type == null) {
-            LearningUnitType newType = new LearningUnitType();
-            newType.setName(typeName);
-            newType.setLevel(getLevelForType(typeName));
-            type = learningUnitTypeRepository.save(newType);
-        }
+    // =====================================================================
+    //                         EXERCISE PARSER
+    // =====================================================================
+    private Exercise parseExercise(BufferedReader reader) throws IOException {
+        Exercise ex = new Exercise();
+        ex.setCreatedAt(LocalDateTime.now());
+        ex.setUpdatedAt(LocalDateTime.now());
 
-        Optional<LearningUnit> existing = learningUnitRepository.findByNameAndTypeId(name, type.getId());
-        if (existing.isPresent()) {
-            LearningUnit unit = existing.get();
-            if (code != null && !code.equals(unit.getCode())) {
-                unit.setCode(code);
-                learningUnitRepository.save(unit);
+        List<Answer> options = new ArrayList<>();
+
+        boolean inLeft = false;
+        boolean inRight = false;
+        boolean inOptions = false;
+
+        String line;
+
+        // mark once at start
+        reader.mark(10000);
+
+        while ((line = reader.readLine()) != null) {
+
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) continue;
+
+            // If next exercise starts, exit now
+            if (trimmed.startsWith("### EX")) {
+                reader.reset();  // go back so outer loop sees this EX header
+                break;
             }
-            return unit;
+
+            reader.mark(10000);
+
+            Matcher md = DIFFICULTY_PATTERN.matcher(trimmed);
+            if (md.matches()) {
+                ex.setDifficulty(Integer.parseInt(md.group(1)));
+                continue;
+            }
+
+            Matcher mt = TYPE_PATTERN.matcher(trimmed);
+            if (mt.matches()) {
+                ex.setType(ExerciseType.valueOf(mt.group(1).trim().toUpperCase()));
+                continue;
+            }
+
+            Matcher mq = QUESTION_PATTERN.matcher(trimmed);
+            if (mq.matches()) {
+                ex.setQuestion(mq.group(1).trim());
+                continue;
+            }
+
+            if (OPTIONS_PATTERN.matcher(trimmed).matches()) {
+                inOptions = true;
+                inLeft = false;
+                inRight = false;
+                continue;
+            }
+
+            if (OPTIONS_LEFT_PATTERN.matcher(trimmed).matches()) {
+                inLeft = true;
+                inRight = false;
+                inOptions = false;
+                continue;
+            }
+
+            if (OPTIONS_RIGHT_PATTERN.matcher(trimmed).matches()) {
+                inLeft = false;
+                inRight = true;
+                inOptions = false;
+                continue;
+            }
+
+            Matcher mo = OPTION_LINE_PATTERN.matcher(trimmed);
+            if (mo.matches()) {
+                Answer ans = new Answer();
+                ans.setHeader(mo.group(1).trim());
+                ans.setText(mo.group(2).trim());
+
+                if (inLeft) ans.setMetadata("{\"side\":\"left\"}");
+                else if (inRight) ans.setMetadata("{\"side\":\"right\"}");
+                else ans.setMetadata(null);
+
+                options.add(ans);
+                continue;
+            }
+
+            if (trimmed.startsWith("**Answer**:")) {
+
+                if (trimmed.contains("{") && trimmed.endsWith("}")) {
+                    String json = trimmed.substring(trimmed.indexOf("{")).trim();
+                    ex.setCorrectAnswerJson(json);
+                    continue;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(trimmed.substring(trimmed.indexOf("{")).trim());
+
+                while ((line = reader.readLine()) != null) {
+                    String t = line.trim();
+                    sb.append(t);
+                    if (t.endsWith("}")) break;
+                }
+
+                ex.setCorrectAnswerJson(sb.toString());
+            }
         }
 
-        LearningUnit newUnit = new LearningUnit();
-        newUnit.setName(name);
-        newUnit.setType(type);
-        newUnit.setParent(parent);
-        newUnit.setCreatedBy(creator);
-        newUnit.setCode(code);
-        return learningUnitRepository.save(newUnit);
+        Exercise saved = exerciseRepository.save(ex);
+
+        for (Answer a : options) {
+            a.setExercise(saved);
+            answerRepository.save(a);
+        }
+
+        saved.setPredefinedAnswers(options);
+
+        return exerciseRepository.save(saved);
+    }
+
+
+
+    // =====================================================================
+    //                   LEARNING UNIT HELPER
+    // =====================================================================
+    private LearningUnit findOrCreateLearningUnit(
+            String name, String typeName, LearningUnit parent, User creator, String code) {
+
+        LearningUnitType type = learningUnitTypeRepository.findByName(typeName).orElse(null);
+
+        if (type == null) {
+            type = new LearningUnitType();
+            type.setName(typeName);
+            type.setLevel(getLevelForType(typeName));
+            type = learningUnitTypeRepository.save(type);
+        }
+
+        LearningUnitType finalType = type;
+
+        return learningUnitRepository.findByNameAndTypeId(name, finalType.getId())
+                .orElseGet(() -> {
+                    LearningUnit u = new LearningUnit();
+                    u.setName(name);
+                    u.setType(finalType);
+                    u.setParent(parent);
+                    u.setCreatedBy(creator);
+                    u.setCode(code);
+                    return learningUnitRepository.save(u);
+                });
     }
 
     private int getLevelForType(String typeName) {
         return switch (typeName) {
-            case "COURSE" -> 1;
-            case "TOPIC" -> 2;
-            case "LESSON" -> 3;
+            case "Course" -> 1;
+            case "Topic" -> 2;
+            case "Lesson" -> 3;
+            case "Exercise Category" -> 4;
             default -> 0;
         };
     }
 
-    private Exercise parseExercise(BufferedReader reader) throws IOException, ExerciseParseException {
-        Exercise exercise = new Exercise();
-        exercise.setCreatedAt(LocalDateTime.now());
-        exercise.setUpdatedAt(LocalDateTime.now());
-        List<Option> options = new ArrayList<>();
-        String line;
-        String correctAnswer = null;
-        boolean optionsSection = false;
-        while ((line = reader.readLine()) != null) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            if (line.equals("---")) break;
-
-            Matcher typeMatcher = TYPE_PATTERN.matcher(line);
-            if (typeMatcher.matches()) {
-                exercise.setType(ExerciseType.valueOf(mapExerciseType(typeMatcher.group(1).trim())));
-                continue;
-            }
-            Matcher questionMatcher = QUESTION_PATTERN.matcher(line);
-            if (questionMatcher.matches()) {
-                exercise.setQuestion(questionMatcher.group(1).trim());
-                continue;
-            }
-            Matcher optionsStartMatcher = OPTIONS_START_PATTERN.matcher(line);
-            if (optionsStartMatcher.matches()) {
-                optionsSection = true;
-                continue;
-            }
-            if (optionsSection) {
-                Matcher optionMatcher = OPTION_PATTERN.matcher(line);
-                if (optionMatcher.matches()) {
-                    String label = optionMatcher.group(1).trim();
-                    String text = optionMatcher.group(2).trim();
-                    Option option = new Option();
-                    option.setText(text);
-                    option.setExercise(exercise);
-                    options.add(option);
-                    continue;
-                } else {
-                    optionsSection = false;
-                }
-            }
-            Matcher solutionMatcher = SOLUTION_PATTERN.matcher(line);
-            if (solutionMatcher.matches()) {
-                correctAnswer = solutionMatcher.group(1).trim();
-                continue;
-            }
-            Matcher difficultyMatcher = DIFFICULTY_PATTERN.matcher(line);
-            if (difficultyMatcher.matches()) {
-                exercise.setDifficulty(Integer.parseInt(difficultyMatcher.group(1)));
-                continue;
-            }
-        }
-        if (exercise.getQuestion() == null)
-            throw new ExerciseParseException("Missing question for exercise");
-        if (exercise.getType() == null)
-            throw new ExerciseParseException("Missing type for exercise");
-        if ("SHORT_ANSWER".equals(exercise.getType())) {
-            if (correctAnswer == null || correctAnswer.isEmpty()) {
-                throw new ExerciseParseException("Missing solution for SHORT_ANSWER exercise");
-            }
-            exercise.setAnswer(correctAnswer);
-            exercise.setOptions(null);
-        } else {
-            if (!options.isEmpty()) {
-                if (correctAnswer == null || correctAnswer.isEmpty()) {
-                    throw new ExerciseParseException("Missing solution for exercise");
-                }
-                setCorrectAnswers(options, correctAnswer, exercise.getType().toString());
-            }
-            exercise.setOptions(options);
-        }
-        return exercise;
-    }
-
-    private void setCorrectAnswers(List<Option> options, String correctAnswer, String type) {
-        switch (type) {
-            case "MULTIPLE_CHOICE" -> {
-                Set<String> correctSet = new HashSet<>(Arrays.asList(correctAnswer.split(",\\s*")));
-                for (int i = 0; i < options.size(); i++) {
-                    String label = String.valueOf((char) ('A' + i));
-                    options.get(i).setCorrect(correctSet.contains(label));
-                }
-            }
-            case "TRUE_FALSE" -> options.forEach(opt -> opt.setCorrect(
-                    opt.getText().equalsIgnoreCase(correctAnswer)));
-            case "SHORT_ANSWER" -> {
-                if (!options.isEmpty()) {
-                    options.get(0).setCorrect(true);
-                }
-            }
-        }
-    }
-
-    private String mapExerciseType(String type) {
-        return switch (type.toUpperCase()) {
-            case "MULTIPLE CHOICE" -> "MULTIPLE_CHOICE";
-            case "TRUE/FALSE" -> "TRUE_FALSE";
-            case "SHORT ANSWER" -> "SHORT_ANSWER";
-            case "ESSAY" -> "ESSAY";
-            case "FILL IN THE BLANK" -> "FILL_IN_THE_BLANK";
-            default -> type.toUpperCase();
-        };
-    }
-
-    public static class ImportResult {
-        private int coursesProcessed = 0;
-        private int topicsProcessed = 0;
-        private int lessonsProcessed = 0;
-        private int exercisesProcessed = 0;
-        private final List<String> errors = new ArrayList<>();
-
-        public void incrementCoursesProcessed() {
-            coursesProcessed++;
-        }
-
-        public void incrementTopicsProcessed() {
-            topicsProcessed++;
-        }
-
-        public void incrementLessonsProcessed() {
-            lessonsProcessed++;
-        }
-
-        public void incrementExercisesProcessed() {
-            exercisesProcessed++;
-        }
-
-        public void addError(String error) {
-            errors.add(error);
-        }
-
-        public int getCoursesProcessed() {
-            return coursesProcessed;
-        }
-
-        public int getTopicsProcessed() {
-            return topicsProcessed;
-        }
-
-        public int getLessonsProcessed() {
-            return lessonsProcessed;
-        }
-
-        public int getExercisesProcessed() {
-            return exercisesProcessed;
-        }
-
-        public List<String> getErrors() {
-            return Collections.unmodifiableList(errors);
-        }
-
-        public boolean hasErrors() {
-            return !errors.isEmpty();
-        }
-    }
-
-    private static class ExerciseParseException extends Exception {
-        public ExerciseParseException(String message) {
-            super(message);
-        }
-    }
 }

@@ -6,5 +6,6 @@ public enum ExerciseType {
     MATCHING,
     REORDERING,
     FILL_IN_THE_BLANK,
-    SELECT_MULTIPLE
+    SELECT_MULTIPLE,
+    TRUE_FALSE
 }

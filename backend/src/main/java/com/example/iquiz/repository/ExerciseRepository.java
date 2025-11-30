@@ -9,29 +9,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface ExerciseRepository extends JpaRepository<Exercise, Long> {
+public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
 
-    @Override
-    Optional<Exercise> findById(Long id);
+    List<Exercise> findByParent_Id(UUID parentId);
 
-    @Override
-    <S extends Exercise> List<S> findAll(Example<S> example);
-
-    @Query("""
-                SELECT e FROM Exercise e
-                WHERE e.parent.id = :unitId
-                AND e.id NOT IN (
-                    SELECT s.exercise.id FROM Submission s WHERE s.user.id = :userId
-                )
-            """)
-    List<Exercise> findUnsubmittedExercisesByUserIdAndUnitId(
-            @Param("unitId") Long unitId,
-            @Param("userId") Long userId
-    );
-
-    List<Exercise> findByParent_Id(Long parentId);
-
-    List<Exercise> findByParent_IdIn(List<Long> parentIds);
+    List<Exercise> findByParent_IdIn(List<UUID> parentIds);
 }
 

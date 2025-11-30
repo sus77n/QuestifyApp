@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/lesson-distributions")
@@ -24,8 +25,8 @@ public class LessonTypeDistributionController {
 
     @GetMapping("/{lessonId}/{exerciseTypeId}")
     public ApiResponse<LessonTypeDistribution> getById(
-            @PathVariable Long lessonId,
-            @PathVariable Long exerciseTypeId
+            @PathVariable UUID lessonId,
+            @PathVariable UUID exerciseTypeId
     ) {
         LessonTypeDistributionId id = new LessonTypeDistributionId(lessonId, exerciseTypeId);
         LessonTypeDistribution dist = service.findById(id);
@@ -33,15 +34,15 @@ public class LessonTypeDistributionController {
     }
 
     @GetMapping("/lesson/{lessonId}")
-    public ApiResponse<List<LessonTypeDistribution>> getByLesson(@PathVariable Long lessonId) {
+    public ApiResponse<List<LessonTypeDistribution>> getByLesson(@PathVariable UUID lessonId) {
         List<LessonTypeDistribution> list = service.findByLesson(lessonId);
         return ApiResponse.success(list, "Fetched all distributions for the lesson");
     }
 
     @DeleteMapping("/{lessonId}/{exerciseTypeId}")
     public ApiResponse<Void> delete(
-            @PathVariable Long lessonId,
-            @PathVariable Long exerciseTypeId
+            @PathVariable UUID lessonId,
+            @PathVariable UUID exerciseTypeId
     ) {
         LessonTypeDistributionId id = new LessonTypeDistributionId(lessonId, exerciseTypeId);
         service.delete(id);

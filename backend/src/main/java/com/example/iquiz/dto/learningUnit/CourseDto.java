@@ -1,9 +1,14 @@
 package com.example.iquiz.dto.learningUnit;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 public record CourseDto(
-        Long id,
+        UUID id,
         String name,
         String code,
-        Long totalOfExercise,
-        Long completedExercises
+        String description,
+        int status,
+        String createdBy,
+        LocalDateTime createdAt
 ) {}

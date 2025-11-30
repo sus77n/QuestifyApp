@@ -5,10 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface AttemptRepository extends JpaRepository<Attempt, Long> {
-    List<Attempt> findByUserId(Long userId);
-    List<Attempt> findByLessonId(Long lessonId);
-    List<Attempt> findByUserIdAndLessonId(Long userId, Long lessonId);
+public interface AttemptRepository extends JpaRepository<Attempt, UUID> {
+    List<Attempt> findByUserId(UUID userId);
+    List<Attempt> findByLessonId(UUID lessonId);
+    List<Attempt> findByUserIdAndLessonId(UUID userId, UUID lessonId);
 }

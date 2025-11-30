@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user-mastery")
@@ -22,30 +23,30 @@ public class UserMasteryController {
     }
 
     @GetMapping("/{userId}/{lessonId}/{exerciseTypeId}")
-    public ApiResponse<UserMastery> getById(@PathVariable Long userId,
-                                            @PathVariable Long lessonId,
-                                            @PathVariable Long exerciseTypeId) {
+    public ApiResponse<UserMastery> getById(@PathVariable UUID userId,
+                                            @PathVariable UUID lessonId,
+                                            @PathVariable UUID exerciseTypeId) {
         UserMasteryId id = new UserMasteryId(userId, lessonId, exerciseTypeId);
         return ApiResponse.success(service.findById(id), "UserMastery retrieved successfully");
     }
 
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<UserMastery>> getByUser(@PathVariable Long userId) {
+    public ApiResponse<List<UserMastery>> getByUser(@PathVariable UUID userId) {
         return ApiResponse.success(service.findByUser(userId), "UserMasteries retrieved successfully");
     }
 
     @PutMapping("/update")
-    public ApiResponse<UserMastery> updateMastery(@RequestParam Long userId,
-                                                  @RequestParam Long lessonId,
-                                                  @RequestParam Long exerciseTypeId,
+    public ApiResponse<UserMastery> updateMastery(@RequestParam UUID userId,
+                                                  @RequestParam UUID lessonId,
+                                                  @RequestParam UUID exerciseTypeId,
                                                   @RequestParam boolean correct) {
         return ApiResponse.success(service.updateMastery(userId, lessonId, exerciseTypeId, correct), "UserMastery updated successfully");
     }
 
     @DeleteMapping("/{userId}/{lessonId}/{exerciseTypeId}")
-    public ApiResponse<Void> delete(@PathVariable Long userId,
-                                    @PathVariable Long lessonId,
-                                    @PathVariable Long exerciseTypeId) {
+    public ApiResponse<Void> delete(@PathVariable UUID userId,
+                                    @PathVariable UUID lessonId,
+                                    @PathVariable UUID exerciseTypeId) {
         UserMasteryId id = new UserMasteryId(userId, lessonId, exerciseTypeId);
         service.delete(id);
         return ApiResponse.success(null, "User has been deleted successfully");

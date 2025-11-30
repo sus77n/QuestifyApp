@@ -6,15 +6,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface LearningUnitRepository extends JpaRepository<LearningUnit, Long> {
-
-    LearningUnit findByName(String name);
+public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID> {
 
     List<LearningUnit> findByTypeLevel(int typeLevel);
 
-    Optional<LearningUnit> findByNameAndTypeId(String name, Long typeId);
+    Optional<LearningUnit> findByNameAndTypeId(String name, UUID typeId);
 
     List<LearningUnit> findAllByType_Name(String typeName);
+
+    List<LearningUnit> findByType_IdAndCreatedBy_Id(UUID typeId, UUID createdById);
 }

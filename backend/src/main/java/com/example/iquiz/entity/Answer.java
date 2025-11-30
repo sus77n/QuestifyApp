@@ -7,26 +7,34 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Entity
-@Table(name = "options")
+@Table(name = "answers")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Option {
+public class Answer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 1000)
     private String text;
 
-    @Column(name = "is_correct", nullable = false)
-    private boolean isCorrect;
+    /**
+     * Matedata can include JSON for things like:
+     * - explanation
+     * - side ("left"/"right" for matching)
+     * - image URL, etc.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String metadata;
 
     @Column(columnDefinition = "TEXT")
-    private String explanation;
+    private String header;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)

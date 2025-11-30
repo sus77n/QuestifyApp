@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class LessonTypeDistributionService {
                 .orElseThrow(() -> new ResourceNotFoundException("LessonTypeDistribution not found", "LessonTypeDistribution", id));
     }
 
-    public List<LessonTypeDistribution> findByLesson(Long lessonId) {
+    public List<LessonTypeDistribution> findByLesson(UUID lessonId) {
         return repo.findByLessonId(lessonId);
     }
 

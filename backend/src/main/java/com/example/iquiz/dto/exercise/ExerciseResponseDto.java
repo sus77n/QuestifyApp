@@ -1,13 +1,14 @@
 package com.example.iquiz.dto.exercise;
 
-import com.example.iquiz.dto.option.OptionResponseDto;
+import com.example.iquiz.dto.answer.OptionDto;
 
 import java.util.List;
+import java.util.UUID;
 
 public record ExerciseResponseDto(
-        Long id,
+        UUID id,
         String question,
         String type,
-        List<OptionResponseDto> options
-) {}
-
+        List<OptionDto> options
+) {
+}

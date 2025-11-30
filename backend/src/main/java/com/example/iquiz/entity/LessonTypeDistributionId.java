@@ -6,12 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Embeddable
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class LessonTypeDistributionId implements Serializable {
-    private Long lessonId;
-    private Long exerciseTypeId;
+    private UUID lessonId;
+    private UUID exerciseTypeId;
 }

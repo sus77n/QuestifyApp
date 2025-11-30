@@ -1,8 +1,8 @@
 package com.example.iquiz.service;
 
-import com.example.iquiz.dto.AuthRequest;
-import com.example.iquiz.dto.AuthResponse;
-import com.example.iquiz.dto.SignupRequest;
+import com.example.iquiz.dto.auth.AuthRequest;
+import com.example.iquiz.dto.auth.AuthResponse;
+import com.example.iquiz.dto.auth.SignupRequest;
 import com.example.iquiz.dto.UserDto;
 import com.example.iquiz.entity.User;
 import com.example.iquiz.enums.UserRole;
@@ -17,14 +17,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import com.example.iquiz.security.UserDetailsImpl;
 
 import java.time.Instant;

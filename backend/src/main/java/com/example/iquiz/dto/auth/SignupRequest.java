@@ -1,4 +1,4 @@
-package com.example.iquiz.dto;
+package com.example.iquiz.dto.auth;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;

@@ -1,7 +1,9 @@
 package com.example.iquiz.dto.lesssonConfig;
 
+import java.util.UUID;
+
 public record LessonConfigDto(
-        Long lessonId,
+        UUID lessonId,
         int questionsPerAttempt,
         boolean noRepeatScope
 ) {}

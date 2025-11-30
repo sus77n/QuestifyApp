@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/learning-unit-types")
@@ -23,7 +24,7 @@ public class LearningUnitTypeController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<LearningUnitTypeDto> getLearningUnitTypeById(@PathVariable Long id) {
+    public ApiResponse<LearningUnitTypeDto> getLearningUnitTypeById(@PathVariable UUID id) {
         LearningUnitTypeDto type = learningUnitTypeService.getLearningUnitTypeById(id);
         return ApiResponse.success(type, "Fetched learning unit type details");
     }
@@ -36,7 +37,7 @@ public class LearningUnitTypeController {
 
     @PutMapping("/{id}")
     public ApiResponse<LearningUnitTypeDto> updateLearningUnitType(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody LearningUnitTypeDto dto
     ) {
         LearningUnitTypeDto updated = learningUnitTypeService.updateLearningUnitType(id, dto);
@@ -44,7 +45,7 @@ public class LearningUnitTypeController {
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteLearningUnitType(@PathVariable Long id) {
+    public ApiResponse<Void> deleteLearningUnitType(@PathVariable UUID id) {
         learningUnitTypeService.deleteLearningUnitTypeById(id);
         return ApiResponse.success(null, "Learning unit type deleted successfully");
     }

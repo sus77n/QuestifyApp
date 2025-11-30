@@ -1,7 +1,9 @@
 package com.example.iquiz.dto;
 
+import java.util.UUID;
+
 public record LearningUnitTypeDto (
-    Long id,
+    UUID id,
     String type,
     int level
 ) {
