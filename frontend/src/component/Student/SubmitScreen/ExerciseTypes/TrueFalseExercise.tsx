@@ -12,12 +12,12 @@ export default function TrueFalseExercise({
     onSubmissionChange: (s: SubmissionDTO) => void;
 }) {
 
-    // Submission format = array of optionIds marked TRUE
-    const initialTrueIds: number[] = submission?.userAnswerJson
-        ? JSON.parse(submission.userAnswerJson)
+    // Submission format = array of headers marked TRUE
+    const initialTrueHeaders: string[] = submission?.userAnswerJson
+        ? JSON.parse(submission.userAnswerJson)   // ["1", "3"]
         : [];
 
-    const [trueSelected, setTrueSelected] = useState<number[]>(initialTrueIds);
+    const [trueSelected, setTrueSelected] = useState<string[]>(initialTrueHeaders);
 
     useEffect(() => {
         if (submission?.userAnswerJson) {
@@ -27,20 +27,20 @@ export default function TrueFalseExercise({
         }
     }, [exercise.id]);
 
-    const toggleSelection = (optionId: number, value: boolean) => {
-        let updated: number[];
+    const toggleSelection = (header: string, value: boolean) => {
+        let updated: string[];
 
         if (value === true) {
-            updated = Array.from(new Set([...trueSelected, optionId]));
+            updated = Array.from(new Set([...trueSelected, header]));
         } else {
-            updated = trueSelected.filter(id => id !== optionId);
+            updated = trueSelected.filter(h => h !== header);
         }
 
         setTrueSelected(updated);
 
         onSubmissionChange({
             exerciseId: exercise.id,
-            userAnswerJson: JSON.stringify(updated),
+            userAnswerJson: JSON.stringify(updated), // send headers
         });
     };
 
@@ -52,11 +52,12 @@ export default function TrueFalseExercise({
 
             <div className="space-y-4">
                 {exercise.options?.map(opt => {
-                    const isTrue = trueSelected.includes(opt.id);
+                    const optHeader = opt.header!;       // "1", "2", "3", "4"
+                    const isTrue = trueSelected.includes(optHeader);
 
                     return (
                         <div
-                            key={opt.id}
+                            key={optHeader}
                             className="p-4 border rounded-lg bg-white grid grid-cols-6 gap-4 items-center"
                         >
                             {/* LEFT SIDE - TEXT */}
@@ -64,39 +65,40 @@ export default function TrueFalseExercise({
                                 <p className="font-medium text-gray-800">{opt.text}</p>
                             </div>
 
-                            {/* RIGHT SIDE - BUTTONS */}
+                            {/* RIGHT SIDE - TRUE / FALSE BUTTONS */}
                             <div className="col-span-1 flex gap-2 justify-end">
+
                                 {/* TRUE */}
                                 <button
-                                    onClick={() => toggleSelection(opt.id, true)}
+                                    onClick={() => toggleSelection(optHeader, true)}
                                     className={`px-4 py-2 rounded-lg border font-semibold
-                    ${
+                                        ${
                                         isTrue
                                             ? "bg-green-100 border-green-600 text-green-700"
                                             : "border-gray-300 hover:bg-gray-50"
                                     }
-                `}
+                                    `}
                                 >
                                     True
                                 </button>
 
                                 {/* FALSE */}
                                 <button
-                                    onClick={() => toggleSelection(opt.id, false)}
+                                    onClick={() => toggleSelection(optHeader, false)}
                                     className={`px-4 py-2 rounded-lg border font-semibold
-                    ${
+                                        ${
                                         !isTrue
                                             ? "bg-red-100 border-red-300 text-red-700"
                                             : "border-gray-300 hover:bg-gray-50"
                                     }
-                `}
+                                    `}
                                 >
                                     False
                                 </button>
+
                             </div>
                         </div>
                     );
-
                 })}
             </div>
         </div>

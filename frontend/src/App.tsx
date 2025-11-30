@@ -19,6 +19,8 @@ import TeacherLayout from "./component/Teacher/TeacherLayout";
 import TeacherCourse from "./component/Teacher/TeacherCourse";
 import TeacherDashboard from "./component/Teacher/TeacherDashboard";
 import SubmitScreen from "./component/Student/SubmitScreen/SubmitScreen";
+import ManageLearningUnits from "./component/Teacher/ManageLearningUnits";
+import ManageExercises from "./component/Teacher/ManageExercise/ManageExercise";
 
 function App() {
   return (
@@ -44,9 +46,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+          {/*TEACHER*/}
           <Route path="/teacher" element={<TeacherLayout />}>
               <Route path="courses" element={<TeacherCourse />} />
               <Route path="dashboard" element={<TeacherDashboard/>} />
+              <Route
+                  path="course/:courseId/lessons"
+                  element={<ManageLearningUnits />}
+              />
+              <Route
+                  path="/teacher/learning-unit/:learningUnitId/exercises"
+                  element={<ManageExercises />}
+              />
           </Route>
 
 

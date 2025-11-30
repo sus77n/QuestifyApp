@@ -12,18 +12,15 @@ export default function ReorderingExercise({
     onSubmissionChange: (s: SubmissionDTO) => void;
 }) {
 
-    const initial = submission?.userAnswerJson
-        ? JSON.parse(submission.userAnswerJson)
-        : exercise.options?.map(o => o.id) ?? [];
-
+    // --- INITIAL FROM SUBMISSION OR FROM HEADERS ---
     const getInitialItems = () => {
-        return submission?.userAnswerJson
-            ? JSON.parse(submission.userAnswerJson)
-            : exercise.options?.map(o => o.id) ?? [];
+        if (submission?.userAnswerJson) {
+            return JSON.parse(submission.userAnswerJson);  // ["2","1","3"]
+        }
+        return exercise.options?.map(o => o.header!) ?? []; // ["1","2","3"]
     };
 
-
-    const [items, setItems] = useState<number[]>(initial);
+    const [items, setItems] = useState<string[]>(getInitialItems());
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
     useEffect(() => {
@@ -31,6 +28,7 @@ export default function ReorderingExercise({
         setDragOverIndex(null);
     }, [exercise.id]);
 
+    // --- DRAG LOGIC ---
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         e.dataTransfer.setData("dragIndex", index.toString());
     };
@@ -50,25 +48,26 @@ export default function ReorderingExercise({
         setItems(updated);
         setDragOverIndex(null);
 
+        // SEND HEADER ARRAY AS ANSWER
         onSubmissionChange({
             exerciseId: exercise.id,
-            userAnswerJson: JSON.stringify(updated),
+            userAnswerJson: JSON.stringify(updated), // ["3", "1", "2"]
         });
     };
 
-    const findText = (id: number) => {
-        const option = exercise.options?.find(o => o.id === id);
-        return option ? option.text : `Missing text (${id})`;
+    // --- FIND TEXT BY HEADER ---
+    const findText = (header: string) => {
+        const option = exercise.options?.find(o => o.header === header);
+        return option ? option.text : `Missing text (${header})`;
     };
-
 
     return (
         <div className="p-6 rounded-lg">
             <h3 className="font-medium text-xl mb-6 text-gray-800">{exercise.question}</h3>
 
-            {items.map((id, index) => (
-                <div key={id} className="flex items-center gap-4 mb-4">
-                    {/* Fixed number */}
+            {items.map((header, index) => (
+                <div key={header} className="flex items-center gap-4 mb-4">
+
                     <div className="
                         w-8 h-8 flex items-center justify-center
                         rounded-full bg-text-color text-white font-semibold
@@ -77,7 +76,6 @@ export default function ReorderingExercise({
                         {index + 1}
                     </div>
 
-                    {/* Draggable text box */}
                     <div
                         draggable
                         onDragStart={(e) => handleDragStart(e, index)}
@@ -88,12 +86,14 @@ export default function ReorderingExercise({
                             ${dragOverIndex === index ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50"}
                         `}
                     >
-                        {findText(id)}
+                        {findText(header)}
                     </div>
                 </div>
             ))}
 
-            <p className="text-gray-500 text-sm">Notice: Drag and drop the items on the right side to match the correct steps.</p>
+            <p className="text-gray-500 text-sm">
+                Notice: Drag and drop the items to reorder the steps.
+            </p>
         </div>
     );
 }

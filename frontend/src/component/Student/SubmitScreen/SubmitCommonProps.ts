@@ -7,7 +7,7 @@ export interface SubmitCommonProps {
     chapters: LearningUnitChildDto[];
     selectedLesson: LearningUnitDTO | null;
     selectedExercise: ExerciseDTO | null;
-    submissions: Record<number, any>;
+    submissions: Record<string, any>;
     attemptResult: any;
     isLoadingCourse: boolean;
     isSubmitting: boolean;
@@ -30,7 +30,7 @@ export interface SubmitCommonProps {
     // handlers
     handleSubmit: () => void;
     handleClearAll: () => void;
-    handleLessonChange: (id: number) => void;
+    handleLessonChange: (id: string) => void;
     handleExerciseChange: (ex: ExerciseDTO) => void;
 
     // setters

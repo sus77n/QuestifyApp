@@ -12,7 +12,7 @@ import MobileView from "./MobileView";
 import DesktopView from "./DesktopView";
 
 type LocalSubmission = {
-    exerciseId: number;
+    exerciseId: string;
     userAnswerJson: string;
 };
 
@@ -23,8 +23,8 @@ const SubmitScreen = () => {
     const [selectedLesson, setSelectedLesson] = useState<LearningUnitDTO | null>(null);
     const [selectedExercise, setSelectedExercise] = useState<ExerciseDTO | null>(null);
 
-    const userId = Number(localStorage.getItem("id")!);
-    const courseIdNumber = Number(courseId);
+    const userId = localStorage.getItem("id")!;
+    const courseIdNumber = courseId!;
 
     const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
     const [showSidebar, setShowSidebar] = useState(false);
@@ -34,7 +34,9 @@ const SubmitScreen = () => {
         { skip: !courseId }
     );
 
-    const chapters = course?.childUnits || [];
+
+    const chapters = course?.children || [];
+    console.log("chapter", chapters);
 
     const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
 
@@ -52,6 +54,7 @@ const SubmitScreen = () => {
             if (chapters.length > 0 && userId) {
                 const firstChapter = chapters[0];
                 const res = await fetchUnit({ userId, id: firstChapter.id }).unwrap();
+                console.log("res", res)
                 if (res) {
                     setSelectedLesson(res);
                     if (res.exercises?.length) setSelectedExercise(res.exercises[0]);
@@ -63,8 +66,8 @@ const SubmitScreen = () => {
 
     const handleExerciseChange = (exercise: ExerciseDTO) => setSelectedExercise(exercise);
 
-    const [submissions, setSubmissions] = useState<Record<number, LocalSubmission>>({});
-    const [attemptId, setAttemptId] = useState<number | null>(null);
+    const [submissions, setSubmissions] = useState<Record<string, LocalSubmission>>({});
+    const [attemptId, setAttemptId] = useState<string | null>(null);
 
     const [submitAttempt, { isLoading: isSubmitting }] = useSubmitAttemptMutation();
     const [attemptResult, setAttemptResult] = useState<AttemptResponseDTO | null>(null);
@@ -132,9 +135,9 @@ const SubmitScreen = () => {
         });
     };
 
-    const handleLessonChange = async (lessonId: number) => {
-        const userId = Number(localStorage.getItem("id"));
-        if (!userId || isNaN(userId)) return;
+    const handleLessonChange = async (lessonId: string) => {
+        const userId =localStorage.getItem("id")|| "";
+        if (!userId ) return;
 
         const hasActualAnswers = selectedLesson?.exercises?.some((exercise) =>
             isSubmissionAnswered(submissions[exercise.id])

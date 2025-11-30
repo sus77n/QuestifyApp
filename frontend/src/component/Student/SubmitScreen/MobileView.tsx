@@ -127,6 +127,7 @@ const MobileView = ({
                 <div className="flex-1 overflow-y-auto bg-white p-4">
                     {selectedExercise ? (
                         <ExerciseRenderer
+                            key={selectedExercise.id}
                             exercise={selectedExercise}
                             submission={submissions[selectedExercise.id]}
                             onSubmissionChange={(s) =>

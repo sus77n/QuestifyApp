@@ -15,9 +15,9 @@ export const TopicCardDropdown = ({
                            }: {
     index: number;
     name: string;
-    childrenId: number;
-    onLessonClick: (lessonId: number) => void;
-    selectedLessonId: number | null;
+    childrenId: string;
+    onLessonClick: (lessonId: string) => void;
+    selectedLessonId: string | null;
     numberOfComplete: number | null;
     numberOfExercise: number | null;
 }) => {
@@ -27,12 +27,12 @@ export const TopicCardDropdown = ({
 
     const handleToggle = async () => {
         setIsOpen(!isOpen);
-        const userId = Number(localStorage.getItem("id"));
-        if (!userId || isNaN(userId)) return;
+        const userId = localStorage.getItem("id");
+        if (!userId ) return;
 
         if (!lessons.length && !isOpen) {
             const res = await fetchUnit({ userId, id: childrenId }).unwrap();
-            if (res?.childUnits?.length) setLessons(res.childUnits);
+            if (res?.children?.length) setLessons(res.children);
         }
     };
 

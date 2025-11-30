@@ -32,7 +32,7 @@ export const isSubmissionAnswered = (submission?: SubmissionDTO): boolean => {
 
 
 export const buildSubmission = (
-    exerciseId: number,
+    exerciseId: string,
     submission?: { userAnswerJson: string }
 ): SubmissionDTO => ({
     exerciseId,

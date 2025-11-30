@@ -17,10 +17,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 const Course = () => {
     // const userId = Number(localStorage.getItem("userId"));
-    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const { data: selectedCourse, isLoading: isCourseDetailLoading } =
         useGetLearningUnitWithChildrenQuery(
-            { id: selectedCourseId as number },
+            { id: selectedCourseId! },
             { skip: selectedCourseId === null }
         );
 
@@ -135,7 +135,7 @@ const Course = () => {
                 <div className="p-4">
                   <div className="flex flex-col items-center mb-6">
                     <img
-                        src={`/img/ava${(selectedCourse?.id % 3) + 1}.png`}
+                        src={`/img/ava1}.png`}
                         className="w-32 h-32 rounded-xl object-cover mb-4 shadow-md"
                         alt="Course avatar"
                     />
@@ -258,7 +258,7 @@ const Course = () => {
                   <div>
                     <div className="flex flex-col md:flex-row">
                       <img
-                          src={`/img/ava${(selectedCourse?.id % 3) + 1}.png`}
+                          src={`/img/ava1.png`}
                           className="w-32 h-32 md:w-44 md:h-44 rounded-xl object-cover mb-6 shadow-md"
                           alt="Course avatar"
                       />

@@ -14,23 +14,26 @@ export default function MatchingExercise({
     const left = exercise.options?.filter(o => o.side === "left") ?? [];
     const right = exercise.options?.filter(o => o.side === "right") ?? [];
 
-    // Right side order (draggable list)
+    // ---- INIT ORDER FROM SUBMISSION (HEADER-BASED) ----
     const initialOrder = submission?.userAnswerJson
-        ? JSON.parse(submission.userAnswerJson).map((p: any) => p.rightId)
-        : right.map(r => r.id);
+        ? JSON.parse(submission.userAnswerJson).map((p: any) => p.right)
+        : right.map(r => r.header); // <-- USE HEADER INSTEAD OF ID
 
-    const [rightOrder, setRightOrder] = useState<number[]>(initialOrder);
+    const [rightOrder, setRightOrder] = useState<string[]>(initialOrder);
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+    // ---- DRAG START ----
     const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         e.dataTransfer.setData("dragIndex", index.toString());
     };
 
+    // ---- DRAG OVER ----
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         e.preventDefault();
         setDragOverIndex(index);
     };
 
+    // ---- DROP EVENT ----
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
         const dragIndex = Number(e.dataTransfer.getData("dragIndex"));
         const updated = [...rightOrder];
@@ -40,9 +43,10 @@ export default function MatchingExercise({
         setRightOrder(updated);
         setDragOverIndex(null);
 
-        const pairs = updated.map((rightId, i) => ({
-            leftId: left[i]?.id,
-            rightId: rightId,
+        // CREATE HEADER-BASED PAIRS
+        const pairs = updated.map((rightHeader, i) => ({
+            leftHeader: left[i]?.header ?? "",
+            rightHeader: rightHeader ?? "",
         }));
 
         onSubmissionChange({
@@ -51,19 +55,20 @@ export default function MatchingExercise({
         });
     };
 
-    const findRightText = (id: number) =>
-        right.find(r => r.id === id)?.text ?? "";
+    // ---- FIND TEXT BASED ON HEADER ----
+    const findRightText = (header: string) =>
+        right.find(r => r.header === header)?.text ?? "";
 
     return (
         <div className="p-6 rounded-lg">
             <h3 className="font-medium text-xl mb-6 text-gray-800">{exercise.question}</h3>
 
             <div className="grid grid-cols-2 gap-6">
-                {/* LEFT FIXED LIST */}
+                {/* LEFT LIST */}
                 <div className="flex flex-col">
                     {left.map((l, i) => (
                         <div
-                            key={l.id}
+                            key={l.header}
                             className="p-3 mb-3 border rounded-lg bg-gray-100 font-semibold text-gray-900"
                         >
                             {i + 1}. {l.text}
@@ -71,10 +76,11 @@ export default function MatchingExercise({
                     ))}
                 </div>
 
+                {/* RIGHT DRAGGABLE LIST */}
                 <div>
-                    {rightOrder.map((rightId, i) => (
+                    {rightOrder.map((rightHeader, i) => (
                         <div
-                            key={`${rightId}-${i}`}
+                            key={`${rightHeader}-${i}`}
                             draggable
                             onDragStart={(e) => handleDragStart(e, i)}
                             onDragOver={(e) => handleDragOver(e, i)}
@@ -83,7 +89,7 @@ export default function MatchingExercise({
                                 ${dragOverIndex === i ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50"}
                             `}
                         >
-                            {findRightText(rightId)}
+                            {findRightText(rightHeader)}
                         </div>
                     ))}
                 </div>

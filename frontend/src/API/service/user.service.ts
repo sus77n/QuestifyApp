@@ -7,7 +7,7 @@ export const userService = createApi({
   baseQuery: customBaseQuery,
   tagTypes: ["User"],
   endpoints: (builder) => ({
-    getUserById: builder.query<UserDTO, number>({
+    getUserById: builder.query<UserDTO, string>({
       query: (id) => `/users/${id}`,
       providesTags: (result, error, id) => [{ type: "User", id }],
     }),
@@ -17,7 +17,7 @@ export const userService = createApi({
       providesTags: ["User"],
     }),
 
-    editUser: builder.mutation<UserDTO, Partial<UserDTO> & { id: number }>({
+    editUser: builder.mutation<UserDTO, Partial<UserDTO> & { id: string }>({
       query: ({ id, ...data }) => ({
         url: `/users/${id}`,
         method: "PUT",
@@ -26,7 +26,7 @@ export const userService = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: "User", id }],
     }),
 
-    deleteUser: builder.mutation<void, number>({
+    deleteUser: builder.mutation<void, string>({
       query: (id) => ({
         url: `/users/${id}`,
         method: "DELETE",

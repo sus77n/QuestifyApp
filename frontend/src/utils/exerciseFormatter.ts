@@ -1,29 +1,12 @@
 import {ExerciseDTO} from "../model/ExerciseDTO";
 
-type AnswerData =
-    | number[]
-    | string[]
-    | { leftId: number; rightId: number }[];
-
-export function formatExerciseForSubmit(
-    exercise: Omit<ExerciseDTO, "correctAnswers"> & { parsedCorrectAnswers: AnswerData }
-): ExerciseDTO {
-    return {
-        ...exercise,
-        correctAnswers: JSON.stringify(exercise.parsedCorrectAnswers),
-    };
-}
-
 
 export type ParsedExercise =
-    | (ExerciseDTO & {
-    parsedCorrectAnswers: number[];
-})
     | (ExerciseDTO & {
     parsedCorrectAnswers: string[];
 })
     | (ExerciseDTO & {
-    parsedCorrectAnswers: { leftId: number; rightId: number }[];
+    parsedCorrectAnswers: { leftId: string; rightId: string }[];
 });
 
 export function parseExercise(exercise: ExerciseDTO): ParsedExercise {
@@ -38,7 +21,7 @@ export function parseExercise(exercise: ExerciseDTO): ParsedExercise {
         case "MULTIPLE_CHOICE":
         case "SELECT_MULTIPLE":
         case "TRUE_FALSE":
-            return { ...exercise, parsedCorrectAnswers: parsed as number[] };
+            return { ...exercise, parsedCorrectAnswers: parsed as string[] };
         case "SHORT_ANSWER":
         case "FILL_IN_THE_BLANK":
         case "REORDERING":
@@ -46,7 +29,7 @@ export function parseExercise(exercise: ExerciseDTO): ParsedExercise {
         case "MATCHING":
             return {
                 ...exercise,
-                parsedCorrectAnswers: parsed as { leftId: number; rightId: number }[],
+                parsedCorrectAnswers: parsed as { leftId: string; rightId: string }[],
             };
         default:
             return { ...exercise, parsedCorrectAnswers: [] };

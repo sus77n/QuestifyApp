@@ -1,6 +1,6 @@
 export interface SubmissionDTO {
-  id?: number;
-  exerciseId: number;
+  id?: string;
+  exerciseId: string;
   userAnswerJson?: string | null;
   score?: number;
 }

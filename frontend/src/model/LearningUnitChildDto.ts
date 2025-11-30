@@ -1,5 +1,5 @@
 export interface LearningUnitChildDto {
-  id: number;
+  id: string;
   name: string;
   type: string;
   numberOfComplete: number;

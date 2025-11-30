@@ -101,8 +101,8 @@ const Profile = () => {
   const { data: user, isLoading: isLoadingUser, refetch } = useGetCurrentUserQuery();
 
   // Courses
-  const { data: completedCourses } = useGetAllCompletedCoursesByUserIdQuery(user?.id || 0, { skip: !user?.id });
-  const { data: ongoingCourses } = useGetAllIncompletedCoursesByUserIdQuery(user?.id || 0, { skip: !user?.id });
+  const { data: completedCourses } = useGetAllCompletedCoursesByUserIdQuery(user?.id || "", { skip: !user?.id });
+  const { data: ongoingCourses } = useGetAllIncompletedCoursesByUserIdQuery(user?.id || "", { skip: !user?.id });
 
   // Profile data
   const profileData = {

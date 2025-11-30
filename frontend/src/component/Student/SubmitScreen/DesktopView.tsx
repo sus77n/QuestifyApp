@@ -1,7 +1,6 @@
-// DesktopView.tsx
 import React from "react";
 import { Bars3Icon, XCircleIcon } from "@heroicons/react/24/outline";
-import { Spinner } from "../../material/material";
+import MyButton, { Spinner } from "../../material/material";
 import { TopicCardDropdown } from "./OtherComponents/TopicCardDropdown";
 import { AttemptResult } from "./OtherComponents/AttemptResult";
 import ExerciseRenderer from "./OtherComponents/ExerciseRenderer";
@@ -11,7 +10,7 @@ import { IndexExerciseButton } from "./OtherComponents/IndexExerciseButton";
 import { LearningUnitChildDto } from "../../../model/LearningUnitChildDto";
 import { isSubmissionAnswered } from "../../../utils/userAnswerJsonUtils";
 import {SubmitCommonProps} from "./SubmitCommonProps";
-import {ChevronRightIcon} from "@heroicons/react/24/solid";
+import {ArrowLeftIcon, ChevronRightIcon} from "@heroicons/react/24/solid";
 import {ChevronLeftIcon} from "@heroicons/react/16/solid";
 const DesktopView = ({
                          course,
@@ -108,13 +107,10 @@ const DesktopView = ({
                                 />
                             ))}
                         </div>
+                        <div className="ml-[72%] mb-4">
+                            <MyButton onClick={() => navigate("/my-courses")} width="w-[100px]" text="Back" icon={<ArrowLeftIcon className="w-5 h-5" />}/>
+                        </div>
 
-                        <button
-                            onClick={() => navigate("/my-courses")}
-                            className="text-sm w-[100px] px-6 py-3 bg-text-color text-white rounded-xl font-semibold hover:bg-text-color/90 transition ml-[72%] mb-4"
-                        >
-                            Back
-                        </button>
                     </div>
                 </div>
 
@@ -218,13 +214,15 @@ const DesktopView = ({
                     {selectedLesson ? (
                         selectedExercise ? (
                             <div>
-                            <ExerciseRenderer
-                                exercise={selectedExercise}
-                                submission={submissions[selectedExercise.id]}
-                                onSubmissionChange={(s) =>
-                                    setSubmissions((prev:any) => ({ ...prev, [s.exerciseId]: s }))
-                                }
-                            />
+                                <ExerciseRenderer
+                                    key={selectedExercise.id}
+                                    exercise={selectedExercise}
+                                    submission={submissions[selectedExercise.id]}
+                                    onSubmissionChange={(s) =>
+                                        setSubmissions((prev:any) => ({ ...prev, [s.exerciseId]: s }))
+                                    }
+                                />
+
                             <div className="flex items-center justify-end gap-3 pr-6">
                                 <button
                                     onClick={() => {

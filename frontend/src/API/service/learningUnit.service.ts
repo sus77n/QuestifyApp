@@ -18,35 +18,36 @@ export const learningUnitService = createApi({
               : [{ type: "LearningUnit" as const, id: "LIST" }],
     }),
 
-    getLearningUnitById: builder.query<LearningUnitDTO, { userId?: number; id: number }>({
+    getLearningUnitById: builder.query<LearningUnitDTO, { userId?: string; id: string }>({
       query: ({ userId, id }) =>
           userId
               ? `/learning-units/${id}?userId=${userId}`
               : `/learning-units/${id}`,
     }),
 
-    getLearningUnitWithChildren: builder.query<LearningUnitWithChildren, { id: number }>({
-      query: ({ id }) => `/learning-units/getLearningUnitWithChildren/${id}`,
+    getLearningUnitWithChildren: builder.query<LearningUnitWithChildren, { id: string }>({
+      query: ({ id }) => `/learning-units/${id}`,
     }),
+
 
     getAllLearningUnitsByLevel: builder.query<LearningUnitDTO[], number>({
       query: (level) => `/learning-units/type/level/${level}`,
     }),
 
-    countLearningUnitById: builder.query<number, number>({
+    countLearningUnitById: builder.query<number, string>({
       query: (id) => `/learning-units/count/${id}`,
     }),
 
-    createLearningUnit: builder.mutation<LearningUnitDTO, Partial<LearningUnitDTO>>({
+    createLearningUnit: builder.mutation<LearningUnitWithChildren, Partial<LearningUnitWithChildren>>({
       query: (body) => ({
-        url: "/learning-units",
+        url: "/learning-units/child",
         method: "POST",
         body,
       }),
       invalidatesTags: [{ type: "LearningUnit", id: "LIST" }],
     }),
 
-    updateLearningUnit: builder.mutation<LearningUnitDTO, Partial<LearningUnitDTO> & { id: number }>({
+    updateLearningUnit: builder.mutation<LearningUnitDTO, Partial<LearningUnitDTO> & { id: string }>({
       query: ({ id, ...body }) => ({
         url: `/learning-units/${id}`,
         method: "PUT",
@@ -55,7 +56,7 @@ export const learningUnitService = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: "LearningUnit", id }],
     }),
 
-    deleteLearningUnit: builder.mutation<void, number>({
+    deleteLearningUnit: builder.mutation<void, string>({
       query: (id) => ({
         url: `/learning-units/${id}`,
         method: "DELETE",
@@ -63,11 +64,11 @@ export const learningUnitService = createApi({
       invalidatesTags: [{ type: "LearningUnit", id: "LIST" }],
     }),
 
-    getAllCompletedCoursesByUserId: builder.query<CourseDTO[], number>({
+    getAllCompletedCoursesByUserId: builder.query<CourseDTO[], string>({
       query: (userId) => `/learning-units/courses/completed/${userId}`,
     }),
 
-    getAllIncompletedCoursesByUserId: builder.query<CourseDTO[], number>({
+    getAllIncompletedCoursesByUserId: builder.query<CourseDTO[], string>({
       query: (userId) => `/learning-units/courses/incompleted/${userId}`,
     }),
   }),

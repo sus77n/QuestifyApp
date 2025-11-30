@@ -19,22 +19,22 @@ export const attemptService = createApi({
             invalidatesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        getAttemptById: builder.query<AttemptDTO, number>({
+        getAttemptById: builder.query<AttemptDTO, string>({
             query: (id) => `/attempts/${id}`,
             providesTags: (result, error, id) => [{ type: "Attempt", id }],
         }),
 
-        getAttemptsByUser: builder.query<AttemptDTO[], number>({
+        getAttemptsByUser: builder.query<AttemptDTO[], string>({
             query: (userId) => `/attempts/user/${userId}`,
             providesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        getAttemptsByLesson: builder.query<AttemptDTO[], number>({
+        getAttemptsByLesson: builder.query<AttemptDTO[], string>({
             query: (lessonId) => `/attempts/lesson/${lessonId}`,
             providesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        deleteAttempt: builder.mutation<void, number>({
+        deleteAttempt: builder.mutation<void, string>({
             query: (id) => ({
                 url: `/attempts/${id}`,
                 method: "DELETE",
@@ -44,7 +44,7 @@ export const attemptService = createApi({
 
         startAttempt: builder.mutation<
             AttemptStartResponseDTO,
-            { userId: number; lessonId: number }
+            { userId: string; lessonId: string }
         >({
             query: ({ userId, lessonId }) => ({
                 url: `/attempts/start?userId=${userId}&lessonId=${lessonId}`,
@@ -58,7 +58,7 @@ export const attemptService = createApi({
 
         submitAttempt: builder.mutation<
             AttemptResponseDTO,
-            { attemptId: number; submissions: SubmissionDTO[] }
+            { attemptId: string; submissions: SubmissionDTO[] }
         >({
             query: ({ attemptId, submissions }) => ({
                 url: `/attempts/${attemptId}/submit`,

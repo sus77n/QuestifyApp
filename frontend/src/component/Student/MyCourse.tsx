@@ -9,7 +9,7 @@ const MyCourse = () => {
   const [selectedCourse, setSelectedCourse] = useState<CourseDTO | null>(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
-  const userId = Number(localStorage.getItem("id")!);
+  const userId = localStorage.getItem("id")!;
   const username = localStorage.getItem("username");
 
   const { data: ongoingCourses, isLoading: isLoadingCourses } =
@@ -65,8 +65,8 @@ const MyCourse = () => {
                           courseCode={course.code}
                           courseName={course.name}
                           index={index}
-                          progress={course.completedExercises}
-                          total={course.totalOfExercise}
+                          progress={course.numberOfComplete}
+                          total={course.numberOfExercise}
                           isSelected={selectedCourse?.id === course.id}
                         />
                       </div>
@@ -99,7 +99,7 @@ const MyCourse = () => {
             <div className="p-4">
               <div className="flex flex-col items-center mb-6">
                 <img
-                  src={`/img/ava${(selectedCourse?.id % 3) + 1}.png`}
+                  src={`/img/ava1.png`}
                   className="w-32 h-32 rounded-xl object-cover mb-4 shadow-md"
                   alt="Course avatar"
                 />
@@ -108,8 +108,8 @@ const MyCourse = () => {
                 </h2>
                 <div className="mt-4 w-full">
                   <ProgressLineMobile
-                    progress={selectedCourse.completedExercises}
-                    total={selectedCourse.totalOfExercise}
+                    progress={selectedCourse.numberOfComplete}
+                    total={selectedCourse.numberOfExercise}
                   />
                 </div>
               </div>
@@ -161,8 +161,8 @@ const MyCourse = () => {
                       courseCode={course.code}
                       courseName={course.name}
                       index={index}
-                      progress={course.completedExercises}
-                      total={course.totalOfExercise}
+                      progress={course.numberOfComplete}
+                      total={course.numberOfExercise}
                     />
                   </div>
                 ))}

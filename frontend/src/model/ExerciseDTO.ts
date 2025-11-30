@@ -1,12 +1,13 @@
 import { OptionDTO } from "./OptionDTO";
 
 export interface ExerciseDTO {
-  id: number;
+  id?: string
+  learning_unit_id?: string;
   question: string;
-  correctAnswers: string;
+  correctAnswers?: string;
   type: ExerciseType;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   options?: OptionDTO[];
 }
 
