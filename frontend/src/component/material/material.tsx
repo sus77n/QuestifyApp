@@ -37,21 +37,72 @@ export const PrimaryInput = ({
   );
 };
 
-export const MyButton: React.FC<{
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  children: React.ReactNode;
+
+interface MyButtonPr {
+  text?: string;
+  onClick?: () => void;
+  width?: string;
+  height?: string;
+  icon?: React.ReactNode;
   className?: string;
-  disabled?: boolean;
-}> = ({ onClick, children, className = "", disabled = false }) => (
-  <button
-    type="button" // fixed type here
-    onClick={onClick}
-    disabled={disabled}
-    className={`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 ${className}`}
-  >
-    {children}
-  </button>
-);
+  color?: "primary" | "red" | "yellow"; // thêm màu
+}
+
+export default function MyButton({
+                                   text,
+                                   onClick,
+                                   width = "w-auto",
+                                   height = "h-auto",
+                                   icon,
+                                   className = "",
+                                   color = "primary", // default
+                                 }: MyButtonPr) {
+
+  const colorMap = {
+    primary: {
+      bg: "bg-[#02457A]",
+      text: "text-white",
+      border: "border-[#02457A]",
+      hoverBg: "hover:bg-white",
+      hoverText: "hover:text-[#02457A]",
+    },
+    red: {
+      bg: "bg-red-600",
+      text: "text-white",
+      border: "border-red-600",
+      hoverBg: "hover:bg-white",
+      hoverText: "hover:text-red-600",
+    },
+    yellow: {
+      bg: "bg-yellow-400",
+      text: "text-white",
+      border: "border-yellow-400",
+      hoverBg: "hover:bg-white",
+      hoverText: "hover:text-yellow-500",
+    },
+  };
+
+  const c = colorMap[color];
+
+  return (
+      <button
+          onClick={onClick}
+          className={`
+        ${c.bg} ${c.text} ${c.border}
+        rounded-lg px-5 py-2 text-sm font-semibold border-2
+        transition-colors duration-300
+        ${c.hoverBg} ${c.hoverText}
+        flex items-center justify-center gap-2
+        ${width} ${height} ${className}
+      `}
+      >
+        {icon && <span>{icon}</span>}
+        {text || ""}
+      </button>
+  );
+}
+
+
 
 export const Spinner = styled.div`
   border: 4px solid #eef1f9;

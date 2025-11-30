@@ -1,4 +1,6 @@
 export interface OptionDTO {
-  id: number;
+  id: string;
+  header?: string;
   text: string;
+  side?: string;
 }

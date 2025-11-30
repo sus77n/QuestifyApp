@@ -3,7 +3,7 @@ import { LearningUnitType } from "./LearningUnitType";
 import { ExerciseDTO } from "./ExerciseDTO";
 
 export interface LearningUnitDTO {
-  id: number;
+  id: string;
   name: string;
   code: string;
   description: string;
@@ -12,28 +12,27 @@ export interface LearningUnitDTO {
   createdAt: Date;
   createdBy: string;
   updatedAt?: string;
-  childUnits?: LearningUnitChildDto[];
+  children?: LearningUnitChildDto[];
   exercises?: ExerciseDTO[];
-  parentId: number;
+  parentId: string;
   numberOfComplete: number;
   numberOfExercise: number;
 }
 
 export interface CourseDTO {
-  id: number;
+  id: string;
   name: string;
   code: string;
+  status: string;
+  description: string;
   createdAt?: string;
   updatedAt?: string;
-  totalOfExercise: number;
-  completedExercises: number;
-}
-export interface CourseWithIndex extends LearningUnitDTO {
-  index: number;
+  numberOfComplete: number;
+  numberOfExercise: number;
 }
 
 export interface LearningUnitWithChildren {
-  id: number;
+  id: string;
   name: string;
   code: string;
   description: string;
@@ -44,4 +43,5 @@ export interface LearningUnitWithChildren {
   children: LearningUnitWithChildren[];
   numberOfExercises: number;
   updatedAt?: string;
+  parentId: string;
 }

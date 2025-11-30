@@ -2,6 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { customBaseQuery } from "../client/customBaseQuery";
 import {AttemptDTO, AttemptResponseDTO, AttemptStartResponseDTO} from "../../model/AttemptDTO";
 import {SubmissionDTO} from "../../model/SubmissionDTO";
+import {parseExercise} from "../../utils/exerciseFormatter";
 
 export const attemptService = createApi({
     reducerPath: "attemptService",
@@ -18,22 +19,22 @@ export const attemptService = createApi({
             invalidatesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        getAttemptById: builder.query<AttemptDTO, number>({
+        getAttemptById: builder.query<AttemptDTO, string>({
             query: (id) => `/attempts/${id}`,
             providesTags: (result, error, id) => [{ type: "Attempt", id }],
         }),
 
-        getAttemptsByUser: builder.query<AttemptDTO[], number>({
+        getAttemptsByUser: builder.query<AttemptDTO[], string>({
             query: (userId) => `/attempts/user/${userId}`,
             providesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        getAttemptsByLesson: builder.query<AttemptDTO[], number>({
+        getAttemptsByLesson: builder.query<AttemptDTO[], string>({
             query: (lessonId) => `/attempts/lesson/${lessonId}`,
             providesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        deleteAttempt: builder.mutation<void, number>({
+        deleteAttempt: builder.mutation<void, string>({
             query: (id) => ({
                 url: `/attempts/${id}`,
                 method: "DELETE",
@@ -41,16 +42,23 @@ export const attemptService = createApi({
             invalidatesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
-        startAttempt: builder.mutation<AttemptStartResponseDTO, { userId: number; lessonId: number }>({
+        startAttempt: builder.mutation<
+            AttemptStartResponseDTO,
+            { userId: string; lessonId: string }
+        >({
             query: ({ userId, lessonId }) => ({
                 url: `/attempts/start?userId=${userId}&lessonId=${lessonId}`,
                 method: "POST",
+            }),
+            transformResponse: (response: AttemptStartResponseDTO) => ({
+                ...response,
+                exercises: response.questions.map(parseExercise),
             }),
         }),
 
         submitAttempt: builder.mutation<
             AttemptResponseDTO,
-            { attemptId: number; submissions: SubmissionDTO[] }
+            { attemptId: string; submissions: SubmissionDTO[] }
         >({
             query: ({ attemptId, submissions }) => ({
                 url: `/attempts/${attemptId}/submit`,
@@ -58,6 +66,7 @@ export const attemptService = createApi({
                 body: submissions,
             }),
         }),
+
     }),
 });
 

@@ -14,6 +14,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const role = localStorage.getItem("role");
 
+
   // Define route paths for tabs
   const navItemsByRole: Record<
     string,
@@ -134,7 +135,10 @@ const MobileNavIcon = ({
   currentPath?: string;
   onClick: () => void;
 }) => {
-  const isActive = path && currentPath?.startsWith(path);
+  const isActive =
+      (path && currentPath?.startsWith(path)) ||
+      (path === "/teacher/courses" &&
+          currentPath?.startsWith("/teacher/course/"));
 
   return (
     <button
@@ -171,7 +175,10 @@ const NavIcon = ({
   currentPath?: string;
   onClick: () => void;
 }) => {
-  const isActive = path && currentPath?.startsWith(path);
+  const isActive =
+      (path && currentPath?.startsWith(path)) ||
+      (path === "/teacher/courses" &&
+          currentPath?.startsWith("/teacher/course/"));
 
   return (
     <button

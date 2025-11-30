@@ -10,7 +10,7 @@ import ManageCourse from "../Admin/ManageCourse";
 import { Error404Page } from "../material/errorPage";
 import TeacherCourse from "../Teacher/TeacherCourse";
 import TeacherDashboard from "../Teacher/TeacherDashboard";
-import ManageLesson from "../Teacher/ManageLesson";
+import ManageLearningUnits from "../Teacher/ManageLearningUnits";
 import ManageAssignment from "../Teacher/ManageAssignment";
 import TeacherProgress from "../Teacher/TeacherProgress";
 
@@ -32,7 +32,7 @@ const HeroSection = () => {
 
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/courses" element={<TeacherCourse />} />
-          <Route path="/teacher/lessons/:courseId" element={<ManageLesson />} />
+          <Route path="/teacher/lessons/:courseId" element={<ManageLearningUnits />} />
           <Route path="/teacher/assignments/:courseId" element={<ManageAssignment />} />
           <Route path="/teacher/progress/:courseId" element={<TeacherProgress />} />
 

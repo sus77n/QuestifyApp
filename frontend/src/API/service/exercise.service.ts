@@ -8,21 +8,18 @@ export const exerciseService = createApi({
   baseQuery: customBaseQuery,
   tagTypes: ["Exercise"],
   endpoints: (builder) => ({
-    getExerciseById: builder.query<ExerciseDTO, number>({
+    getExerciseById: builder.query<ExerciseDTO, string>({
       query: (id) => `/exercises/${id}`,
       providesTags: (result, error, id) => [{ type: "Exercise", id }],
     }),
 
-    getExerciseOptions: builder.query<OptionDTO[], number>({
+    getExerciseOptions: builder.query<OptionDTO[], string>({
       query: (exerciseId) => `/exercises/${exerciseId}/options`,
     }),
 
-    getExercises: builder.query<ExerciseDTO[], { lessonId?: number; typeId?: number }>({
-      query: ({ lessonId, typeId }) => {
-        const params = new URLSearchParams();
-        if (lessonId) params.append("lessonId", lessonId.toString());
-        if (typeId) params.append("typeId", typeId.toString());
-        return `/exercises?${params.toString()}`;
+    getExercises: builder.query<ExerciseDTO[], { lessonId?: string}>({
+      query: ({ lessonId}) => {
+        return `/learning-units/${lessonId}/exercises`;
       },
       providesTags: [{ type: "Exercise", id: "LIST" }],
     }),
@@ -36,7 +33,7 @@ export const exerciseService = createApi({
       invalidatesTags: [{ type: "Exercise", id: "LIST" }],
     }),
 
-    updateExercise: builder.mutation<ExerciseDTO, { id: number; data: ExerciseDTO }>({
+    updateExercise: builder.mutation<ExerciseDTO, { id: string; data: ExerciseDTO }>({
       query: ({ id, data }) => ({
         url: `/exercises/${id}`,
         method: "PUT",
@@ -45,7 +42,7 @@ export const exerciseService = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: "Exercise", id }],
     }),
 
-    deleteExercise: builder.mutation<void, number>({
+    deleteExercise: builder.mutation<void, string>({
       query: (id) => ({
         url: `/exercises/${id}`,
         method: "DELETE",
