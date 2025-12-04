@@ -3,14 +3,12 @@ package com.example.iquiz.utility;
 import com.example.iquiz.entity.Answer;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.enums.ExerciseType;
-import com.example.iquiz.exception.ConflictException;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class SubmissionUtil {
@@ -26,7 +24,7 @@ public class SubmissionUtil {
         try {
             return switch (exercise.getType()) {
                 case MULTIPLE_CHOICE -> scoreMultipleChoice(userAnswerJson, correctJson);
-                case SELECT_MULTIPLE, TRUE_FALSE -> scoreSelectMultiple(exercise, userAnswerJson, correctJson);
+                case SELECT_MULTIPLE, TRUE_FALSE -> scoreSelectMultiple(userAnswerJson, correctJson);
                 case SHORT_ANSWER -> scoreShortAnswer(userAnswerJson, correctJson);
                 case MATCHING -> scoreMatching(userAnswerJson, correctJson);
                 case REORDERING -> scoreReordering(userAnswerJson, correctJson);
@@ -42,7 +40,7 @@ public class SubmissionUtil {
         ExerciseType type = exercise.getType();
         switch (type) {
             case MULTIPLE_CHOICE, SELECT_MULTIPLE, TRUE_FALSE -> {
-                List<String> optionIds = ExerciseTypeUtil.parseOptionHeaders(answerJson);
+                List<String> optionIds = ExerciseTypeUtil.parseToList(answerJson);
                 List<String> result = exercise.getPredefinedAnswers().stream()
                         .filter(answer -> optionIds.contains(answer.getHeader()))
                         .map(Answer::getText)
@@ -50,7 +48,7 @@ public class SubmissionUtil {
                 return result;
             }
             case SHORT_ANSWER, FILL_IN_THE_BLANK -> {
-                return ExerciseTypeUtil.parseTextAnswers(answerJson);
+                return ExerciseTypeUtil.parseToList(answerJson);
             }
             case MATCHING -> {
                 List<ExerciseTypeUtil.MatchingPair> pairs = ExerciseTypeUtil.parseMatchingPairs(answerJson);
@@ -88,7 +86,7 @@ public class SubmissionUtil {
             }
 
             case REORDERING -> {
-                List<String> ids = ExerciseTypeUtil.parseOptionHeaders(answerJson);
+                List<String> ids = ExerciseTypeUtil.parseToList(answerJson);
                 List<String> result = ids.stream().map(header -> {
                     for (Answer ans : exercise.getPredefinedAnswers()) {
                         if (ans.getHeader().equals(String.valueOf(header))) {
@@ -110,8 +108,8 @@ public class SubmissionUtil {
     // ---------------------------------------------------------
     private BigDecimal scoreMultipleChoice(String userJson, String correctJson) {
 
-        List<String> userHeaders = ExerciseTypeUtil.parseOptionHeaders(userJson);
-        List<String> correctHeaders = ExerciseTypeUtil.parseOptionHeaders(correctJson);
+        List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
+        List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userHeaders.isEmpty() || correctHeaders.isEmpty()) return ZERO_SCORE;
 
@@ -122,10 +120,10 @@ public class SubmissionUtil {
     // ---------------------------------------------------------
     // SELECT MULTIPLE + TRUE / FALSE
     // ---------------------------------------------------------
-    private BigDecimal scoreSelectMultiple(Exercise exercise, String userJson, String correctJson) {
+    private BigDecimal scoreSelectMultiple(String userJson, String correctJson) {
 
-        List<String> userHeaders = ExerciseTypeUtil.parseOptionHeaders(userJson);
-        List<String> correctHeaders = ExerciseTypeUtil.parseOptionHeaders(correctJson);
+        List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
+        List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userHeaders.isEmpty() || correctHeaders.isEmpty()) return ZERO_SCORE;
 
@@ -150,8 +148,8 @@ public class SubmissionUtil {
     // ---------------------------------------------------------
     private BigDecimal scoreShortAnswer(String userJson, String correctJson) {
 
-        List<String> userAnswers = ExerciseTypeUtil.parseTextAnswers(userJson);
-        List<String> correctAnswers = ExerciseTypeUtil.parseTextAnswers(correctJson);
+        List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
+        List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userAnswers.isEmpty() || correctAnswers.isEmpty()) return ZERO_SCORE;
 
@@ -227,8 +225,8 @@ public class SubmissionUtil {
     // ---------------------------------------------------------
     private BigDecimal scoreReordering(String userJson, String correctJson) {
 
-        List<String> userHeaders = ExerciseTypeUtil.parseOptionHeaders(userJson);
-        List<String> correctHeaders = ExerciseTypeUtil.parseOptionHeaders(correctJson);
+        List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
+        List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userHeaders.isEmpty() || correctHeaders.isEmpty()) return ZERO_SCORE;
         if (userHeaders.size() != correctHeaders.size()) return ZERO_SCORE;
@@ -247,8 +245,8 @@ public class SubmissionUtil {
     // FILL IN THE BLANK
     // ---------------------------------------------------------
     private BigDecimal scoreFillInBlank(String userJson, String correctJson) {
-        List<String> userAnswers = ExerciseTypeUtil.parseBlankAnswers(userJson);
-        List<String> correctAnswers = ExerciseTypeUtil.parseBlankAnswers(correctJson);
+        List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
+        List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userAnswers.isEmpty() || correctAnswers.isEmpty()) return ZERO_SCORE;
 
@@ -278,56 +276,5 @@ public class SubmissionUtil {
         return totalScore.divide(BigDecimal.valueOf(submissionCount), 2, RoundingMode.HALF_UP)
                 .doubleValue();
     }
-
-    private Map<String, String> buildHeaderToIdMap(Exercise exercise) {
-        Map<String, String> map = new HashMap<>();
-        if (exercise.getPredefinedAnswers() == null) return map;
-
-        for (Answer ans : exercise.getPredefinedAnswers()) {
-            if (ans.getHeader() == null) continue;
-            try {
-                String header = ans.getHeader().trim();
-                map.put(header, ans.getId().toString());
-            } catch (NumberFormatException ignored) {
-                throw new ConflictException("Invalid header format for answer ID: " + ans.getId());
-            }
-        }
-
-        return map;
-    }
-
-    private List<String> mapHeadersToIds(List<String> headers, Exercise exercise) {
-        Map<String, String> headerToId = buildHeaderToIdMap(exercise);
-        List<String> result = new ArrayList<>();
-
-        for (String header : headers) {
-            String id = headerToId.get(header);
-            if (id != null) {
-                result.add(id);
-            }
-        }
-
-        return result;
-    }
-
-    private List<ExerciseTypeUtil.MatchingPair> mapHeaderPairsToIdPairs(
-            List<ExerciseTypeUtil.MatchingPair> headerPairs,
-            Exercise exercise
-    ) {
-        Map<String, String> headerToId = buildHeaderToIdMap(exercise);
-        List<ExerciseTypeUtil.MatchingPair> result = new ArrayList<>();
-
-        for (ExerciseTypeUtil.MatchingPair p : headerPairs) {
-            String leftId = headerToId.get(p.getLeftHeader());
-            String rightId = headerToId.get(p.getRightHeader());
-
-            if (leftId != null && rightId != null) {
-                result.add(new ExerciseTypeUtil.MatchingPair(leftId, rightId));
-            }
-        }
-
-        return result;
-    }
-
 
 }

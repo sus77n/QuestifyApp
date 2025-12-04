@@ -1,5 +1,4 @@
 package com.example.iquiz.service;
-import com.example.iquiz.dto.answer.AnswerRequestDto;
 import com.example.iquiz.dto.answer.OptionDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.Answer;
@@ -8,7 +7,6 @@ import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.AnswerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,28 +39,15 @@ public class AnswerService {
                 .toList();
     }
 
-    @Transactional
-    public OptionDto saveOption(AnswerRequestDto dto) {
-        Exercise exercise = exerciseRepository.findById(dto.exerciseId())
-                .orElseThrow(() -> new NullPointerException("Exercise not found with id: " + dto.exerciseId()));
-
+    public OptionDto saveOption(OptionDto dto) {
         Answer answer = answerMapper.toEntity(dto);
-        answer.setExercise(exercise);
-
         answerRepository.save(answer);
         return answerMapper.toOptionDto(answer);
     }
 
-    @Transactional
-    public OptionDto updateOption(UUID id, AnswerRequestDto dto) {
+    public OptionDto updateOption(UUID id, OptionDto dto) {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new NullPointerException("Option not found with id: " + id));
-
-        if (dto.exerciseId() != null) {
-            Exercise exercise = exerciseRepository.findById(dto.exerciseId())
-                    .orElseThrow(() -> new NullPointerException("Exercise not found with id: " + dto.exerciseId()));
-            answer.setExercise(exercise);
-        }
 
         answer.setText(dto.text());
         answer.setHeader(dto.header());

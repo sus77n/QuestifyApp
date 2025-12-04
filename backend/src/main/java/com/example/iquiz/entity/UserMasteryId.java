@@ -15,5 +15,5 @@ import java.util.UUID;
 public class UserMasteryId implements Serializable {
     private UUID userId;
     private UUID lessonId;
-    private UUID exerciseTypeId;
+    private UUID exerciseCategoryId;
 }

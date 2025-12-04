@@ -2,13 +2,15 @@ package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
+import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
 import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitTreeDto;
 import com.example.iquiz.entity.Exercise;
+import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.repository.ExerciseRepository;
+import com.example.iquiz.repository.LearningUnitRepository;
 import com.example.iquiz.service.learningUnit.LearningUnitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class LearningUnitController {
     private final LearningUnitService learningUnitService;
     private final ExerciseRepository exerciseRepository;
     private final ExerciseMapper exerciseMapper;
+    private final LearningUnitRepository learningUnitRepository;
 
     @GetMapping
     public ApiResponse<List<LearningUnitDto>> getAll() {
@@ -49,14 +52,13 @@ public class LearningUnitController {
             @PathVariable UUID id,
             @RequestParam(required = false) UUID userId
     ) {
-        LearningUnitDto dto = learningUnitService.getLearningUnitById(id, userId);
+        LearningUnitDto dto;
+        if (userId != null) {
+            dto = learningUnitService.getLearningUnitByIdWithAuth(id, userId);
+        } else {
+            dto = learningUnitService.getLearningUnitById(id);
+        }
         return ApiResponse.success(dto, "Fetched learning unit details");
-    }
-
-    @GetMapping("/getLearningUnitWithChildren/{id}")
-    public ApiResponse<LearningUnitTreeDto> getLearningUnitWithChildren(@PathVariable UUID id) {
-        LearningUnitTreeDto tree = learningUnitService.getLearningUnitWithChildren(id);
-        return ApiResponse.success(tree, "Fetched learning unit with children");
     }
 
     @PutMapping("/{id}")
@@ -102,12 +104,9 @@ public class LearningUnitController {
         return ApiResponse.success(incompleted, "Fetched incompleted courses");
     }
 
-    @GetMapping("/courses/{id}/exercises")
-    public ApiResponse<List<ExerciseResponseDto>> getExerciseIdsByCourseId(@PathVariable UUID id) {
-        List<Exercise> exercises = exerciseRepository.findByParent_Id(id);
-        List<ExerciseResponseDto> exerciseDtos = exercises.stream()
-                .map(exerciseMapper::toDto)
-                .toList();
+    @GetMapping("/{id}/exercises")
+    public ApiResponse<List<ExerciseWithAnswerDto>> getExerciseIdsByCourseId(@PathVariable UUID id) {
+        List<ExerciseWithAnswerDto> exerciseDtos = learningUnitService.getExerciseIdsByLearningUnitId(id);
         return ApiResponse.success(exerciseDtos, "Fetched exercises for the course");
     }
 }

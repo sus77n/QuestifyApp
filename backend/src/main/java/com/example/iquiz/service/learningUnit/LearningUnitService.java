@@ -1,21 +1,23 @@
 package com.example.iquiz.service.learningUnit;
 
+import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
 import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitTreeDto;
+import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.LearningUnitType;
 import com.example.iquiz.entity.User;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.LearningUnitMapper;
 import com.example.iquiz.repository.LearningUnitRepository;
-import com.example.iquiz.repository.LearningUnitTypeRepository;
+import com.example.iquiz.repository.ExerciseCategoryRepository;
 import com.example.iquiz.utility.LearningUnitUtil;
 import com.example.iquiz.utility.UserUtil;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,10 +27,11 @@ import java.util.UUID;
 public class LearningUnitService {
 
     private final LearningUnitRepository learningUnitRepository;
-    private final LearningUnitTypeRepository learningUnitTypeRepository;
+    private final ExerciseCategoryRepository exerciseCategoryRepository;
     private final LearningUnitMapper learningUnitMapper;
     private final LearningUnitUtil learningUnitUtil;
     private final UserUtil userUtil;
+    private final ExerciseMapper exerciseMapper;
 
     public List<LearningUnitDto> getAllLearningUnits() {
         return learningUnitRepository.findAll().stream()
@@ -36,20 +39,19 @@ public class LearningUnitService {
                 .toList();
     }
 
-    public LearningUnitDto getLearningUnitById(UUID id, UUID userId) {
-        LearningUnit learningUnit = learningUnitRepository.findById(id)
+    public LearningUnitDto getLearningUnitById(UUID id) {
+        LearningUnit learningUnit = learningUnitRepository.findWithChildren(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        return learningUnitMapper.toDto(learningUnit);
+    }
+
+    public LearningUnitDto getLearningUnitByIdWithAuth(UUID id, UUID userId) {
+        LearningUnit learningUnit = learningUnitRepository.findWithChildren(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
 
         return learningUnitMapper.toDtoWithAuth(learningUnit, userId);
     }
-
-
-    public LearningUnitTreeDto getLearningUnitWithChildren(UUID courseId) {
-        LearningUnit course = learningUnitRepository.findById(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("Course not found with id " + courseId));
-        return learningUnitMapper.toTreeDto(course);
-    }
-
 
     public LearningUnitDto saveLearningUnit(LearningUnitDto dto) {
         User user = userUtil.getUserFromAuthContext();
@@ -66,7 +68,7 @@ public class LearningUnitService {
 
         LearningUnitType type = parent.getType();
         int nextLevel = type.getLevel() + 1;
-        LearningUnitType childType = learningUnitTypeRepository.findByLevel(nextLevel)
+        LearningUnitType childType = exerciseCategoryRepository.findByLevel(nextLevel)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "level", nextLevel));
 
         LearningUnit entity = new LearningUnit();
@@ -83,7 +85,7 @@ public class LearningUnitService {
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
 
         if (dto.type() != null) {
-            LearningUnitType type = learningUnitTypeRepository.findByName(dto.type())
+            LearningUnitType type = exerciseCategoryRepository.findByName(dto.type())
                     .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", dto.type()));
             learningUnit.setType(type);
         }
@@ -112,7 +114,7 @@ public class LearningUnitService {
 
     public List<LearningUnitDto> getLearningUnitsByTypeLevel(int level) {
         return learningUnitRepository.findByTypeLevel(level).stream()
-                .map(learningUnitMapper::toDto)
+                .map(learningUnitMapper::toDtoShallow)
                 .toList();
     }
 
@@ -133,6 +135,18 @@ public class LearningUnitService {
                         learningUnitUtil.getNumberOfCompletedExercise(userId, course),
                         learningUnitUtil.countExercises(course)
                 ))
+                .toList();
+    }
+
+    @Transactional
+    public List<ExerciseWithAnswerDto> getExerciseIdsByLearningUnitId(UUID id) {
+        LearningUnit unit = learningUnitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        List<Exercise> exercises = learningUnitUtil.getAllExercises(unit);
+
+        return exercises.stream()
+                .map(exerciseMapper::toDtoWithAnswer)
                 .toList();
     }
 

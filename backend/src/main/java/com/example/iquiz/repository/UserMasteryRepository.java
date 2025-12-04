@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface UserMasteryRepository extends JpaRepository<UserMastery, UserMasteryId> {
     List<UserMastery> findByUserId(UUID userId);
+
+    List<UserMastery> findByUserIdAndLessonId(UUID userId, UUID lessonId);
 }

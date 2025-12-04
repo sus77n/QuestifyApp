@@ -4,37 +4,35 @@ import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.entity.LearningUnitType;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.mapper.LearningUnitTypeMapper;
-import com.example.iquiz.repository.LearningUnitTypeRepository;
+import com.example.iquiz.repository.ExerciseCategoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LearningUnitTypeService {
 
-    private final LearningUnitTypeRepository learningUnitTypeRepository;
+    private final ExerciseCategoryRepository exerciseCategoryRepository;
     private final LearningUnitTypeMapper learningUnitTypeMapper;
 
     public LearningUnitTypeDto getLearningUnitTypeById(UUID id) {
-        LearningUnitType type = learningUnitTypeRepository.findById(id)
+        LearningUnitType type = exerciseCategoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
         return learningUnitTypeMapper.toDto(type);
     }
 
     public List<LearningUnitTypeDto> getLearningUnitTypes() {
-        return learningUnitTypeRepository.findAll().stream()
+        return exerciseCategoryRepository.findAll().stream()
                 .map(learningUnitTypeMapper::toDto)
                 .toList();
     }
 
     public LearningUnitTypeDto getLearningUnitTypeByType(String type) {
         return learningUnitTypeMapper.toDto(
-                learningUnitTypeRepository.findByName(type)
+                exerciseCategoryRepository.findByName(type)
                         .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", type))
 
         );
@@ -42,19 +40,19 @@ public class LearningUnitTypeService {
 
     public LearningUnitTypeDto saveLearningUnitType(LearningUnitTypeDto dto) {
         LearningUnitType entity = learningUnitTypeMapper.toEntity(dto);
-        learningUnitTypeRepository.save(entity);
+        exerciseCategoryRepository.save(entity);
         return learningUnitTypeMapper.toDto(entity);
     }
 
     public void deleteLearningUnitTypeById(UUID id) {
-        if (!learningUnitTypeRepository.existsById(id)) {
+        if (!exerciseCategoryRepository.existsById(id)) {
             throw new IllegalArgumentException("Learning Unit Type not found with id: " + id);
         }
-        learningUnitTypeRepository.deleteById(id);
+        exerciseCategoryRepository.deleteById(id);
     }
 
     public LearningUnitTypeDto updateLearningUnitType(UUID id, LearningUnitTypeDto dto) {
-        LearningUnitType entity = learningUnitTypeRepository.findById(id)
+        LearningUnitType entity = exerciseCategoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Learning Unit Type not found with id: " + id));
 
         entity.setName(dto.type());
@@ -62,12 +60,12 @@ public class LearningUnitTypeService {
 
         // Nếu rule: nếu level = 0 thì shift tất cả level khác lên +1
         if (dto.level() == 0) {
-            List<LearningUnitType> all = learningUnitTypeRepository.findAll();
+            List<LearningUnitType> all = exerciseCategoryRepository.findAll();
             all.forEach(l -> l.setLevel(l.getLevel() + 1));
-            learningUnitTypeRepository.saveAll(all);
+            exerciseCategoryRepository.saveAll(all);
         }
 
-        learningUnitTypeRepository.save(entity);
+        exerciseCategoryRepository.save(entity);
         return learningUnitTypeMapper.toDto(entity);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.iquiz.utility;
 
+import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.exception.ApiException;
 import com.example.iquiz.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,78 +18,47 @@ public class ExerciseTypeUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     // ==================== DEFAULT CREATION METHODS ====================
-
-    public static String createCorrectAnswer(List<?> correctAnswers) {
-        return createCorrectAnswer(correctAnswers, null);
+    public static String createDefaultAnswer(ExerciseType type, String rawCorrectAnswerJson) {
+        switch (type) {
+            case MATCHING -> {
+                List<MatchingPair> pairs = parseMatchingPairs(rawCorrectAnswerJson);
+                return createCorrectAnswer(pairs);
+            }
+            default -> {
+                List<String> answers = parseToList(rawCorrectAnswerJson);
+                return createCorrectAnswer(answers);
+            }
+        }
     }
 
-    public static String createCorrectAnswer(List<?> correctAnswers, Map<String, Object> config) {
+    public static String createCorrectAnswer(List<?> correctAnswers) {
         try {
             Map<String, Object> answer = new HashMap<>();
             answer.put("correctAnswers", correctAnswers != null ? correctAnswers : List.of());
-            if (config != null && !config.isEmpty()) {
-                answer.put("config", config);
-            }
             return objectMapper.writeValueAsString(answer);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to create correct answer JSON", e);
         }
     }
 
-    // ==================== TYPE-SPECIFIC CREATION ====================
-
-    // For MCQ, MULTI-SELECT, TRUE_FALSE (NOW USE REAL OPTION IDs)
-    public static String createOptionAnswer(List<Long> correctOptionIds) {
-        return createCorrectAnswer(correctOptionIds);
-    }
-
-    public static String createSingleOptionAnswer(Long correctOptionId) {
-        return createCorrectAnswer(List.of(correctOptionId));
-    }
-
-    // SHORT ANSWER
-    public static String createShortAnswer(String expectedText) {
-        return createShortAnswer(List.of(expectedText));
-    }
-
-    public static String createShortAnswer(List<String> acceptableAnswers) {
-        Map<String, Object> config = Map.of("caseSensitive", false);
-        return createCorrectAnswer(acceptableAnswers, config);
-    }
-
-    // TRUE/FALSE NOW MUST RECEIVE optionId FROM CALLER
-    public static String createTrueFalseAnswer(Long trueOrFalseOptionId) {   // UPDATED
-        return createCorrectAnswer(List.of(trueOrFalseOptionId));
-    }
-
-    // MATCHING (uses leftId/rightId as REAL option IDs)
-    public static String createMatchingAnswer(List<MatchingPair> pairs) {
-        return createCorrectAnswer(pairs);
-    }
-
-    // REORDERING
-    public static String createReorderAnswer(List<String> correctOrder) {
-        return createCorrectAnswer(correctOrder);
-    }
-
-    // FILL-IN-THE-BLANK
-    public static String createFillInBlankAnswer(List<String> blankAnswers) {
-        return createCorrectAnswer(blankAnswers);
-    }
-
     // ==================== PARSING METHODS ====================
-
     public static List<Object> parseAnswers(String json) {
         try {
+            if (json == null || json.equalsIgnoreCase("null") || json.equals("")) {
+                return List.of();
+            }
+
             JsonNode root = objectMapper.readTree(json);
             if (root.isArray()) {
-                return objectMapper.convertValue(root, new TypeReference<List<Object>>() {});
+                return objectMapper.convertValue(root, new TypeReference<List<Object>>() {
+                });
             }
 
             if (root.isObject()) {
                 JsonNode answersNode = root.get("correctAnswers");
                 if (answersNode != null && answersNode.isArray()) {
-                    return objectMapper.convertValue(answersNode, new TypeReference<List<Object>>() {});
+                    return objectMapper.convertValue(answersNode, new TypeReference<List<Object>>() {
+                    });
                 }
             }
 
@@ -101,19 +71,10 @@ public class ExerciseTypeUtil {
         }
     }
 
-    // ==================== TYPE-SPECIFIC PARSING ====================
-
-    public static List<String> parseOptionHeaders(String json) {
+    public static List<String> parseToList(String json) {
         return parseAnswers(json).stream()
                 .filter(v -> v instanceof String)
                 .map(v -> v.toString())
-                .collect(Collectors.toList());
-    }
-
-    public static List<String> parseTextAnswers(String json) {
-        return parseAnswers(json).stream()
-                .filter(v -> v instanceof String)
-                .map(v -> (String) v)
                 .collect(Collectors.toList());
     }
 
@@ -141,13 +102,27 @@ public class ExerciseTypeUtil {
         }
     }
 
+    public static String removeCorrectAnswerJson(String correctAnswerJson) {
+        if (correctAnswerJson == null || correctAnswerJson.isBlank()) {
+            return "[]";
+        }
 
-    public static List<String> parseReorderSequence(String json) {
-        return parseOptionHeaders(json);
-    }
+        try {
+            JsonNode root = objectMapper.readTree(correctAnswerJson);
 
-    public static List<String> parseBlankAnswers(String json) {
-        return parseTextAnswers(json);
+            if (root.has("correctAnswers")) {
+                JsonNode arr = root.get("correctAnswers");
+
+                if (arr.isArray()) {
+                    return objectMapper.writeValueAsString(arr);
+                }
+            }
+
+            return objectMapper.writeValueAsString(root);
+
+        } catch (Exception e) {
+            return "[\"" + correctAnswerJson.replace("\"", "\\\"") + "\"]";
+        }
     }
 
     // SUPPORT CLASS

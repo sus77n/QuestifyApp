@@ -1,9 +1,7 @@
 package com.example.iquiz.mapper;
 
-import com.example.iquiz.dto.answer.AnswerRequestDto;
 import com.example.iquiz.dto.answer.OptionDto;
 import com.example.iquiz.entity.Answer;
-import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.ExerciseRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +15,6 @@ import java.util.stream.Collectors;
 @Component
 public class AnswerMapper {
 
-    @Autowired
-    private ExerciseRepository exerciseRepository;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -35,7 +31,6 @@ public class AnswerMapper {
                 side = map.get("side");
             }
         } catch (Exception e) {
-            // metadata malformed → ignore safely
             side = null;
         }
 
@@ -47,15 +42,24 @@ public class AnswerMapper {
         );
     }
 
-    public Answer toEntity(AnswerRequestDto dto) {
-        return new Answer(
-                dto.id(),
-                dto.text(),
-                dto.header(),
-                dto.metadata(),
-                exerciseRepository.findById(dto.exerciseId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id", dto.exerciseId()))
-        );
+    public Answer toEntity(OptionDto dto) {
+        Answer answer = new Answer();
+        answer.setText(dto.text());
+        answer.setHeader(dto.header());
+
+        if (dto.side() != null) {
+            try {
+                Map<String, String> map = Map.of("side", dto.side());
+                String metadataJson = objectMapper.writeValueAsString(map);
+                answer.setMetadata(metadataJson);
+            } catch (Exception e) {
+                answer.setMetadata(null);
+            }
+        } else {
+            answer.setMetadata(null);
+        }
+
+        return answer;
     }
 
     public List<OptionDto> toDtoList(List<Answer> answers) {

@@ -1,22 +1,17 @@
 package com.example.iquiz.mapper;
 
 import com.example.iquiz.dto.learningUnit.CourseDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitTreeDto;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.utility.LearningUnitUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 
 @Component
 public class LearningUnitMapper {
-    @Autowired
-    private ExerciseMapper exerciseMapper;
     @Autowired
     private LearningUnitUtil learningUnitUtil;
 
@@ -25,7 +20,7 @@ public class LearningUnitMapper {
             return null;
         }
 
-        if (unit.getChildren() == null || unit.getChildren().isEmpty()) {
+        if (unit.getChildren() == null) {
             return new LearningUnitDto(
                     unit.getId(),
                     unit.getName(),
@@ -64,6 +59,24 @@ public class LearningUnitMapper {
             return null;
         }
 
+        if (unit.getChildren() == null) {
+            return new LearningUnitDto(
+                    unit.getId(),
+                    unit.getName(),
+                    unit.getCode(),
+                    unit.getDescription(),
+                    unit.getType().getName(),
+                    unit.getStatus(),
+                    unit.getCreatedAt(),
+                    unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
+                    unit.getParent() != null ? unit.getParent().getId() : null,
+                    null,
+                    null,
+                    learningUnitUtil.countExercises(unit)
+            );
+
+        }
+
         return new LearningUnitDto(
                 unit.getId(),
                 unit.getName(),
@@ -74,7 +87,7 @@ public class LearningUnitMapper {
                 unit.getCreatedAt(),
                 unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
                 unit.getParent() != null ? unit.getParent().getId() : null,
-                null,
+                unit.getChildren().stream().map(learningUnit -> toDtoWithAuth(learningUnit, userId)).toList(),
                 learningUnitUtil.getNumberOfCompletedExercise(userId, unit),
                 learningUnitUtil.countExercises(unit)
         );
@@ -95,6 +108,23 @@ public class LearningUnitMapper {
         return unit;
     }
 
+    public LearningUnitDto toDtoShallow(LearningUnit unit) {
+        return new LearningUnitDto(
+                unit.getId(),
+                unit.getName(),
+                unit.getCode(),
+                unit.getDescription(),
+                unit.getType().getName(),
+                unit.getStatus(),
+                unit.getCreatedAt(),
+                unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName(),
+                unit.getParent() != null ? unit.getParent().getId() : null,
+                null,
+                null,
+                learningUnitUtil.countExercises(unit)
+        );
+    }
+
     public LearningUnit courseDtoToEntity(CourseDto dto) {
         if (dto == null) {
             return null;
@@ -106,21 +136,6 @@ public class LearningUnitMapper {
         unit.setDescription(dto.description());
         unit.setStatus(dto.status());
         return unit;
-    }
-
-    public LearningUnitChildDto toChildDto(LearningUnit entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        return new LearningUnitChildDto(
-                entity.getId(),
-                entity.getName(),
-                entity.getCode(),
-                entity.getType() != null ? entity.getType().getName() : null,
-                0,
-                learningUnitUtil.countExercises(entity)
-        );
     }
 
     public CourseDto toCourseDto(LearningUnit entity) {
@@ -136,55 +151,6 @@ public class LearningUnitMapper {
                 entity.getStatus(),
                 entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName(),
                 entity.getCreatedAt()
-        );
-    }
-
-    public LearningUnitTreeDto toTreeDto(LearningUnit course) {
-        if (course == null) {
-            return null;
-        }
-        return new LearningUnitTreeDto(
-                course.getId(),
-                course.getName(),
-                course.getCode(),
-                course.getDescription(),
-                course.getType().getName(),
-                course.getStatus(),
-                course.getCreatedBy().getFirstName() + " " + course.getCreatedBy().getLastName(),
-                learningUnitUtil.countExercises(course),
-                course.getCreatedAt(),
-                course.getChildren().stream()
-                        .map(this::toChildTreeDto)
-                        .toList()
-        );
-    }
-
-    private LearningUnitTreeDto.ChildDto toChildTreeDto(LearningUnit chapter) {
-        return new LearningUnitTreeDto.ChildDto(
-                chapter.getId(),
-                chapter.getName(),
-                chapter.getCode(),
-                chapter.getDescription(),
-                chapter.getType().getName(),
-                chapter.getStatus(),
-                chapter.getCreatedAt(),
-                chapter.getParent() != null ? chapter.getParent().getId() : null,
-                chapter.getChildren().stream()
-                        .map(this::toGrandChildTreeDto)
-                        .toList()
-        );
-    }
-
-    private LearningUnitTreeDto.GrandChildDto toGrandChildTreeDto(LearningUnit lesson) {
-        return new LearningUnitTreeDto.GrandChildDto(
-                lesson.getId(),
-                lesson.getName(),
-                lesson.getCode(),
-                lesson.getDescription(),
-                lesson.getType().getName(),
-                lesson.getStatus(),
-                lesson.getCreatedAt(),
-                lesson.getParent() != null ? lesson.getParent().getId() : null
         );
     }
 }

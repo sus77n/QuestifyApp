@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LessonTypeDistributionId implements Serializable {
+public class ExerciseCategoryDistributionId implements Serializable {
     private UUID lessonId;
-    private UUID exerciseTypeId;
+    private UUID exerciseCategoryId;
 }

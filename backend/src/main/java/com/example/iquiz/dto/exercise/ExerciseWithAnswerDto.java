@@ -1,17 +1,15 @@
 package com.example.iquiz.dto.exercise;
 
 import com.example.iquiz.dto.answer.OptionDto;
-import com.example.iquiz.enums.ExerciseType;
 
 import java.util.List;
 import java.util.UUID;
 
-public record ExerciseRequestDto(
+public record ExerciseWithAnswerDto(
+        UUID id,
         String question,
-        ExerciseType type,
-        String correctAnswers,
+        String type,
         Integer difficulty,
         List<OptionDto> options,
-        UUID lessonId
-) {
-}
+        String correctAnswers
+) {}

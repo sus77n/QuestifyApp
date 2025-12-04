@@ -5,20 +5,20 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "lesson_type_distribution")
+@Table(name = "exercise_category_distribution")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LessonTypeDistribution {
+public class ExerciseCategoryDistribution {
 
     @EmbeddedId
-    private LessonTypeDistributionId id;
+    private ExerciseCategoryDistributionId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("lessonId")
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private LearningUnit lesson;
+    @JoinColumn(name = "parent_lesson_id", nullable = false)
+    private LearningUnit parentLesson;
 
     @Column(name = "base_weight", precision = 5, scale = 2, nullable = false)
     private BigDecimal baseWeight = BigDecimal.valueOf(1.0);

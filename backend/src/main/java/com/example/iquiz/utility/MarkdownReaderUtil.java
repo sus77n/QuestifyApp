@@ -56,7 +56,7 @@ public class MarkdownReaderUtil {
 
     // ====== REPOSITORIES ======
     private final LearningUnitRepository learningUnitRepository;
-    private final LearningUnitTypeRepository learningUnitTypeRepository;
+    private final ExerciseCategoryRepository exerciseCategoryRepository;
     private final ExerciseRepository exerciseRepository;
     private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
@@ -64,13 +64,13 @@ public class MarkdownReaderUtil {
 
     public MarkdownReaderUtil(
             LearningUnitRepository learningUnitRepository,
-            LearningUnitTypeRepository learningUnitTypeRepository,
+            ExerciseCategoryRepository exerciseCategoryRepository,
             ExerciseRepository exerciseRepository,
             AnswerRepository answerRepository,
             UserRepository userRepository,
             LessonConfigRepository lessonConfigRepository) {
         this.learningUnitRepository = learningUnitRepository;
-        this.learningUnitTypeRepository = learningUnitTypeRepository;
+        this.exerciseCategoryRepository = exerciseCategoryRepository;
         this.exerciseRepository = exerciseRepository;
         this.answerRepository = answerRepository;
         this.userRepository = userRepository;
@@ -281,13 +281,13 @@ public class MarkdownReaderUtil {
     private LearningUnit findOrCreateLearningUnit(
             String name, String typeName, LearningUnit parent, User creator, String code) {
 
-        LearningUnitType type = learningUnitTypeRepository.findByName(typeName).orElse(null);
+        LearningUnitType type = exerciseCategoryRepository.findByName(typeName).orElse(null);
 
         if (type == null) {
             type = new LearningUnitType();
             type.setName(typeName);
             type.setLevel(getLevelForType(typeName));
-            type = learningUnitTypeRepository.save(type);
+            type = exerciseCategoryRepository.save(type);
         }
 
         LearningUnitType finalType = type;

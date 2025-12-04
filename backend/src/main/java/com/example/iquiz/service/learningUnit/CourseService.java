@@ -7,7 +7,7 @@ import com.example.iquiz.entity.User;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.mapper.LearningUnitMapper;
 import com.example.iquiz.repository.LearningUnitRepository;
-import com.example.iquiz.repository.LearningUnitTypeRepository;
+import com.example.iquiz.repository.ExerciseCategoryRepository;
 import com.example.iquiz.utility.UserUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class CourseService {
     @Autowired
     private UserUtil userUtil;
     @Autowired
-    private LearningUnitTypeRepository learningUnitTypeRepository;
+    private ExerciseCategoryRepository exerciseCategoryRepository;
     @Autowired
     private LearningUnitMapper learningUnitMapper;
     @Autowired
@@ -28,7 +28,7 @@ public class CourseService {
 
     public List<CourseDto> getAllCoursesWithAuth() {
         User user = userUtil.getUserFromAuthContext();
-        LearningUnitType type = learningUnitTypeRepository.findByName("Course")
+        LearningUnitType type = exerciseCategoryRepository.findByName("Course")
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", "Course"));
 
         List<CourseDto> courseDtos = null;
@@ -45,7 +45,7 @@ public class CourseService {
 
     public CourseDto saveCourse(CourseDto dto) {
         User user = userUtil.getUserFromAuthContext();
-        LearningUnitType type = learningUnitTypeRepository.findByName("Course")
+        LearningUnitType type = exerciseCategoryRepository.findByName("Course")
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", "Course"));
 
         LearningUnit entity = learningUnitMapper.courseDtoToEntity(dto);

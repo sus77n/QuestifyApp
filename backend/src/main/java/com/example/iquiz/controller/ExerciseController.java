@@ -30,15 +30,6 @@ public class ExerciseController {
         return ApiResponse.success(options, "Exercise options fetched successfully");
     }
 
-    @GetMapping
-    public ApiResponse<List<ExerciseResponseDto>> getExercises(
-            @RequestParam(required = false) UUID lessonId,
-            @RequestParam(required = false) UUID typeId
-    ) {
-        List<ExerciseResponseDto> exercises = exerciseService.getExercises(lessonId, typeId);
-        return ApiResponse.success(exercises, "Exercises fetched successfully");
-    }
-
     @PostMapping
     public ApiResponse<ExerciseResponseDto> createExercise(@RequestBody ExerciseRequestDto dto) {
         ExerciseResponseDto created = exerciseService.saveExercise(dto);

@@ -3,6 +3,7 @@ package com.example.iquiz.mapper;
 import com.example.iquiz.dto.answer.OptionDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.exercise.ExerciseRequestDto;
+import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.exception.ResourceNotFoundException;
@@ -37,23 +38,21 @@ public class ExerciseMapper {
 
         Exercise entity = new Exercise();
         entity.setQuestion(dto.question());
-        entity.setType(ExerciseType.valueOf(dto.type()));
-        entity.setCorrectAnswerJson(dto.answer());
-        entity.setDifficulty(dto.difficulty());
-
-        // Set predefined answers only if provided and appropriate for the exercise type
-        if (dto.options() != null && !dto.options().isEmpty()) {
-            entity.setPredefinedAnswers(dto.options().stream()
-                    .map(answerMapper::toEntity)
-                    .peek(op -> op.setExercise(entity))
-                    .toList());
-        } else {
-            entity.setPredefinedAnswers(new ArrayList<>());
-        }
-
-        entity.setParent(learningUnitRepository.findById(dto.parentUnitId())
-                .orElseThrow(() -> new ResourceNotFoundException("Learning unit", "id", dto.parentUnitId())));
+        entity.setType(dto.type());
+        entity.setDifficulty(dto.difficulty() != null ? dto.difficulty() : 3);
 
         return entity;
+    }
+
+    public ExerciseWithAnswerDto toDtoWithAnswer(Exercise entity) {
+        return new ExerciseWithAnswerDto(
+                entity.getId(),
+                entity.getQuestion(),
+                entity.getType().toString(),
+                entity.getDifficulty(),
+                entity.getPredefinedAnswers() != null ?
+                        answerMapper.toDtoList(entity.getPredefinedAnswers()) : new ArrayList<OptionDto>(),
+                ExerciseTypeUtil.removeCorrectAnswerJson(entity.getCorrectAnswerJson())
+        );
     }
 }

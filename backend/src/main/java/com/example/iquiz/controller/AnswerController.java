@@ -1,7 +1,6 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
-import com.example.iquiz.dto.answer.AnswerRequestDto;
 import com.example.iquiz.dto.answer.OptionDto;
 import com.example.iquiz.service.AnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +27,12 @@ public class AnswerController {
     }
 
     @PostMapping
-    public ApiResponse<OptionDto> create(@RequestBody AnswerRequestDto dto) {
+    public ApiResponse<OptionDto> create(@RequestBody OptionDto dto) {
         return ApiResponse.success(answerService.saveOption(dto), "Option created successfully");
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<OptionDto> update(@PathVariable UUID id, @RequestBody AnswerRequestDto dto) {
+    public ApiResponse<OptionDto> update(@PathVariable UUID id, @RequestBody OptionDto dto) {
         return ApiResponse.success(answerService.updateOption(id, dto), "Option updated successfully");
     }
 

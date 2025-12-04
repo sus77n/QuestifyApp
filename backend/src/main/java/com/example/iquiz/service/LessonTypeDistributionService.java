@@ -1,36 +1,35 @@
 package com.example.iquiz.service;
 
-import com.example.iquiz.entity.LessonTypeDistribution;
-import com.example.iquiz.entity.LessonTypeDistributionId;
+import com.example.iquiz.entity.ExerciseCategoryDistribution;
+import com.example.iquiz.entity.ExerciseCategoryDistributionId;
 import com.example.iquiz.exception.ResourceNotFoundException;
-import com.example.iquiz.repository.LessonTypeDistributionRepository;
+import com.example.iquiz.repository.ExerciseCategoryDistributionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class LessonTypeDistributionService {
 
-    private final LessonTypeDistributionRepository repo;
+    private final ExerciseCategoryDistributionRepository repo;
 
-    public LessonTypeDistribution save(LessonTypeDistribution dist) {
+    public ExerciseCategoryDistribution save(ExerciseCategoryDistribution dist) {
         return repo.save(dist);
     }
 
-    public LessonTypeDistribution findById(LessonTypeDistributionId id) {
+    public ExerciseCategoryDistribution findById(ExerciseCategoryDistributionId id) {
         return repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("LessonTypeDistribution not found", "LessonTypeDistribution", id));
     }
 
-    public List<LessonTypeDistribution> findByLesson(UUID lessonId) {
-        return repo.findByLessonId(lessonId);
+    public List<ExerciseCategoryDistribution> findByLesson(UUID lessonId) {
+        return repo.findByParentLessonId(lessonId);
     }
 
-    public void delete(LessonTypeDistributionId id) {
+    public void delete(ExerciseCategoryDistributionId id) {
         repo.deleteById(id);
     }
 }
