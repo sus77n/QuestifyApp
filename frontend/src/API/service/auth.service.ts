@@ -2,18 +2,26 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { LoginDTO, LoginResponseDTO, SignupDTO } from "../../model/AuthDTO";
 import { UserDTO } from "../../model/UserDTO";
 import {customBaseQuery} from "../client/customBaseQuery";
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T | null;
+  errorCode?: string | null;
+}
+export type LoginApiResponse = ApiResponse<LoginResponseDTO>;
 
 export const authService = createApi({
   reducerPath: "authService",
   baseQuery: customBaseQuery,
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponseDTO, LoginDTO>({
-      query: (credentials) => ({
+      query: (body) => ({
         url: "/auth/login",
         method: "POST",
-        body: credentials,
+        body,
       }),
     }),
+
     signup: builder.mutation<string, SignupDTO>({
       query: (userData) => ({
         url: "/auth/register",
