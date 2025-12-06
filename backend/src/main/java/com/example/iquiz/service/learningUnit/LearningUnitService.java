@@ -1,6 +1,7 @@
 package com.example.iquiz.service.learningUnit;
 
 import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
+import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
 import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,6 +80,25 @@ public class LearningUnitService {
         entity.setParent(parent);
         entity = learningUnitRepository.save(entity);
         return learningUnitMapper.toDto(entity);
+    }
+
+    public List<LearningUnit> saveGeneratedCategoriesBulk(UUID parentId, List<CreateExerciseCategoryDto> dtos) {
+        User user = userUtil.getUserFromAuthContext();
+        List<LearningUnit> learningUnits = dtos.stream().map(dto -> {;
+            LearningUnit parent = learningUnitRepository.findById(parentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", parentId));
+
+            LearningUnitType type = exerciseCategoryRepository.findByName(dto.type())
+                    .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", dto.type()));
+
+            LearningUnit unit = learningUnitMapper.generatedCategoryToEntity(dto);
+            unit.setParent(parent);
+            unit.setType(type);
+            unit.setCreatedBy(user);
+
+            return unit;
+        }).toList();
+        return learningUnitRepository.saveAll(learningUnits);
     }
 
     public LearningUnitDto updateLearningUnit(UUID id, LearningUnitDto dto) {

@@ -2,6 +2,7 @@ package com.example.iquiz.utility;
 
 import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.exception.ApiException;
+import com.example.iquiz.exception.ConflictException;
 import com.example.iquiz.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -37,7 +38,7 @@ public class ExerciseTypeUtil {
             answer.put("correctAnswers", correctAnswers != null ? correctAnswers : List.of());
             return objectMapper.writeValueAsString(answer);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to create correct answer JSON", e);
+            throw new ConflictException("Failed to create correct answer JSON");
         }
     }
 
@@ -57,7 +58,7 @@ public class ExerciseTypeUtil {
             if (root.isObject()) {
                 JsonNode answersNode = root.get("correctAnswers");
                 if (answersNode != null && answersNode.isArray()) {
-                    return objectMapper.convertValue(answersNode, new TypeReference<List<Object>>() {
+                    return objectMapper.convertValue(answersNode, new TypeReference<>() {
                     });
                 }
             }
@@ -73,8 +74,9 @@ public class ExerciseTypeUtil {
 
     public static List<String> parseToList(String json) {
         return parseAnswers(json).stream()
-                .filter(v -> v instanceof String)
-                .map(v -> v.toString())
+                .filter(Objects::nonNull)
+                .filter(v -> v instanceof String || v instanceof Number)
+                .map(Object::toString)
                 .collect(Collectors.toList());
     }
 

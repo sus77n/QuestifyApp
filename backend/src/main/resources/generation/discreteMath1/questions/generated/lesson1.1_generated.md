@@ -1,7 +1,7 @@
 ## #Course #Discrete Mathematics 1 #C1
 ## #Topic #Propositional Logic #C1-CH1
 ## #Lesson #Propositional Logic #C1-CH1-L1
-## #Exercise Category #General Practice #C1-CH1-L1-EC1
+## #Exercise Category #Original Exercises #C1-CH1-L1-EC1
 
 ### EX C1-CH1-L1.1
 **Difficulty**: 2  

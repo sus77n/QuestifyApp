@@ -54,8 +54,8 @@ public class ExerciseService {
         Exercise exercise = exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Exercise", "id", exerciseId));
 
-        LearningUnit parent = learningUnitRepository.findById(dto.lessonId())
-                .orElseThrow(() -> new ResourceNotFoundException("Parent Unit (LU)", "id", dto.lessonId()));
+        LearningUnit parent = learningUnitRepository.findById(dto.parentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parent Unit (LU)", "id", dto.parentId()));
         exercise.setParent(parent);
 
         exercise.setCorrectAnswerJson(ExerciseTypeUtil.createDefaultAnswer(dto.type(), dto.correctAnswers()));
@@ -80,20 +80,20 @@ public class ExerciseService {
     public ExerciseResponseDto saveExercise(ExerciseRequestDto dto) {
         Exercise exercise = exerciseMapper.toEntity(dto);
 
-        LearningUnit lesson = learningUnitRepository.findWithChildren(dto.lessonId())
-                .orElseThrow(() -> new ResourceNotFoundException("Parent Unit (LU)", "id", dto.lessonId()));
-        List<LearningUnit> exCate = lesson.getChildren();
+        LearningUnit parent = learningUnitRepository.findWithChildren(dto.parentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parent Unit (LU)", "id", dto.parentId()));
+
         LearningUnit defaultCategory;
-        if (exCate == null || exCate.isEmpty()) {
+        if (!parent.getType().getName().equalsIgnoreCase("Exercise Category")) {
             defaultCategory = new LearningUnit();
             defaultCategory.setName("Original Exercises");
-            defaultCategory.setParent(lesson);
-            defaultCategory.setCreatedBy(lesson.getCreatedBy());
+            defaultCategory.setParent(parent);
+            defaultCategory.setCreatedBy(parent.getCreatedBy());
             defaultCategory.setType(exerciseCategoryRepository.findByName("Exercise Category")
                     .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", "Exercise Category")));
             defaultCategory = learningUnitRepository.save(defaultCategory);
         } else {
-            defaultCategory = exCate.get(0);
+            defaultCategory = parent;
         }
         exercise.setParent(defaultCategory);
 

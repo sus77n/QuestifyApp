@@ -4,8 +4,11 @@ import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.answer.OptionDto;
+import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
+import com.example.iquiz.service.AIService;
 import com.example.iquiz.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +19,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ExerciseController {
 
+    @Autowired
     private final ExerciseService exerciseService;
+
+    @Autowired
+    private final AIService aIService;
 
     @GetMapping("/{id}")
     public ApiResponse<ExerciseResponseDto> getExercise(@PathVariable UUID id) {
@@ -38,7 +45,7 @@ public class ExerciseController {
 
     @PutMapping("/{id}")
     public ApiResponse<ExerciseResponseDto> updateExercise(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @RequestBody ExerciseRequestDto dto
     ) {
         ExerciseResponseDto updated = exerciseService.updateExercise(id, dto);
@@ -50,4 +57,5 @@ public class ExerciseController {
         exerciseService.deleteExercise(id);
         return ApiResponse.success(null, "Exercise deleted successfully");
     }
+
 }

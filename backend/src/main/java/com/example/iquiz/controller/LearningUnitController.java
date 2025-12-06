@@ -1,19 +1,16 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
-import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
+import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
 import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.entity.Exercise;
-import com.example.iquiz.entity.LearningUnit;
-import com.example.iquiz.mapper.ExerciseMapper;
-import com.example.iquiz.repository.ExerciseRepository;
-import com.example.iquiz.repository.LearningUnitRepository;
+import com.example.iquiz.service.AIService;
 import com.example.iquiz.service.learningUnit.LearningUnitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,10 +21,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LearningUnitController {
 
+    @Autowired
     private final LearningUnitService learningUnitService;
-    private final ExerciseRepository exerciseRepository;
-    private final ExerciseMapper exerciseMapper;
-    private final LearningUnitRepository learningUnitRepository;
+
+    @Autowired
+    private final AIService aIService;
 
     @GetMapping
     public ApiResponse<List<LearningUnitDto>> getAll() {
@@ -108,5 +106,17 @@ public class LearningUnitController {
     public ApiResponse<List<ExerciseWithAnswerDto>> getExerciseIdsByCourseId(@PathVariable UUID id) {
         List<ExerciseWithAnswerDto> exerciseDtos = learningUnitService.getExerciseIdsByLearningUnitId(id);
         return ApiResponse.success(exerciseDtos, "Fetched exercises for the course");
+    }
+
+    @PostMapping("/generate/categories/{originalExCateId}")
+    public ApiResponse<List<CreateExerciseCategoryDto>> defineExerciseCategories(@PathVariable UUID originalExCateId) {
+        List<CreateExerciseCategoryDto> categories = aIService.defineExerciseCategory(originalExCateId);
+        return ApiResponse.success(categories, "Exercise categories defined successfully");
+    }
+
+    @PostMapping("/generate/exercises")
+    public ApiResponse<List<ExerciseWithAnswerDto>> generateExercises(@RequestParam UUID lessonId, @RequestParam List<CreateExerciseCategoryDto> categories) {
+        List exercises = aIService.generateExercises(lessonId, categories);
+        return ApiResponse.success(exercises, "Exercises generated successfully");
     }
 }

@@ -5,6 +5,7 @@ import com.example.iquiz.dto.LearningUnitTypeDto;
 import com.example.iquiz.service.LearningUnitTypeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +16,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LearningUnitTypeController {
 
-    private final LearningUnitTypeService learningUnitTypeService;
+    @Autowired
+    private LearningUnitTypeService learningUnitTypeService;
 
     @GetMapping
     public ApiResponse<List<LearningUnitTypeDto>> getLearningUnitTypes() {
@@ -49,4 +51,5 @@ public class LearningUnitTypeController {
         learningUnitTypeService.deleteLearningUnitTypeById(id);
         return ApiResponse.success(null, "Learning unit type deleted successfully");
     }
+
 }

@@ -103,25 +103,22 @@ public class SubmissionUtil {
         }
     }
 
-    // ---------------------------------------------------------
-    // MULTIPLE CHOICE
-    // ---------------------------------------------------------
     private BigDecimal scoreMultipleChoice(String userJson, String correctJson) {
-
         List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
 
         if (userHeaders.isEmpty() || correctHeaders.isEmpty()) return ZERO_SCORE;
 
-        return correctHeaders.contains(userHeaders.get(0)) ? FULL_SCORE : ZERO_SCORE;
+        if (userHeaders.size() != 1) {
+            return ZERO_SCORE;
+        }
+
+        String userChoice = userHeaders.get(0);
+        return correctHeaders.contains(userChoice) ? FULL_SCORE : ZERO_SCORE;
     }
 
 
-    // ---------------------------------------------------------
-    // SELECT MULTIPLE + TRUE / FALSE
-    // ---------------------------------------------------------
     private BigDecimal scoreSelectMultiple(String userJson, String correctJson) {
-
         List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
 
@@ -132,22 +129,25 @@ public class SubmissionUtil {
 
         if (userSet.equals(correctSet)) return FULL_SCORE;
 
-        long correctSelections = userSet.stream().filter(correctSet::contains).count();
-        long incorrectSelections = userSet.size() - correctSelections;
-        long missedSelections = correctSet.size() - correctSelections;
+        long correctSelections = userSet.stream()
+                .filter(correctSet::contains)
+                .count();
 
-        double total = correctSet.size();
-        double penalty = (incorrectSelections + missedSelections) * 0.5;
-        double ratio = Math.max(0, total - penalty) / total;
+        long incorrectSelections = userSet.size() - correctSelections;
+        int totalCorrect = correctSet.size();
+
+        if (totalCorrect == 0) {
+            return ZERO_SCORE;
+        }
+
+        double raw = (double) (correctSelections - incorrectSelections) / totalCorrect;
+
+        double ratio = Math.max(0.0, Math.min(1.0, raw));
 
         return BigDecimal.valueOf(ratio * 100).setScale(2, RoundingMode.HALF_UP);
     }
 
-    // ---------------------------------------------------------
-    // SHORT ANSWER
-    // ---------------------------------------------------------
     private BigDecimal scoreShortAnswer(String userJson, String correctJson) {
-
         List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
 
@@ -157,19 +157,29 @@ public class SubmissionUtil {
 
         // Exact match for any acceptable answer
         for (String correct : correctAnswers) {
-            boolean matches = userText.equalsIgnoreCase(correct.trim());
-            if (matches) return FULL_SCORE;
+            if (userText.equalsIgnoreCase(correct.trim())) {
+                return FULL_SCORE;
+            }
         }
 
-        // Partial credit
-        return partialShortAnswerScore(userText, correctAnswers.get(0));
+        // Partial credit: pick the best match among all acceptable answers
+        BigDecimal best = ZERO_SCORE;
+        for (String correct : correctAnswers) {
+            BigDecimal candidate = partialShortAnswerScore(userText, correct);
+            if (candidate.compareTo(best) > 0) {
+                best = candidate;
+            }
+        }
+
+        return best;
     }
 
     private BigDecimal partialShortAnswerScore(String userText, String correctText) {
-        String user = userText.toLowerCase();
-        String correct = correctText.toLowerCase();
+        String user = userText.toLowerCase().trim();
+        String correct = correctText.toLowerCase().trim();
 
-        if (userText.equalsIgnoreCase(correctText)) return FULL_SCORE;
+        // Quick equality check (for safety, though usually caught earlier)
+        if (user.equals(correct)) return FULL_SCORE;
 
         String[] userWords = user.split("\\s+");
         String[] correctWords = correct.split("\\s+");
@@ -178,7 +188,9 @@ public class SubmissionUtil {
         int matched = 0;
 
         for (String w : userWords) {
-            if (w.length() > 3 && correctSet.contains(w)) matched++;
+            if (w.length() > 3 && correctSet.contains(w)) {
+                matched++;
+            }
         }
 
         double ratio = (double) matched / correctWords.length;
@@ -190,9 +202,6 @@ public class SubmissionUtil {
         return ZERO_SCORE;
     }
 
-    // ---------------------------------------------------------
-    // MATCHING
-    // ---------------------------------------------------------
     private BigDecimal scoreMatching(String userJson, String correctJson) {
 
         List<ExerciseTypeUtil.MatchingPair> userPairs =
@@ -219,10 +228,6 @@ public class SubmissionUtil {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-
-    // ---------------------------------------------------------
-    // REORDERING
-    // ---------------------------------------------------------
     private BigDecimal scoreReordering(String userJson, String correctJson) {
 
         List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
@@ -241,9 +246,6 @@ public class SubmissionUtil {
     }
 
 
-    // ---------------------------------------------------------
-    // FILL IN THE BLANK
-    // ---------------------------------------------------------
     private BigDecimal scoreFillInBlank(String userJson, String correctJson) {
         List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
@@ -261,9 +263,6 @@ public class SubmissionUtil {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    // ---------------------------------------------------------
-    // HELPERS
-    // ---------------------------------------------------------
     private void logCalculationError(UUID exerciseId, String userAnswer, String correctAnswer, Exception e) {
         System.out.println("Unable to calculate score for exercise id: " + exerciseId);
         System.out.println("User answer: " + userAnswer);

@@ -12,6 +12,6 @@ public record ExerciseRequestDto(
         String correctAnswers,
         Integer difficulty,
         List<OptionDto> options,
-        UUID lessonId
+        UUID parentId
 ) {
 }

@@ -1,27 +1,20 @@
 package com.example.iquiz.service;
 
-import com.example.iquiz.exception.ConflictException;
+import com.example.iquiz.enums.PromptTemplate;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class MarkdownService {
 
-
-    public String markdownToString(File markdown) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(markdown))) {
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-            }
-            return stringBuilder.toString();
+    public String loadPrompt(PromptTemplate name) {
+        try {
+            ClassPathResource resource = new ClassPathResource("prompts/" + name.getFileName());
+            return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new ConflictException("markdown to string error");
+            throw new IllegalStateException("Failed to load prompt: " + name, e);
         }
     }
 }

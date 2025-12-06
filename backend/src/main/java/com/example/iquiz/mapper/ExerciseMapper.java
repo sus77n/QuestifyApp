@@ -17,8 +17,6 @@ import java.util.ArrayList;
 @Component
 public class ExerciseMapper {
     @Autowired
-    private LearningUnitRepository learningUnitRepository;
-    @Autowired
     private AnswerMapper answerMapper;
 
     public ExerciseResponseDto toDto(Exercise entity) {

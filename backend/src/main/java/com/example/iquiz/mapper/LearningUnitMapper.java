@@ -1,6 +1,7 @@
 package com.example.iquiz.mapper;
 
 import com.example.iquiz.dto.learningUnit.CourseDto;
+import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
 import com.example.iquiz.dto.learningUnit.LearningUnitDto;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.utility.LearningUnitUtil;
@@ -152,5 +153,19 @@ public class LearningUnitMapper {
                 entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName(),
                 entity.getCreatedAt()
         );
+    }
+
+    public LearningUnit generatedCategoryToEntity(CreateExerciseCategoryDto dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        LearningUnit unit = new LearningUnit();
+        unit.setName(dto.name());
+        unit.setCode(dto.code());
+        unit.setDescription(dto.description());
+        unit.setStatus(1);
+
+        return unit;
     }
 }

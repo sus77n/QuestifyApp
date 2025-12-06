@@ -22,7 +22,6 @@ import java.util.regex.Pattern;
 @Component
 public class MarkdownReaderUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(MarkdownReaderUtil.class);
     private static final String BASE_DICTIONARY =
             "src/main/resources/generation/discreteMath1/questions/generated/";
 
@@ -84,7 +83,6 @@ public class MarkdownReaderUtil {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", creatorId));
 
         try (BufferedReader reader = new BufferedReader(new FileReader(BASE_DICTIONARY + markdownPath))) {
-
             LearningUnit course = null;
             LearningUnit topic = null;
             LearningUnit lesson = null;
@@ -155,9 +153,6 @@ public class MarkdownReaderUtil {
         }
     }
 
-    // =====================================================================
-    //                         EXERCISE PARSER
-    // =====================================================================
     private Exercise parseExercise(BufferedReader reader) throws IOException {
         Exercise ex = new Exercise();
         ex.setCreatedAt(LocalDateTime.now());
@@ -169,23 +164,45 @@ public class MarkdownReaderUtil {
         boolean inRight = false;
         boolean inOptions = false;
 
+        boolean inQuestion = false;
+        StringBuilder questionBuf = new StringBuilder();
+
         String line;
 
-        // mark once at start
         reader.mark(10000);
 
         while ((line = reader.readLine()) != null) {
-
             String trimmed = line.trim();
             if (trimmed.isEmpty()) continue;
 
-            // If next exercise starts, exit now
             if (trimmed.startsWith("### EX")) {
-                reader.reset();  // go back so outer loop sees this EX header
+                if (inQuestion && ex.getQuestion() == null) {
+                    ex.setQuestion(questionBuf.toString().trim());
+                    inQuestion = false;
+                }
+
+                reader.reset();
                 break;
             }
 
             reader.mark(10000);
+
+            if (inQuestion) {
+                if (trimmed.startsWith("**Options**")
+                        || trimmed.startsWith("**OptionsLeft**")
+                        || trimmed.startsWith("**OptionsRight**")
+                        || trimmed.startsWith("**Answer**")) {
+
+                    ex.setQuestion(questionBuf.toString().trim());
+                    inQuestion = false;
+                } else {
+                    if (questionBuf.length() > 0) {
+                        questionBuf.append("\n");
+                    }
+                    questionBuf.append(line);
+                    continue;
+                }
+            }
 
             Matcher md = DIFFICULTY_PATTERN.matcher(trimmed);
             if (md.matches()) {
@@ -199,11 +216,18 @@ public class MarkdownReaderUtil {
                 continue;
             }
 
-            Matcher mq = QUESTION_PATTERN.matcher(trimmed);
-            if (mq.matches()) {
-                ex.setQuestion(mq.group(1).trim());
+            if (trimmed.startsWith("**Question**:")) {
+                String after = trimmed.substring("**Question**:".length()).trim();
+
+                if (!after.isEmpty()) {
+                    ex.setQuestion(after);
+                } else {
+                    inQuestion = true;
+                    questionBuf.setLength(0);
+                }
                 continue;
             }
+
 
             if (OPTIONS_PATTERN.matcher(trimmed).matches()) {
                 inOptions = true;
@@ -261,6 +285,14 @@ public class MarkdownReaderUtil {
             }
         }
 
+        if (inQuestion && ex.getQuestion() == null) {
+            ex.setQuestion(questionBuf.toString().trim());
+        }
+
+        if (ex.getQuestion() == null || ex.getQuestion().isBlank()) {
+            throw new IllegalStateException("Parsed exercise has null/blank question");
+        }
+
         Exercise saved = exerciseRepository.save(ex);
 
         for (Answer a : options) {
@@ -273,11 +305,6 @@ public class MarkdownReaderUtil {
         return exerciseRepository.save(saved);
     }
 
-
-
-    // =====================================================================
-    //                   LEARNING UNIT HELPER
-    // =====================================================================
     private LearningUnit findOrCreateLearningUnit(
             String name, String typeName, LearningUnit parent, User creator, String code) {
 
