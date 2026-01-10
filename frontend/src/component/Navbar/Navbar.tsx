@@ -45,7 +45,7 @@ const Navbar = () => {
   return (
     <>
       {/* Desktop Navigation (hidden on mobile) */}
-      <div className="hidden md:block h-screen mr-0">
+      <div className="hidden md:block h-screen mr-0 bg-light-background">
         <nav className="m-[8px] mr-0 bg-text-color h-[98vh] w-[80px] rounded-xl flex flex-col items-center pt-2">
           {/* Desktop nav content */}
           <NavIcon

@@ -167,14 +167,14 @@ export default function TeacherCourse() {
         {
             title: "Actions",
             key: "actions",
-            width: 260,
+            width: 350,
             render: (_, record: CourseDTO) => (
                 <Space>
                     {/* Edit */}
                     <MyButton icon={<EditOutlined />} onClick={() => openEditModal(record)}/>
 
                     {/* Manage Lesson */}
-                    <MyButton text="Lessons" icon={<BookOutlined />} onClick={() => navigate(`/teacher/course/${record.id}/lessons`)}/>
+                    <MyButton text="Manage Lessons" icon={<BookOutlined />} onClick={() => navigate(`/teacher/course/${record.id}/lessons`)}/>
 
                     {/* Delete */}
                     <Popconfirm

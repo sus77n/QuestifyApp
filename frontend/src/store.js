@@ -6,6 +6,8 @@ import { learningUnitService } from "./API/service/learningUnit.service";
 import { submissionService } from "./API/service/submission.service";
 import { attemptService} from "./API/service/attempt.service";
 import { courseService} from "./API/service/course.service";
+import {apiErrorMiddleware} from "./apiErrorMiddleware";
+import {lessonConfigService} from "./API/service/lessonConfig.service";
 
 
 export const store = configureStore({
@@ -17,6 +19,7 @@ export const store = configureStore({
     [submissionService.reducerPath]: submissionService.reducer,
     [attemptService.reducerPath]: attemptService.reducer,
     [courseService.reducerPath]: courseService.reducer,
+    [lessonConfigService.reducerPath]:lessonConfigService.reducer,
 
   },
   middleware: (getDefaultMiddleware) =>
@@ -28,5 +31,7 @@ export const store = configureStore({
       submissionService.middleware,
         attemptService.middleware,
         courseService.middleware,
+        lessonConfigService.middleware,
+        apiErrorMiddleware,
     ),
 });
