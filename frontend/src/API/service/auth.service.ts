@@ -8,7 +8,6 @@ export interface ApiResponse<T> {
   data: T | null;
   errorCode?: string | null;
 }
-export type LoginApiResponse = ApiResponse<LoginResponseDTO>;
 
 export const authService = createApi({
   reducerPath: "authService",

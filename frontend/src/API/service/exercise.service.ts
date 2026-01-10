@@ -35,6 +35,7 @@ export const exerciseService = createApi({
 
     updateExercise: builder.mutation<ExerciseDTO, { id: string; data: ExerciseDTO }>({
       query: ({ id, data }) => ({
+
         url: `/exercises/${id}`,
         method: "PUT",
         body: data,

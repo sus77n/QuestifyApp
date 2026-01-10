@@ -40,26 +40,30 @@ export default function ManageLearningUnits() {
     const courseName = treeData?.name || "Course";
 
     const mapTree = (
-        nodes: LearningUnitWithChildren[],
+        nodes: LearningUnitWithChildren[] | null | undefined,
         prefix: string = ""
     ): any[] => {
-        return nodes.map((node, index) => {
-            const currentNumber = prefix
-                ? `${prefix}.${index + 1}`
-                : `${index + 1}`;
 
-            return {
-                key: node.id,
-                numbering: currentNumber,
-                name: node.name,
-                children: Array.isArray(node.children)
-                    ? mapTree(node.children, currentNumber)
-                    : [],
-                raw: node,
-            };
-        });
+        if (!Array.isArray(nodes)) return [];
+
+        return nodes
+            .filter((node) => node !== null && node !== undefined)
+            .map((node, index) => {
+                const currentNumber = prefix
+                    ? `${prefix}.${index + 1}`
+                    : `${index + 1}`;
+
+                return {
+                    key: node.id,
+                    numbering: currentNumber,
+                    name: node.name,
+                    children: Array.isArray(node.children)
+                        ? mapTree(node.children, currentNumber)
+                        : [],
+                    raw: node,
+                };
+            });
     };
-
 
     const rootNodes: LearningUnitWithChildren[] =
         treeData?.children ?? [];
@@ -81,7 +85,6 @@ export default function ManageLearningUnits() {
 
     const [form] = Form.useForm();
 
-    // ----------- OPEN MODAL FOR ADD -----------
     const openAddModal = (parentId: string | null) => {
         setModalMode("add");
         setCurrentParentId(parentId);
@@ -89,7 +92,6 @@ export default function ManageLearningUnits() {
         setIsModalOpen(true);
     };
 
-    // ----------- OPEN MODAL FOR EDIT -----------
     const openEditModal = (unit: LearningUnitWithChildren) => {
         setModalMode("edit");
         setEditingUnit(unit);
@@ -97,7 +99,6 @@ export default function ManageLearningUnits() {
         setIsModalOpen(true);
     };
 
-    // ----------- SUBMIT MODAL -----------
     const handleSubmit = async () => {
         const values = await form.validateFields();
 
@@ -123,7 +124,6 @@ export default function ManageLearningUnits() {
         }
     };
 
-    // ----------- DELETE -----------
     const handleDelete = async (id: string) => {
         try {
             await deleteUnit(id).unwrap();
@@ -135,12 +135,10 @@ export default function ManageLearningUnits() {
     };
 
 
-    // ----------- TABLE COLUMNS -----------
     const columns = [
         {
             title: "Lesson",
             dataIndex: "numbering",
-            width: 120,
             render: (v: string) => <Tag color="blue">{v}</Tag>,
         },
 
@@ -157,6 +155,7 @@ export default function ManageLearningUnits() {
             render: (_: any, record: any) => {
                 const unit = record.raw;
                 const isLeaf = !unit.children || unit.children.length === 0;
+                const noExercise = unit.numberOfExercise === 0;
 
                 return (
                     <Space>
@@ -167,23 +166,31 @@ export default function ManageLearningUnits() {
                         >
                             Name
                         </Button>
-                        <MyButton height="h-[35px]" text="Add Sub" icon={<PlusOutlined />}
-                                  onClick={() => openAddModal(unit.id)}/>
 
+                        {noExercise && (
+                            <MyButton
+                                height="h-[35px]"
+                                text="Add Sub"
+                                icon={<PlusOutlined />}
+                                onClick={() => openAddModal(unit.id)}
+                            />
+                        )}
 
-                        {/* Manage Exercise (only leaf nodes) */}
                         {isLeaf && (
-                            <MyButton text="Manage Exercise" height="h-[35px]" icon={<ApartmentOutlined />}
-                                      onClick={() =>
-                                          navigate(`/teacher/learning-unit/${unit.id}/exercises`, {
-                                              state: {
-                                                  lessonName: unit.name,
-                                                  courseName: courseName,
-                                                  courseId: courseId
-                                              }
-                                          })
-                                      }/>
-
+                            <MyButton
+                                text="Manage Exercise"
+                                height="h-[35px]"
+                                icon={<ApartmentOutlined />}
+                                onClick={() =>
+                                    navigate(`/teacher/learning-unit/${unit.id}/exercises`, {
+                                        state: {
+                                            lessonName: unit.name,
+                                            courseName: courseName,
+                                            courseId: courseId
+                                        }
+                                    })
+                                }
+                            />
                         )}
 
                         {/* Delete */}
@@ -193,7 +200,6 @@ export default function ManageLearningUnits() {
                         >
                             <Button type="dashed" danger icon={<DeleteOutlined />} />
                         </Popconfirm>
-
                     </Space>
                 );
             },
@@ -223,6 +229,7 @@ export default function ManageLearningUnits() {
                 <Table
                     columns={columns}
                     dataSource={tableData}
+                    tableLayout="auto"
                     loading={isLoading}
                     rowKey="key"
                     bordered
@@ -231,7 +238,6 @@ export default function ManageLearningUnits() {
                 />
             </div>
 
-            {/* Modal */}
             <Modal
                 title={modalMode === "add" ? "Add Learning Unit" : "Edit Learning Unit"}
                 open={isModalOpen}

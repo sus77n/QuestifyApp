@@ -20,9 +20,9 @@ const TeacherPage: React.FC<TeacherPageProps> = ({
                                                      children,
                                                  }) => {
     return (
-        <div className="h-screen bg-light-background w-auto p-6 ">
+        <div className="h-screen bg-light-background w-auto p-4 ">
             {/* HEADER */}
-            <div className="relative flex items-center mb-6 h-[48px]">
+            <div className="relative flex items-center mb-2 h-[48px]">
 
                 {/* LEFT: breadcrumb */}
                 <div className="flex items-center">
@@ -48,7 +48,7 @@ const TeacherPage: React.FC<TeacherPageProps> = ({
                     className="
     absolute left-1/2 -translate-x-1/2
     text-3xl font-bold text-text-color text-center
-    max-w-[400px] break-words
+    max-w-[500px] break-words
     pointer-events-none
   "
                 >

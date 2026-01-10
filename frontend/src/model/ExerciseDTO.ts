@@ -2,8 +2,9 @@ import { OptionDTO } from "./OptionDTO";
 
 export interface ExerciseDTO {
   id?: string
-  learning_unit_id?: string;
+  parentId?: string;
   question: string;
+  difficulty: number;
   correctAnswers?: string;
   type: ExerciseType;
   createdAt?: string;

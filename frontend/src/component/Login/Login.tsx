@@ -32,7 +32,6 @@ const Login = () => {
 
     try {
       const user = await login(formData).unwrap();
-
       setAuth(user);
       localStorage.setItem("token", user.token);
 

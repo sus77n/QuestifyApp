@@ -18,11 +18,14 @@ export const learningUnitService = createApi({
               : [{ type: "LearningUnit" as const, id: "LIST" }],
     }),
 
-    getLearningUnitById: builder.query<LearningUnitDTO, { userId?: string; id: string }>({
-      query: ({ userId, id }) =>
-          userId
-              ? `/learning-units/${id}?userId=${userId}`
-              : `/learning-units/${id}`,
+    getLearningUnitById: builder.query<LearningUnitDTO, { id: string; userId?: string; includeCategory?: boolean }>({
+      query: ({ id, userId, includeCategory }) => ({
+        url: `/learning-units/${id}`,
+        params: {
+          userId,
+          includeCategory,
+        },
+      }),
     }),
 
     getLearningUnitWithChildren: builder.query<LearningUnitWithChildren, { id: string }>({
