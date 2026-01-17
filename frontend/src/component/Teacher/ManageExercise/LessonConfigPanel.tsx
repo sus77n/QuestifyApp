@@ -4,7 +4,6 @@ import { CogIcon } from "@heroicons/react/24/solid";
 import { CheckOutlined, SaveOutlined } from "@ant-design/icons";
 
 import {
-    useGetLessonConfigsQuery,
     useCreateLessonConfigMutation,
     useUpdateLessonConfigMutation,
 } from "../../../API/service/lessonConfig.service";
@@ -12,21 +11,17 @@ import { LessonConfigDTO } from "../../../model/LessonConfigDTO";
 
 interface Props {
     lessonId: string;
+    data?: LessonConfigDTO | null;
 }
 
-const LessonConfigPanel: React.FC<Props> = ({ lessonId }) => {
+const LessonConfigPanel: React.FC<Props> = ({ lessonId, data }) => {
     const [form] = Form.useForm();
-
-    const { data: configs, isLoading, isFetching } = useGetLessonConfigsQuery(
-        { lessonId },
-        { skip: !lessonId }
-    );
-
     const [createConfig, { isLoading: isCreating }] = useCreateLessonConfigMutation();
     const [updateConfig, { isLoading: isUpdating }] = useUpdateLessonConfigMutation();
+    const currentConfig = data;
 
-    const currentConfig = configs || null ;
-    const isBusy = isLoading || isFetching || isCreating || isUpdating;
+    // 4. isBusy chỉ còn là trạng thái đang lưu
+    const isBusy = isCreating || isUpdating;
 
     useEffect(() => {
         if (currentConfig) {
@@ -55,6 +50,7 @@ const LessonConfigPanel: React.FC<Props> = ({ lessonId }) => {
                 }).unwrap();
                 message.success("Lesson config updated!");
             } else {
+                // Create
                 await createConfig({
                     lessonId,
                     ...payload,
@@ -80,7 +76,6 @@ const LessonConfigPanel: React.FC<Props> = ({ lessonId }) => {
                     <CogIcon width={20} className="text-text-color" />
                     <p className="text-text-color font-semibold">Lesson Config</p>
                 </div>
-                {/* Nút Save nhỏ gọn */}
                 <Button
                     type="primary"
                     size="small"

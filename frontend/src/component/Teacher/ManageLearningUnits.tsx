@@ -154,8 +154,14 @@ export default function ManageLearningUnits() {
             width: 470,
             render: (_: any, record: any) => {
                 const unit = record.raw;
-                const isLeaf = !unit.children || unit.children.length === 0;
+
+                const hasChildren = unit.children && unit.children.length > 0;
+                const isLeaf = !hasChildren;
                 const noExercise = unit.numberOfExercise === 0;
+
+                const showAddSub = noExercise || hasChildren;
+                const shouldInitializeFirst = isLeaf && noExercise;
+                console.log(`should init: ${shouldInitializeFirst} and ${unit.id}` );
 
                 return (
                     <Space>
@@ -167,7 +173,8 @@ export default function ManageLearningUnits() {
                             Name
                         </Button>
 
-                        {noExercise && (
+                        {/* Add Sub Button */}
+                        {showAddSub && (
                             <MyButton
                                 height="h-[35px]"
                                 text="Add Sub"
@@ -176,6 +183,7 @@ export default function ManageLearningUnits() {
                             />
                         )}
 
+                        {/* Manage Exercise Button */}
                         {isLeaf && (
                             <MyButton
                                 text="Manage Exercise"
@@ -186,7 +194,8 @@ export default function ManageLearningUnits() {
                                         state: {
                                             lessonName: unit.name,
                                             courseName: courseName,
-                                            courseId: courseId
+                                            courseId: courseId,
+                                            shouldInit: shouldInitializeFirst
                                         }
                                     })
                                 }
@@ -202,8 +211,8 @@ export default function ManageLearningUnits() {
                         </Popconfirm>
                     </Space>
                 );
+            }
             },
-        },
     ];
 
     return (
@@ -216,7 +225,7 @@ export default function ManageLearningUnits() {
             ]}
             extra={
                 <MyButton
-                    text="Add Chapter"
+                    text="Add Lesson"
                     icon={<PlusOutlined />}
                     onClick={() => openAddModal(courseId!)}
                 />

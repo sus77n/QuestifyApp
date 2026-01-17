@@ -1,6 +1,12 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import {CourseDTO, LearningUnitDTO, LearningUnitWithChildren} from "../../model/LearningUnitDTO";
+import {
+  CourseDTO,
+  LearningUnitDTO,
+  LearningUnitWithChildren,
+  LearningUnitWithLessonConfig
+} from "../../model/LearningUnitDTO";
 import { customBaseQuery } from "../client/customBaseQuery";
+import {ExerciseDTO} from "../../model/ExerciseDTO";
 
 export const learningUnitService = createApi({
   reducerPath: "learningUnitService",
@@ -26,6 +32,24 @@ export const learningUnitService = createApi({
           includeCategory,
         },
       }),
+      providesTags: (result, error, arg) => [{ type: "LearningUnit", id: arg.id }],
+    }),
+
+
+    getLearningUnitDetailsById: builder.query<LearningUnitDTO, { id: string}>({
+      query: ({ id }) => ({
+        url: `/learning-units/${id}/lesson-details`,
+      }),
+      providesTags: (result, error, arg) => [{ type: "LearningUnit", id: arg.id }],
+    }),
+
+
+    initializeLessonConfigAndCate: builder.mutation<LearningUnitWithLessonConfig, { id: string }>({
+      query: ({ id }) => ({
+        url: `/learning-units/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: "LearningUnit", id: arg.id }],
     }),
 
     getLearningUnitWithChildren: builder.query<LearningUnitWithChildren, { id: string }>({
@@ -74,6 +98,22 @@ export const learningUnitService = createApi({
     getAllIncompletedCoursesByUserId: builder.query<CourseDTO[], string>({
       query: (userId) => `/learning-units/courses/incompleted/${userId}`,
     }),
+
+    generateCategoryContent: builder.mutation<LearningUnitDTO[], { originalExCateId: string }>({
+      query: ({ originalExCateId }) => ({
+        url: `/learning-units/generate/categories/${originalExCateId}`,
+        method: "POST",
+      }),
+    }),
+
+    // 2. Generate Exercises: Trả về 10 câu hỏi (Preview)
+    generateExercises: builder.mutation<ExerciseDTO[], { categories : string[], learningUnitId: string }>({
+      query: (body) => ({
+        url: `/learning-units/generate/exercises`,
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -89,4 +129,8 @@ export const {
   useGetAllCompletedCoursesByUserIdQuery,
   useGetAllIncompletedCoursesByUserIdQuery,
   useGetLearningUnitWithChildrenQuery,
+    useInitializeLessonConfigAndCateMutation,
+    useGetLearningUnitDetailsByIdQuery,
+    useGenerateCategoryContentMutation,
+    useGenerateExercisesMutation
 } = learningUnitService;

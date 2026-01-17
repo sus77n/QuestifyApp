@@ -33,6 +33,15 @@ export const exerciseService = createApi({
       invalidatesTags: [{ type: "Exercise", id: "LIST" }],
     }),
 
+    addListExercise: builder.mutation<void, { exercises: ExerciseDTO[], learningUnitId: string }>({
+      query: (body) => ({
+        url: `/bulk-create`, // Endpoint BE nhận list
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Exercise"],
+    }),
+
     updateExercise: builder.mutation<ExerciseDTO, { id: string; data: ExerciseDTO }>({
       query: ({ id, data }) => ({
 
@@ -60,5 +69,6 @@ export const {
   useCreateExerciseMutation,
   useUpdateExerciseMutation,
   useDeleteExerciseMutation,
+    useAddListExerciseMutation
 } = exerciseService;
 
