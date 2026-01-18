@@ -297,8 +297,10 @@ export default function ManageExercises() {
             parentId: ex.parentId ?? learningUnitId
         });
         setSelectedType(ex.type);
-        form.setFieldsValue({question: ex.question});
-
+        form.setFieldsValue({
+            question: ex.question,
+            parentId: ex.parentId
+        });
         let parsedCorrect: any = [];
         try {
             parsedCorrect = JSON.parse(ex.correctAnswers || "[]");

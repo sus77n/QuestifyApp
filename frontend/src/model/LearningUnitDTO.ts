@@ -26,7 +26,7 @@ export interface CourseDTO {
   id: string;
   name: string;
   code: string;
-  status: string;
+  status: number;
   description: string;
   createdAt?: string;
   updatedAt?: string;

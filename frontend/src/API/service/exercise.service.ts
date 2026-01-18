@@ -35,7 +35,7 @@ export const exerciseService = createApi({
 
     addListExercise: builder.mutation<void, { exercises: ExerciseDTO[], learningUnitId: string }>({
       query: (body) => ({
-        url: `/bulk-create`, // Endpoint BE nhận list
+        url: `/exercises/bulk`,
         method: "POST",
         body,
       }),

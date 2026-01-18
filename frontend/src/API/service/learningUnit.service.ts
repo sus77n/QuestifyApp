@@ -101,15 +101,14 @@ export const learningUnitService = createApi({
 
     generateCategoryContent: builder.mutation<LearningUnitDTO[], { originalExCateId: string }>({
       query: ({ originalExCateId }) => ({
-        url: `/learning-units/generate/categories/${originalExCateId}`,
+        url: `/ai/define/categories/${originalExCateId}`,
         method: "POST",
       }),
     }),
 
-    // 2. Generate Exercises: Trả về 10 câu hỏi (Preview)
-    generateExercises: builder.mutation<ExerciseDTO[], { categories : string[], learningUnitId: string }>({
+    generateExercises: builder.mutation<ExerciseDTO[], { categories : LearningUnitDTO[], lessonId: string }>({
       query: (body) => ({
-        url: `/learning-units/generate/exercises`,
+        url: `/ai/generate/exercises`,
         method: "POST",
         body,
       }),

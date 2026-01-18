@@ -2,15 +2,16 @@ import React from "react";
 import styled from "styled-components";
 
 export const PrimaryInput = ({
-  placeholder = "Enter text...",
-  w = "w-[330px] md:w-[500px]", // Default width
-  ...props
-}) => {
+                               placeholder = "Enter text...",
+                               w = "w-[330px] md:w-[500px]",
+                               className = "",
+                               ...props
+                             }) => {
   return (
-    <input
-      className={`
+      <input
+          className={`
         bg-white
-        h-[6vh] md:h-[60px]
+        h-[6vh] md:h-[60px] 
         ${w} 
         rounded-full
         p-4
@@ -30,13 +31,13 @@ export const PrimaryInput = ({
         focus:ring-primary
         focus:ring-opacity-50
         text-text-color
+        ${className} 
       `}
-      placeholder={placeholder}
-      {...props}
-    />
+          placeholder={placeholder}
+          {...props}
+      />
   );
 };
-
 
 interface MyButtonPr {
   text?: string;

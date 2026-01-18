@@ -25,7 +25,7 @@ const Navbar = () => {
       { icon: BookOpenIcon, label: "Courses", path: "/courses" },
     ],
     TEACHER: [
-      { icon: PresentationChartBarIcon, label: "Home", path: "/teacher/dashboard" },
+      { icon: PresentationChartBarIcon, label: "Dashboard", path: "/teacher/dashboard" },
       { icon: BookOpenIcon, label: "Courses", path: "/teacher/courses" },
 
     ],
