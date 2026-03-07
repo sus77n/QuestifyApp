@@ -148,6 +148,7 @@ export default function TeacherCourse() {
                             <Card
                                 key={course.id}
                                 hoverable
+                                onClick={() => navigate(`/teacher/course/${course.id}/lessons`)}
                                 className="shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-400 transition-all duration-300 flex flex-col h-full overflow-hidden"
                                 bodyStyle={{ padding: 0, flex: 1, display: 'flex', flexDirection: 'column' }}
                                 actions={[

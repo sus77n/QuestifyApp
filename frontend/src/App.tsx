@@ -21,6 +21,8 @@ import TeacherDashboard from "./component/Teacher/TeacherDashboard";
 import SubmitScreen from "./component/Student/SubmitScreen/SubmitScreen";
 import ManageLearningUnits from "./component/Teacher/ManageLearningUnits";
 import ManageExercises from "./component/Teacher/ManageExercise/ManageExercise";
+import ManageAttempts from "./component/Teacher/ManageAttempts";
+import ManageStudents from "./component/Teacher/ManageStudents";
 
 function App() {
   return (
@@ -59,6 +61,8 @@ function App() {
                   path="/teacher/learning-unit/:learningUnitId/exercises"
                   element={<ManageExercises />}
               />
+              <Route path="/teacher/learning-unit/:learningUnitId/attempts" element={<ManageAttempts />} />
+              <Route path="/teacher/learning-unit/:learningUnitId/students" element={<ManageStudents />} />
           </Route>
 
 

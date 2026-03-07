@@ -33,13 +33,13 @@ export const exerciseService = createApi({
       invalidatesTags: [{ type: "Exercise", id: "LIST" }],
     }),
 
-    addListExercise: builder.mutation<void, { exercises: ExerciseDTO[], learningUnitId: string }>({
-      query: (body) => ({
+    addListExercise: builder.mutation<void, any[]>({
+      query: (categories) => ({
         url: `/exercises/bulk`,
         method: "POST",
-        body,
+        body: categories
       }),
-      invalidatesTags: ["Exercise"],
+      invalidatesTags: ["Exercise"]
     }),
 
     updateExercise: builder.mutation<ExerciseDTO, { id: string; data: ExerciseDTO }>({

@@ -64,7 +64,7 @@ const LessonConfigPanel: React.FC<Props> = ({ lessonId, data }) => {
     };
 
     return (
-        <div className="col-span-2 bg-white rounded-lg shadow-xl p-4 relative h-fit">
+        <div className="col-span-2 bg-white rounded-lg shadow-xl p-4 relative h-full">
             {isBusy && (
                 <div className="absolute inset-0 z-10 bg-white/60 flex items-center justify-center rounded-lg">
                     <Spin />

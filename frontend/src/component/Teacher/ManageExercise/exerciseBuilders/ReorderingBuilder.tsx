@@ -1,10 +1,10 @@
 import React from "react";
-import { Input, Button } from "antd";
+import {Input, Button, Alert} from "antd";
 import { ExerciseBuilderProps, BuilderOption } from "./MultipleChoiceBuilder";
 
 const ReorderingBuilder: React.FC<ExerciseBuilderProps> = ({
                                                                value,
-                                                               onChange,
+                                                               onChange, error
                                                            }) => {
     const { options } = value;
 
@@ -48,23 +48,27 @@ const ReorderingBuilder: React.FC<ExerciseBuilderProps> = ({
         });
     };
 
-    const randomizeOrder = () => {
-        const shuffled = [...options].sort(() => Math.random() - 0.5);
-
-        // Gán lại header theo thứ tự random
-        const remapped = shuffled.map((o, i) => ({
-            header: String(i + 1),
-            text: o.text,
-        }));
-
-        onChange({
-            options: remapped,
-            correctAnswers: remapped.map((o) => o.header),
-        });
-    };
 
     return (
         <div className="space-y-3">
+            <Alert
+                message="Instructions"
+                description={
+                    <ul className="list-disc list-inside mt-1 text-sm text-gray-600 space-y-1">
+                        <li>In the <strong>Question</strong> box above, provide clear instructions <em>(e.g., "Arrange the following sentences in the correct order")</em>.</li>
+                        <li>Enter the items in their <strong>correct, logical order</strong> below.</li>
+                        <li><span className="text-orange-600 font-medium">Note:</span> The system will automatically shuffle these items for the students.</li>
+                        <li>Click the <strong>"+ Add Clause"</strong> button to add more items to the sequence.</li>
+                    </ul>
+                }
+                type="info"
+                showIcon
+                closable
+            />
+
+            {/* Error display */}
+            {error && <Alert message={error} type="error" showIcon className="mb-2" />}
+
             {options.map((opt, index) => (
                 <div key={index} className="flex items-center gap-2">
                     <span className="w-5 text-right">{opt.header}.</span>
@@ -90,7 +94,6 @@ const ReorderingBuilder: React.FC<ExerciseBuilderProps> = ({
                     + Add Clause
                 </Button>
 
-                <Button onClick={randomizeOrder}>Randomize</Button>
             </div>
         </div>
     );

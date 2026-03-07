@@ -1,10 +1,11 @@
 import React from "react";
-import { Input, Button } from "antd";
+import {Input, Button, Alert} from "antd";
 import { ExerciseBuilderProps } from "./MultipleChoiceBuilder";
 
 const SelectMultipleBuilder: React.FC<ExerciseBuilderProps> = ({
                                                                    value,
                                                                    onChange,
+                                                                   error,
                                                                }) => {
     const toggleCorrect = (index: number) => {
         const header = String(index + 1);
@@ -44,6 +45,23 @@ const SelectMultipleBuilder: React.FC<ExerciseBuilderProps> = ({
 
     return (
         <div className="space-y-3">
+            <Alert
+                message="Instructions"
+                description={
+                    <ul className="list-disc list-inside mt-1 text-sm text-gray-600 space-y-1">
+                        <li>After entering the question above, fill in the option text below.</li>
+                        <li>Click the <strong>"+ Add Option"</strong> button to add a new choice.</li>
+                        <li>Select the <strong>checkboxes</strong> next to the options to mark them as correct. You can select <strong>multiple</strong> correct answers.</li>
+                    </ul>
+                }
+                type="info"
+                showIcon
+                closable
+            />
+
+            {/* Error display */}
+            {error && <Alert message={error} type="error" showIcon className="mb-2" />}
+
             {value.options.map((opt, index) => (
                 <div key={index} className="flex items-center gap-2">
                     <input
@@ -58,7 +76,7 @@ const SelectMultipleBuilder: React.FC<ExerciseBuilderProps> = ({
                         onChange={(e) => handleOptionChange(index, e.target.value)}
                     />
 
-                    <Button danger size="small" onClick={() => removeOption(index)}>
+                    <Button danger type="dashed" size="small" onClick={() => removeOption(index)}>
                         X
                     </Button>
                 </div>

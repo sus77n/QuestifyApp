@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Table,
     Button,
@@ -9,12 +9,16 @@ import {
     Tag,
     Popconfirm,
     message,
+    TreeSelect, // NEW: Thêm TreeSelect để chọn nhiều lesson
 } from "antd";
 import {
     PlusOutlined,
     EditOutlined,
     DeleteOutlined,
     ApartmentOutlined,
+    TeamOutlined,      // NEW: Icon cho Manage Students
+    HistoryOutlined,   // NEW: Icon cho Manage Attempts
+    ExperimentOutlined // NEW: Icon cho Add Practice
 } from "@ant-design/icons";
 import {
     useGetLearningUnitWithChildrenQuery,
@@ -22,8 +26,8 @@ import {
     useUpdateLearningUnitMutation,
     useDeleteLearningUnitMutation,
 } from "../../API/service/learningUnit.service";
-import {LearningUnitWithChildren} from "../../model/LearningUnitDTO";
-import {useParams, useNavigate} from "react-router-dom";
+import { LearningUnitWithChildren } from "../../model/LearningUnitDTO";
+import { useParams, useNavigate } from "react-router-dom";
 import MyButton from "../material/material";
 import TeacherPage from "./TeacherPage";
 
@@ -43,7 +47,6 @@ export default function ManageLearningUnits() {
         nodes: LearningUnitWithChildren[] | null | undefined,
         prefix: string = ""
     ): any[] => {
-
         if (!Array.isArray(nodes)) return [];
 
         return nodes
@@ -65,13 +68,24 @@ export default function ManageLearningUnits() {
             });
     };
 
-    const rootNodes: LearningUnitWithChildren[] =
-        treeData?.children ?? [];
+    const rootNodes: LearningUnitWithChildren[] = treeData?.children ?? [];
 
-    const tableData = Array.isArray(rootNodes)
-        ? mapTree(rootNodes)
-        : [];
+    const tableData = useMemo(() => {
+        return Array.isArray(rootNodes) ? mapTree(rootNodes) : [];
+    }, [rootNodes]);
 
+    // NEW: Chuyển đổi dữ liệu treeData sang định dạng của TreeSelect
+    const treeSelectData = useMemo(() => {
+        const mapToTreeSelect = (nodes: LearningUnitWithChildren[]): any[] => {
+            return nodes.map(node => ({
+                title: node.name,
+                value: node.id,
+                key: node.id,
+                children: node.children ? mapToTreeSelect(node.children) : []
+            }));
+        };
+        return mapToTreeSelect(rootNodes);
+    }, [rootNodes]);
 
     const [addUnit] = useCreateLearningUnitMutation();
     const [editUnit] = useUpdateLearningUnitMutation();
@@ -83,6 +97,9 @@ export default function ManageLearningUnits() {
     const [currentParentId, setCurrentParentId] = useState<string | null>(null);
     const [editingUnit, setEditingUnit] = useState<LearningUnitWithChildren | null>(null);
 
+    // NEW: State cho form Practice
+    const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
+    const [practiceForm] = Form.useForm();
     const [form] = Form.useForm();
 
     const openAddModal = (parentId: string | null) => {
@@ -124,6 +141,30 @@ export default function ManageLearningUnits() {
         }
     };
 
+    // NEW: Xử lý khi submit form Add Practice
+    const handleAddPractice = async () => {
+        try {
+            const values = await practiceForm.validateFields();
+            console.log("Dữ liệu tạo Practice: ", values);
+
+            // TODO: Gọi API generate bài tập (gửi danh sách values.selectedLessons) lên backend ở đây
+            /*
+            await generatePracticeMutation({
+                name: values.practiceName,
+                courseId: courseId,
+                lessonIds: values.selectedLessons
+            }).unwrap();
+            */
+
+            message.success("Practice generation requested successfully!");
+            setIsPracticeModalOpen(false);
+            practiceForm.resetFields();
+            refetch();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const handleDelete = async (id: string) => {
         try {
             await deleteUnit(id).unwrap();
@@ -134,12 +175,35 @@ export default function ManageLearningUnits() {
         }
     };
 
+    const [expandedRowKeys, setExpandedRowKeys] = useState<readonly React.Key[]>([]);
+
+    const getAllKeys = (data: any[]): React.Key[] => {
+        let keys: React.Key[] = [];
+        data.forEach(item => {
+            keys.push(item.key);
+            if (item.children && item.children.length > 0) {
+                keys = [...keys, ...getAllKeys(item.children)];
+            }
+        });
+        return keys;
+    };
+
+    useEffect(() => {
+        if (tableData.length > 0) {
+            setExpandedRowKeys(getAllKeys(tableData));
+        }
+    }, [tableData]);
 
     const columns = [
         {
             title: "Lesson",
             dataIndex: "numbering",
-            render: (v: string) => <Tag color="blue">{v}</Tag>,
+            width: 130,
+            render: (v: string) => (
+                <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <Tag color="blue" style={{ margin: 0 }}>{v}</Tag>
+                </div>
+            ),
         },
 
         {
@@ -151,7 +215,7 @@ export default function ManageLearningUnits() {
         },
         {
             title: "Actions",
-            width: 470,
+            width: 850,
             render: (_: any, record: any) => {
                 const unit = record.raw;
 
@@ -161,7 +225,6 @@ export default function ManageLearningUnits() {
 
                 const showAddSub = noExercise || hasChildren;
                 const shouldInitializeFirst = isLeaf && noExercise;
-                console.log(`should init: ${shouldInitializeFirst} and ${unit.id}` );
 
                 return (
                     <Space>
@@ -172,6 +235,34 @@ export default function ManageLearningUnits() {
                         >
                             Name
                         </Button>
+
+                        {/* Delete */}
+                        <Popconfirm
+                            title="Delete this learning unit?"
+                            onConfirm={() => handleDelete(unit.id)}
+                        >
+                            <Button type="dashed" danger icon={<DeleteOutlined />} />
+                        </Popconfirm>
+
+                        {/* NEW: Manage Attempts */}
+                        <MyButton
+                            text="Manage Attempts"
+                            height="h-[35px]"
+                            icon={<HistoryOutlined />}
+                            onClick={() => navigate(`/teacher/learning-unit/${unit.id}/attempts`)}
+                            className="bg-indigo-600 border-indigo-600 hover:text-indigo-600"
+                        />
+
+                        {/* NEW: Manage Students */}
+                        <MyButton
+                            text="Manage Students"
+                            height="h-[35px]"
+                            icon={<TeamOutlined />}
+                            onClick={() => navigate(`/teacher/learning-unit/${unit.id}/students`)}
+                            className="bg-teal-600 border-teal-600 hover:text-teal-600"
+                        />
+
+
 
                         {/* Add Sub Button */}
                         {showAddSub && (
@@ -201,18 +292,10 @@ export default function ManageLearningUnits() {
                                 }
                             />
                         )}
-
-                        {/* Delete */}
-                        <Popconfirm
-                            title="Delete this learning unit?"
-                            onConfirm={() => handleDelete(unit.id)}
-                        >
-                            <Button type="dashed" danger icon={<DeleteOutlined />} />
-                        </Popconfirm>
                     </Space>
                 );
             }
-            },
+        },
     ];
 
     return (
@@ -224,17 +307,28 @@ export default function ManageLearningUnits() {
                 { label: courseName }
             ]}
             extra={
-                <MyButton
-                    text="Add Lesson"
-                    icon={<PlusOutlined />}
-                    onClick={() => openAddModal(courseId!)}
-                />
+                // NEW: Thêm flex gap-2 để các nút dàn ngang đẹp mắt
+                <div className="flex gap-2">
+                    <MyButton
+                        text="Add Lesson"
+                        icon={<PlusOutlined />}
+                        onClick={() => openAddModal(courseId!)}
+                    />
+
+                    {/* NEW: Đổi onClick mở modal Practice */}
+                    <MyButton
+                        text="Add Practice"
+                        icon={<ExperimentOutlined />}
+                        onClick={() => {
+                            practiceForm.resetFields();
+                            setIsPracticeModalOpen(true);
+                        }}
+                        className="bg-purple-600 border-purple-600 hover:text-purple-600"
+                    />
+                </div>
             }
         >
-
             <div className="flex-1 overflow-auto">
-
-
                 <Table
                     columns={columns}
                     dataSource={tableData}
@@ -243,10 +337,20 @@ export default function ManageLearningUnits() {
                     rowKey="key"
                     bordered
                     pagination={false}
-                    expandable={{ defaultExpandAllRows: true }}
+                    expandable={{
+                        expandedRowKeys: expandedRowKeys,
+                        onExpand: (expanded, record) => {
+                            if (expanded) {
+                                setExpandedRowKeys([...expandedRowKeys, record.key]);
+                            } else {
+                                setExpandedRowKeys(expandedRowKeys.filter(k => k !== record.key));
+                            }
+                        }
+                    }}
                 />
             </div>
 
+            {/* Modal Add/Edit Lesson */}
             <Modal
                 title={modalMode === "add" ? "Add Learning Unit" : "Edit Learning Unit"}
                 open={isModalOpen}
@@ -261,6 +365,40 @@ export default function ManageLearningUnits() {
                         rules={[{ required: true, message: "Please enter learning unit name" }]}
                     >
                         <Input placeholder="Enter name..." />
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* NEW: Modal Add Practice */}
+            <Modal
+                title="Add Practice Generation"
+                open={isPracticeModalOpen}
+                okText="Generate"
+                onOk={handleAddPractice}
+                onCancel={() => setIsPracticeModalOpen(false)}
+            >
+                <Form form={practiceForm} layout="vertical">
+                    <Form.Item
+                        label="Practice Name"
+                        name="practiceName"
+                        rules={[{ required: true, message: "Please enter practice name" }]}
+                    >
+                        <Input placeholder="e.g. Midterm Practice, Chapter 1-3 Review..." />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Select Lessons to Include"
+                        name="selectedLessons"
+                        rules={[{ required: true, message: "Please select at least one lesson" }]}
+                    >
+                        <TreeSelect
+                            treeData={treeSelectData}
+                            treeCheckable={true}
+                            showCheckedStrategy={TreeSelect.SHOW_PARENT}
+                            placeholder="Please select lessons"
+                            style={{ width: '100%' }}
+                            maxTagCount="responsive"
+                        />
                     </Form.Item>
                 </Form>
             </Modal>

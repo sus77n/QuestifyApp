@@ -1,10 +1,11 @@
 import React from "react";
-import { Button, Input } from "antd";
+import {Alert, Button, Input} from "antd";
 import {ExerciseBuilderProps} from "./MultipleChoiceBuilder";
 
 const TrueFalseBuilder: React.FC<ExerciseBuilderProps> = ({
                                                               value,
-                                                              onChange
+                                                              onChange,
+    error,
                                                           }) => {
 
     const updateText = (index: number, text: string) => {
@@ -79,8 +80,23 @@ const TrueFalseBuilder: React.FC<ExerciseBuilderProps> = ({
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
+            <Alert
+                message="Instructions"
+                description={
+                    <ul className="list-disc list-inside mt-1 text-sm text-gray-600 space-y-1">
+                        <li>Enter a statement in the text box below. <em>(Tip: You can simply use "Choose True or False" as your statement).</em></li>
+                        <li>Click the <strong>"+ Add Statement"</strong> button to add more items.</li>
+                        <li>Toggle between <strong>"True"</strong> or <strong>"False"</strong> to set the correct answer. <span className="text-orange-600 font-medium">Note: The answer is set to "False" by default.</span></li>
+                    </ul>
+                }
+                type="info"
+                showIcon
+                closable
+            />
 
+            {/* Error display */}
+            {error && <Alert message={error} type="error" showIcon className="mb-2" />}
             {value.options.map((opt, index) => {
                 const isTrue = value.correctAnswers.includes(opt.header);
 
@@ -94,7 +110,7 @@ const TrueFalseBuilder: React.FC<ExerciseBuilderProps> = ({
                                 onChange={(e) => updateText(index, e.target.value)}
                             />
 
-                            <Button danger size="small" onClick={() => removeOption(index)}>
+                            <Button danger type="dashed"  size="small" onClick={() => removeOption(index)}>
                                 X
                             </Button>
                         </div>
@@ -110,6 +126,7 @@ const TrueFalseBuilder: React.FC<ExerciseBuilderProps> = ({
 
                             <Button
                                 type={!isTrue ? "primary" : "default"}
+                                danger={!isTrue}
                                 onClick={() => markFalse(index)}
                             >
                                 False

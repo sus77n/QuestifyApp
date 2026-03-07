@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Input } from "antd";
+import {Alert, Button, Input} from "antd";
 
 export interface MatchingOption {
     header: string;           // cùng header cho left & right của 1 cặp
@@ -20,11 +20,12 @@ export interface MatchingBuilderValue {
 export interface MatchingBuilderProps {
     value: MatchingBuilderValue;
     onChange: (value: MatchingBuilderValue) => void;
+    error?: string | null;
 }
 
 const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
                                                              value,
-                                                             onChange
+                                                             onChange, error
                                                          }) => {
     const { options, correctAnswers } = value;
 
@@ -151,7 +152,25 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
        Render
     ========================== */
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
+
+            <Alert
+                message="Instructions"
+                description={
+                    <ul className="list-disc list-inside mt-1 text-sm text-gray-600 space-y-1">
+                        <li>In the <strong>Question</strong> box above, provide clear instructions <em>(e.g., "Match each term with its correct definition")</em>.</li>
+                        <li>Enter the correct matching pairs side-by-side below.</li>
+                        <li><span className="text-orange-600 font-medium">Note:</span> The system will automatically shuffle the options for the students.</li>
+                        <li>Click the <strong>"+ Add Pair"</strong> button to add more matching items.</li>
+                    </ul>
+                }
+                type="info"
+                showIcon
+                closable
+            />
+
+            {/* Error display */}
+            {error && <Alert message={error} type="error" showIcon className="mb-2" />}
             {leftOptions.map((left) => {
                 const right = rightOptions.find((r) => r.header === left.header);
 

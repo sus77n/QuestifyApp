@@ -68,8 +68,22 @@ const MultipleChoiceBuilder: React.FC<ExerciseBuilderProps> = ({
 
     return (
         <div className="space-y-3">
+            <Alert
+                message="Instructions"
+                description={
+                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>After entering the question above, fill in the option text below.</li>
+                        <li>Click the <strong>"+ Add Option"</strong> button to add a new choice.</li>
+                        <li>Select the <strong>radio button</strong> next to an option to mark it as the correct answer.</li>
+                    </ul>
+                }
+                type="info"
+                showIcon
+                closable
+            />
             {/* Hiển thị lỗi nếu có */}
             {error && <Alert message={error} type="error" showIcon className="mb-2" />}
+            <p></p>
 
             {options.map((opt, index) => {
                 const isSelected = correctAnswers.includes(String(index + 1));

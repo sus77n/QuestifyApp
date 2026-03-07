@@ -580,6 +580,7 @@ export default function ManageExercises() {
                     <MatchingBuilder
                         value={matchingValue}
                         onChange={setMatchingValue}
+                        error={validationError}
                     />
                 );
             case "REORDERING":
@@ -587,6 +588,7 @@ export default function ManageExercises() {
                     <ReorderingBuilder
                         value={reorderingValue}
                         onChange={setReorderingValue}
+                        error={validationError}
                     />
                 );
             case "FILL_IN_THE_BLANK":
@@ -594,6 +596,7 @@ export default function ManageExercises() {
                     <FillInTheBlankBuilder
                         value={fillBlankValue}
                         onChange={setFillBlankValue}
+                        error={validationError}
                     />
                 );
             default:
@@ -617,65 +620,68 @@ export default function ManageExercises() {
             ].filter(Boolean) as any}
         >
             <div className="grid grid-cols grid-cols-8 h-[30%] gap-2 mb-4">
-                <div className="col-span-4 bg-white rounded-lg shadow-xl p-4">
-                    <div className="flex gap-2 mb-2">
-                        <InboxStackIcon width={20} className="text-text-color"/>
+                <div className="col-span-4 bg-white rounded-lg shadow-xl p-4 flex flex-col h-full overflow-hidden">
+                    <div className="flex gap-2 mb-2 shrink-0">
+                        <InboxStackIcon width={20} className="text-text-color" />
                         <p className="text-text-color font-semibold">Exercise Categories</p>
                     </div>
-                    <div
-                        onClick={() => setSelectedCategoryId(null)}
-                        className={`overflow-y-auto
-                                        cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
-                                        ${selectedCategoryId === null
-                            ? "bg-blue-50 border-blue-200 shadow-sm"
-                            : "bg-gray-50 border-transparent hover:bg-gray-100"
-                        }
-                                    `}
-                    >
-                        <div className="flex items-center gap-3">
-                            <AppstoreOutlined
-                                className={selectedCategoryId === null ? "text-blue-600" : "text-gray-500"}/>
-                            <span
-                                className={`font-medium ${selectedCategoryId === null ? "text-blue-700" : "text-gray-600"}`}>
-                                    All Exercises
-                                </span>
-                        </div>
-                        <Badge count={exercises.length} showZero
-                               color={selectedCategoryId === null ? "#1677ff" : "#d9d9d9"}/>
-                    </div>
 
-                    {categories.map((cat: any) => {
-                        const count = exercises.filter((e: any) => e.parentId === cat.id).length;
-                        const isActive = selectedCategoryId === cat.id;
+                    {/* 3. Thay max-h-[60vh] thành flex-1 */}
+                    <div className="overflow-y-auto flex-1 pr-2 flex flex-col gap-1">
 
-                        return (
-                            <div
-                                key={cat.id}
-                                onClick={() => setSelectedCategoryId(cat.id)}
-                                className={` mt-1 mb-1
-                                                cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
-                                                ${isActive
-                                    ? "bg-blue-50 border-blue-200 shadow-sm"
-                                    : "bg-white border-gray-100 hover:bg-gray-50"
-                                }
-                                            `}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <FolderOpenOutlined className={isActive ? "text-blue-600" : "text-gray-400"}/>
-                                    <span className={`font-medium ${isActive ? "text-blue-700" : "text-gray-700"}`}>
-                                            {cat.name}
-                                        </span>
-                                </div>
-                                <Badge count={count} showZero color={isActive ? "#1677ff" : "#d9d9d9"}/>
+                        {/* Mục All Exercises */}
+                        <div
+                            onClick={() => setSelectedCategoryId(null)}
+                            className={`shrink-0 cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
+        ${selectedCategoryId === null
+                                ? "bg-blue-50 border-blue-200 shadow-sm"
+                                : "bg-gray-50 border-transparent hover:bg-gray-100"
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <AppstoreOutlined
+                                    className={selectedCategoryId === null ? "text-blue-600" : "text-gray-500"} />
+                                <span
+                                    className={`font-medium ${selectedCategoryId === null ? "text-blue-700" : "text-gray-600"}`}>
+                    All Exercises
+                </span>
                             </div>
-                        );
-                    })}
+                            <Badge count={exercises.length} showZero
+                                   color={selectedCategoryId === null ? "#1677ff" : "#d9d9d9"} />
+                        </div>
 
-                    {categories.length === 0 && (
-                        <p className="text-gray-400 text-center text-sm italic mt-4">No categories found.</p>
-                    )}
+                        {/* Danh sách các Categories */}
+                        {categories.map((cat: any) => {
+                            const count = exercises.filter((e: any) => e.parentId === cat.id).length;
+                            const isActive = selectedCategoryId === cat.id;
+
+                            return (
+                                <div
+                                    key={cat.id}
+                                    onClick={() => setSelectedCategoryId(cat.id)}
+                                    className={`shrink-0 cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
+                ${isActive
+                                        ? "bg-blue-50 border-blue-200 shadow-sm"
+                                        : "bg-white border-gray-100 hover:bg-gray-50"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FolderOpenOutlined className={isActive ? "text-blue-600" : "text-gray-400"} />
+                                        <span className={`font-medium ${isActive ? "text-blue-700" : "text-gray-700"}`}>
+                            {cat.name}
+                        </span>
+                                    </div>
+                                    <Badge count={count} showZero color={isActive ? "#1677ff" : "#d9d9d9"} />
+                                </div>
+                            );
+                        })}
+
+                        {/* Trạng thái trống */}
+                        {categories.length === 0 && (
+                            <p className="text-gray-400 text-center text-sm italic mt-4">No categories found.</p>
+                        )}
+                    </div>
                 </div>
-
                 {learningUnitId && currentConfig && (
                     <LessonConfigPanel
                         lessonId={learningUnitId}
@@ -743,12 +749,22 @@ export default function ManageExercises() {
                 onClose={() => setIsAIModalOpen(false)}
                 learningUnitId={learningUnitId!}
                 defaultCategoryId={defaultCategoryId!}
+                categories={categories}
             />
 
             <Modal
                 title={mode === "add" ? "Add Exercise" : "Edit Exercise"}
                 open={isModalOpen}
                 width={900}
+                style={{ top: 20 }}
+                styles={{
+                    body: {
+                        maxHeight: 'calc(100vh - 180px)',
+                        overflowY: 'auto',
+                        paddingRight: '8px'
+                    }
+                }}
+
                 onCancel={() => setIsModalOpen(false)}
                 footer={[
                     <Button key="save" type="primary" onClick={handleSave}>
