@@ -87,26 +87,35 @@ const DesktopView = ({
                         </div>
 
                         {/* Chapters → Lessons */}
-                        <div
-                            className="mt-3 p-3 overflow-y-auto flex-1 overflow-x-hidden
-                            [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-                        >
-                            {chapters.map((topic: LearningUnitChildDto, i) => (
-                                <TopicCardDropdown
-                                    key={topic.id}
-                                    index={i + 1}
-                                    name={topic.name}
-                                    childrenId={topic.id}
-                                    selectedLessonId={selectedLesson?.id ?? null}
-                                    onLessonClick={(id) => {
-                                        handleLessonChange(id);
-                                        setIsSidebarOpen(false);
-                                    }}
-                                    numberOfComplete={topic.numberOfComplete}
-                                    numberOfExercise={topic.numberOfExercise}
-                                />
-                            ))}
-                        </div>
+{/* Chapters → Lessons */}
+<div
+    className="mt-3 p-3 overflow-y-auto flex-1 overflow-x-hidden
+    [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+>
+    {chapters.map((topic: LearningUnitChildDto, i) => (
+        <TopicCardDropdown
+            key={topic.id}
+            index={i + 1}
+            name={topic.name}
+            childrenId={topic.id}
+            selectedLessonId={selectedLesson?.id ?? null}
+            // Hàm này dành cho các lesson con nằm bên trong Dropdown
+            onLessonClick={(id) => {
+                handleLessonChange(id);
+                setIsSidebarOpen(false);
+            }}
+            
+            // THÊM MỚI: Hàm này gọi API start attempt trực tiếp khi click vào Title (tầng 1)
+            onTitleClick={() => {
+                handleLessonChange(topic.id);
+                setIsSidebarOpen(false);
+            }}
+
+            numberOfComplete={topic.numberOfComplete}
+            numberOfExercise={topic.numberOfExercise}
+        />
+    ))}
+</div>
                         <div className="ml-[72%] mb-4">
                             <MyButton onClick={() => navigate("/my-courses")} width="w-[100px]" text="Back" icon={<ArrowLeftIcon className="w-5 h-5" />}/>
                         </div>

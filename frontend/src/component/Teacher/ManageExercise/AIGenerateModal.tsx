@@ -267,7 +267,7 @@ const AIGenerateModal: React.FC<Props> = ({
                 className={`mb-4 border shadow-sm ${isEditing ? 'border-blue-400 bg-blue-50' : 'border-gray-200'}`}
                 title={
                     <div className="flex items-center gap-2">
-                        <Tag color="purple">#{idx + 1}</Tag>
+                        <Tag>#{idx + 1}</Tag>
                         <Tag>{ex.type}</Tag>
                         {ex.difficulty && <Tag color="orange">Lvl {ex.difficulty}</Tag>}
                     </div>
@@ -337,7 +337,7 @@ const AIGenerateModal: React.FC<Props> = ({
 
     return (
         <Modal
-            title={<div className="flex items-center gap-2 text-lg text-purple-700"><RobotOutlined /> AI Exercise Generator</div>}
+            title={<div className="flex items-center gap-2 text-lg text-white"><RobotOutlined /> AI Exercise Generator</div>}
             open={isOpen}
             onCancel={onClose}
             width={900}

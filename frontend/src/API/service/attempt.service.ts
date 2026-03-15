@@ -30,7 +30,7 @@ export const attemptService = createApi({
         }),
 
         getAttemptsByLesson: builder.query<AttemptDTO[], string>({
-            query: (lessonId) => `/attempts/lesson/${lessonId}`,
+            query: (learningUnitId) => `/attempts/learning-units/${learningUnitId}`,
             providesTags: [{ type: "Attempt", id: "LIST" }],
         }),
 
@@ -41,6 +41,9 @@ export const attemptService = createApi({
             }),
             invalidatesTags: [{ type: "Attempt", id: "LIST" }],
         }),
+
+
+        // FOR STUDENT
 
         startAttempt: builder.mutation<
             AttemptStartResponseDTO,

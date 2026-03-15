@@ -9,22 +9,24 @@ import {
     Tag,
     Popconfirm,
     message,
-    TreeSelect, // NEW: Thêm TreeSelect để chọn nhiều lesson
+    TreeSelect,
 } from "antd";
 import {
     PlusOutlined,
     EditOutlined,
     DeleteOutlined,
     ApartmentOutlined,
-    TeamOutlined,      // NEW: Icon cho Manage Students
-    HistoryOutlined,   // NEW: Icon cho Manage Attempts
-    ExperimentOutlined // NEW: Icon cho Add Practice
+    TeamOutlined,    
+    HistoryOutlined,
+    ExperimentOutlined
 } from "@ant-design/icons";
 import {
     useGetLearningUnitWithChildrenQuery,
     useCreateLearningUnitMutation,
     useUpdateLearningUnitMutation,
     useDeleteLearningUnitMutation,
+    // NEW: Import hook mới
+    useCreateCombinedLearningUnitMutation
 } from "../../API/service/learningUnit.service";
 import { LearningUnitWithChildren } from "../../model/LearningUnitDTO";
 import { useParams, useNavigate } from "react-router-dom";
@@ -74,7 +76,6 @@ export default function ManageLearningUnits() {
         return Array.isArray(rootNodes) ? mapTree(rootNodes) : [];
     }, [rootNodes]);
 
-    // NEW: Chuyển đổi dữ liệu treeData sang định dạng của TreeSelect
     const treeSelectData = useMemo(() => {
         const mapToTreeSelect = (nodes: LearningUnitWithChildren[]): any[] => {
             return nodes.map(node => ({
@@ -90,6 +91,9 @@ export default function ManageLearningUnits() {
     const [addUnit] = useCreateLearningUnitMutation();
     const [editUnit] = useUpdateLearningUnitMutation();
     const [deleteUnit] = useDeleteLearningUnitMutation();
+    
+    // NEW: Khởi tạo hook tạo bài tập kết hợp
+    const [createCombinedLearningUnit, { isLoading: isCreatingCombined }] = useCreateCombinedLearningUnitMutation();
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,7 +101,6 @@ export default function ManageLearningUnits() {
     const [currentParentId, setCurrentParentId] = useState<string | null>(null);
     const [editingUnit, setEditingUnit] = useState<LearningUnitWithChildren | null>(null);
 
-    // NEW: State cho form Practice
     const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
     const [practiceForm] = Form.useForm();
     const [form] = Form.useForm();
@@ -141,27 +144,28 @@ export default function ManageLearningUnits() {
         }
     };
 
-    // NEW: Xử lý khi submit form Add Practice
+    // NEW: Cập nhật hàm gọi API thực tế
     const handleAddPractice = async () => {
         try {
             const values = await practiceForm.validateFields();
             console.log("Dữ liệu tạo Practice: ", values);
 
-            // TODO: Gọi API generate bài tập (gửi danh sách values.selectedLessons) lên backend ở đây
-            /*
-            await generatePracticeMutation({
-                name: values.practiceName,
-                courseId: courseId,
-                lessonIds: values.selectedLessons
+            // Gửi dữ liệu lên API
+            await createCombinedLearningUnit({
+                dto: {
+                    name: values.practiceName,
+                    parentId: courseId! // Đặt Practice này nằm trong Course hiện tại
+                },
+                selectedIds: values.selectedLessons
             }).unwrap();
-            */
 
-            message.success("Practice generation requested successfully!");
+            message.success("Practice generated successfully!");
             setIsPracticeModalOpen(false);
             practiceForm.resetFields();
             refetch();
         } catch (err) {
             console.error(err);
+            message.error("Failed to generate practice.");
         }
     };
 
@@ -205,7 +209,6 @@ export default function ManageLearningUnits() {
                 </div>
             ),
         },
-
         {
             title: "Learning Unit",
             dataIndex: "name",
@@ -215,7 +218,7 @@ export default function ManageLearningUnits() {
         },
         {
             title: "Actions",
-            width: 850,
+            width: 700,
             render: (_: any, record: any) => {
                 const unit = record.raw;
 
@@ -244,7 +247,7 @@ export default function ManageLearningUnits() {
                             <Button type="dashed" danger icon={<DeleteOutlined />} />
                         </Popconfirm>
 
-                        {/* NEW: Manage Attempts */}
+                        {/* Manage Attempts */}
                         <MyButton
                             text="Manage Attempts"
                             height="h-[35px]"
@@ -252,17 +255,6 @@ export default function ManageLearningUnits() {
                             onClick={() => navigate(`/teacher/learning-unit/${unit.id}/attempts`)}
                             className="bg-indigo-600 border-indigo-600 hover:text-indigo-600"
                         />
-
-                        {/* NEW: Manage Students */}
-                        <MyButton
-                            text="Manage Students"
-                            height="h-[35px]"
-                            icon={<TeamOutlined />}
-                            onClick={() => navigate(`/teacher/learning-unit/${unit.id}/students`)}
-                            className="bg-teal-600 border-teal-600 hover:text-teal-600"
-                        />
-
-
 
                         {/* Add Sub Button */}
                         {showAddSub && (
@@ -307,7 +299,6 @@ export default function ManageLearningUnits() {
                 { label: courseName }
             ]}
             extra={
-                // NEW: Thêm flex gap-2 để các nút dàn ngang đẹp mắt
                 <div className="flex gap-2">
                     <MyButton
                         text="Add Lesson"
@@ -315,7 +306,6 @@ export default function ManageLearningUnits() {
                         onClick={() => openAddModal(courseId!)}
                     />
 
-                    {/* NEW: Đổi onClick mở modal Practice */}
                     <MyButton
                         text="Add Practice"
                         icon={<ExperimentOutlined />}
@@ -369,13 +359,14 @@ export default function ManageLearningUnits() {
                 </Form>
             </Modal>
 
-            {/* NEW: Modal Add Practice */}
+            {/* Modal Add Practice */}
             <Modal
                 title="Add Practice Generation"
                 open={isPracticeModalOpen}
                 okText="Generate"
                 onOk={handleAddPractice}
                 onCancel={() => setIsPracticeModalOpen(false)}
+                confirmLoading={isCreatingCombined} // Thêm UX ngăn việc click 2 lần khi API đang gửi
             >
                 <Form form={practiceForm} layout="vertical">
                     <Form.Item

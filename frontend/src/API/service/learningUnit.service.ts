@@ -6,7 +6,7 @@ import {
   LearningUnitWithLessonConfig
 } from "../../model/LearningUnitDTO";
 import { customBaseQuery } from "../client/customBaseQuery";
-import {ExerciseDTO} from "../../model/ExerciseDTO";
+import { ExerciseDTO } from "../../model/ExerciseDTO";
 
 export const learningUnitService = createApi({
   reducerPath: "learningUnitService",
@@ -16,12 +16,12 @@ export const learningUnitService = createApi({
     getAllLearningUnits: builder.query<LearningUnitDTO[], void>({
       query: () => "/learning-units",
       providesTags: (result) =>
-          result
-              ? [
-                ...result.map(({ id }) => ({ type: "LearningUnit" as const, id })),
-                { type: "LearningUnit" as const, id: "LIST" },
-              ]
-              : [{ type: "LearningUnit" as const, id: "LIST" }],
+        result
+          ? [
+            ...result.map(({ id }) => ({ type: "LearningUnit" as const, id })),
+            { type: "LearningUnit" as const, id: "LIST" },
+          ]
+          : [{ type: "LearningUnit" as const, id: "LIST" }],
     }),
 
     getLearningUnitById: builder.query<LearningUnitDTO, { id: string; userId?: string; includeCategory?: boolean }>({
@@ -36,7 +36,7 @@ export const learningUnitService = createApi({
     }),
 
 
-    getLearningUnitDetailsById: builder.query<LearningUnitDTO, { id: string}>({
+    getLearningUnitDetailsById: builder.query<LearningUnitDTO, { id: string }>({
       query: ({ id }) => ({
         url: `/learning-units/${id}/lesson-details`,
       }),
@@ -106,12 +106,27 @@ export const learningUnitService = createApi({
       }),
     }),
 
-    generateExercises: builder.mutation<ExerciseDTO[], { categories : LearningUnitDTO[], lessonId: string }>({
+    generateExercises: builder.mutation<ExerciseDTO[], { categories: LearningUnitDTO[], lessonId: string }>({
       query: (body) => ({
         url: `/ai/generate/exercises`,
         method: "POST",
         body,
       }),
+    }),
+
+    createCombinedLearningUnit: builder.mutation<LearningUnitDTO, {
+      dto: { name: string; parentId: string };
+      selectedIds: string[]
+    }>({
+      query: ({ dto, selectedIds }) => ({
+        url: "/learning-units/combined",
+        method: "POST",
+        params: {
+          selectedIds: selectedIds.join(',')
+        },
+        body: dto,
+      }),
+      invalidatesTags: [{ type: "LearningUnit", id: "LIST" }],
     }),
   }),
 });
@@ -128,8 +143,9 @@ export const {
   useGetAllCompletedCoursesByUserIdQuery,
   useGetAllIncompletedCoursesByUserIdQuery,
   useGetLearningUnitWithChildrenQuery,
-    useInitializeLessonConfigAndCateMutation,
-    useGetLearningUnitDetailsByIdQuery,
-    useGenerateCategoryContentMutation,
-    useGenerateExercisesMutation
+  useInitializeLessonConfigAndCateMutation,
+  useGetLearningUnitDetailsByIdQuery,
+  useGenerateCategoryContentMutation,
+  useGenerateExercisesMutation,
+  useCreateCombinedLearningUnitMutation
 } = learningUnitService;

@@ -1,87 +1,126 @@
-import React, { useState } from "react";
-import { Table, Tag, Input, Select, Button } from "antd";
+import React, { useState, useMemo } from "react";
+import { Table, Tag, Input, Empty } from "antd";
 import { SearchOutlined, EyeOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
-import TeacherPage from "./TeacherPage"; // Nhớ import đúng đường dẫn
-import MyButton from "../material/material"; // Nhớ import đúng đường dẫn
-
-// Mock Data
-const MOCK_ATTEMPTS = Array.from({ length: 15 }).map((_, i) => ({
-    id: `att_${i + 1}`,
-    studentName: `Student ${i + 1}`,
-    email: `student${i + 1}@example.com`,
-    submitDate: `2023-10-${(i % 30) + 1} 14:30`,
-    score: Math.floor(Math.random() * 101),
-    duration: `${Math.floor(Math.random() * 40) + 5} mins`,
-    status: i % 4 === 0 ? "Failed" : i % 5 === 0 ? "In Progress" : "Passed",
-}));
+import TeacherPage from "./TeacherPage";
+import MyButton from "../material/material";
+import { useGetAttemptsByLessonQuery, useGetAttemptByIdQuery } from "../../API/service/attempt.service";
+import { useGetLearningUnitDetailsByIdQuery } from "../../API/service/learningUnit.service";
 
 export default function ManageAttempts() {
-    const { learningUnitId } = useParams();
+    const { learningUnitId } = useParams<{ learningUnitId: string }>();
     const navigate = useNavigate();
 
-    // State cho bộ lọc
+    const { data: attemptsResponse, isLoading: isAttemptsLoading } = useGetAttemptsByLessonQuery(learningUnitId!);
+    const { data: unitData } = useGetLearningUnitDetailsByIdQuery({ id: learningUnitId! });
+
     const [searchText, setSearchText] = useState("");
-    const [statusFilter, setStatusFilter] = useState("All");
 
-    // Lọc dữ liệu giả
-    const filteredData = MOCK_ATTEMPTS.filter((item) => {
-        const matchName = item.studentName.toLowerCase().includes(searchText.toLowerCase());
-        const matchStatus = statusFilter === "All" || item.status === statusFilter;
-        return matchName && matchStatus;
-    });
+    const attemptsList = useMemo(() => {
+        if (!attemptsResponse) return [];
 
-    const columns = [
+        return attemptsResponse.map((item: any) => ({
+            id: item.attemptId,
+            studentId: item.userId,
+            userFullName: item.username || `User ${item.userId.substring(0, 5)}`,
+            email: item.userEmail || "N/A",
+            rawSubmitDate: item.submittedAt ? new Date(item.submittedAt) : null,
+            rawStartDate: item.startedAt ? new Date(item.startedAt) : null,
+            score: item.score || 0,
+            status: item.status,
+        }));
+    }, [attemptsResponse]);
+
+    const filteredData = useMemo(() => {
+        return attemptsList.filter((item) => {
+            const searchLower = searchText.toLowerCase();
+            const matchName = item.userFullName.toLowerCase().includes(searchLower);
+            const matchEmail = item.email.toLowerCase().includes(searchLower);
+
+            return matchName || matchEmail;
+        });
+    }, [attemptsList, searchText]);
+
+    const columns: any = [
         {
-            title: "Student Name",
-            dataIndex: "studentName",
+            title: "Student",
+            dataIndex: "userFullName",
+            key: "userFullName",
             render: (text: string, record: any) => (
-                <div>
-                    <div className="font-medium text-gray-800">{text}</div>
-                    <div className="text-xs text-gray-500">{record.email}</div>
+                <div className="flex flex-col">
+                    <span className="font-semibold text-gray-800">
+                        {text}
+                    </span>
+                    <span className="text-xs text-gray-500 font-medium">
+                        {record.email}
+                    </span>
                 </div>
             ),
         },
-        { title: "Submit Date", dataIndex: "submitDate" },
-        { title: "Duration", dataIndex: "duration" },
+        {
+            title: "Start At",
+            dataIndex: "rawStartDate",
+            key: "startDate",
+            render: (date: Date) => date ? date.toLocaleString() : "N/A",
+            sorter: (a: any, b: any) => (a.rawStartDate?.getTime() || 0) - (b.rawStartDate?.getTime() || 0),
+        },
+        {
+            title: "Submit At",
+            dataIndex: "rawSubmitDate",
+            key: "submitDate",
+            render: (date: Date) => date ? date.toLocaleString() : "N/A",
+            sorter: (a: any, b: any) => (a.rawSubmitDate?.getTime() || 0) - (b.rawSubmitDate?.getTime() || 0),
+        },
         {
             title: "Score",
             dataIndex: "score",
+            key: "score",
+            sorter: (a: any, b: any) => a.score - b.score,
             render: (score: number) => (
                 <span className={`font-semibold ${score >= 50 ? 'text-green-600' : 'text-red-600'}`}>
-                    {score}/100
+                    {score}
                 </span>
             ),
         },
         {
             title: "Status",
             dataIndex: "status",
+            key: "status",
+            // Filter trực tiếp trên cột
+            filters: [
+                // { text: 'PASSED', value: 'PASSED' },
+                { text: 'GRADED', value: 'GRADED' },
+                // { text: 'FAILED', value: 'FAILED' },
+                { text: 'IN_PROGRESS', value: 'IN_PROGRESS' },
+            ],
+            onFilter: (value: string, record: any) => record.status === value,
             render: (status: string) => {
-                let color = status === "Passed" ? "green" : status === "Failed" ? "red" : "blue";
-                return <Tag color={color}>{status}</Tag>;
+                let color = "blue";
+                if (status === "PASSED" || status === "GRADED") color = "green";
+                if (status === "FAILED" || status === "Failed") color = "red";
+                return <Tag color={color}>{status?.toUpperCase() || "UNKNOWN"}</Tag>;
             },
         },
         {
             title: "Action",
+            key: "action",
             render: (_: any, record: any) => (
-                <Button
-                    type="link"
+                <MyButton
                     icon={<EyeOutlined />}
-                    onClick={() => console.log("View detail attempt:", record.id)}
-                >
-                    View Details
-                </Button>
+                    text="View Details"
+                    onClick={() => navigate(`/teacher/attempt-detail/${record.id}`)}
+                />
             ),
         },
     ];
 
     return (
         <TeacherPage
-            title="Manage Attempts"
+            title={`${unitData?.name || "Loading..."}`}
             breadcrumb={[
                 { label: "Home", path: "/teacher/dashboard" },
                 { label: "Courses", path: "/teacher/courses" },
-                { label: "Unit Details" }, // Thường có API sẽ lấy tên Unit thật
+                { label: unitData?.name || "Unit Details", path: `/teacher/course/${unitData?.parentId}/lessons` },
                 { label: "Attempts" },
             ]}
             extra={
@@ -101,18 +140,8 @@ export default function ManageAttempts() {
                         prefix={<SearchOutlined />}
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
-                        className="w-64"
-                    />
-                    <Select
-                        defaultValue="All"
-                        style={{ width: 150 }}
-                        onChange={(value) => setStatusFilter(value)}
-                        options={[
-                            { value: 'All', label: 'All Status' },
-                            { value: 'Passed', label: 'Passed' },
-                            { value: 'Failed', label: 'Failed' },
-                            { value: 'In Progress', label: 'In Progress' },
-                        ]}
+                        className="w-80"
+                        allowClear
                     />
                 </div>
 
@@ -122,7 +151,12 @@ export default function ManageAttempts() {
                         columns={columns}
                         dataSource={filteredData}
                         rowKey="id"
-                        pagination={{ pageSize: 10 }}
+                        loading={isAttemptsLoading}
+                        pagination={{
+                            pageSize: 8,
+                            showSizeChanger: true,
+                        }}
+                        locale={{ emptyText: <Empty description="No attempts found" /> }}
                     />
                 </div>
             </div>

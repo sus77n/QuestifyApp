@@ -5,18 +5,20 @@ import {ChevronDownIcon, ChevronUpIcon} from "@heroicons/react/24/outline";
 import {LessonCard} from "./LessonCard";
 
 export const TopicCardDropdown = ({
-                               index,
-                               name,
-                               childrenId,
-                               onLessonClick,
-                               selectedLessonId,
-                               numberOfComplete,
-                               numberOfExercise,
-                           }: {
+    index,
+    name,
+    childrenId,
+    onLessonClick,
+    onTitleClick,
+    selectedLessonId,
+    numberOfComplete,
+    numberOfExercise,
+}: {
     index: number;
     name: string;
     childrenId: string;
     onLessonClick: (lessonId: string) => void;
+    onTitleClick?: () => void;
     selectedLessonId: string | null;
     numberOfComplete: number | null;
     numberOfExercise: number | null;
@@ -25,10 +27,14 @@ export const TopicCardDropdown = ({
     const [lessons, setLessons] = useState<LearningUnitChildDto[]>([]);
     const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
 
-    const handleToggle = async () => {
+    const handleClickRow = async () => {
+        if (onTitleClick) {
+            onTitleClick();
+        }
+
         setIsOpen(!isOpen);
         const userId = localStorage.getItem("id");
-        if (!userId ) return;
+        if (!userId) return;
 
         if (!lessons.length && !isOpen) {
             const res = await fetchUnit({ userId, id: childrenId }).unwrap();
@@ -38,15 +44,18 @@ export const TopicCardDropdown = ({
 
     return (
         <div className="bg-white rounded-xl border-2 border-text-color mb-2">
-            <div className="flex justify-between items-center p-3 rounded-xl cursor-pointer" onClick={handleToggle}>
+            <div 
+                className={`flex justify-between items-center p-3 rounded-xl cursor-pointer ${selectedLessonId === childrenId ? 'bg-gray-100' : ''}`} 
+                onClick={handleClickRow}
+            >
                 <div className="flex items-center gap-2">
                     <h3 className="font-medium text-text-color">
                         Chapter {index} : {name}{" "}
                         <span className={numberOfComplete !== numberOfExercise ? "text-yellow-500" : "text-green-500"}>
-              ({numberOfComplete} / {numberOfExercise})
-            </span>
+                            ({numberOfComplete} / {numberOfExercise})
+                        </span>
                     </h3>
-                    {numberOfComplete === numberOfExercise && (
+                    {numberOfComplete === numberOfExercise && numberOfExercise! > 0 && (
                         <svg className="w-4 h-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path
                                 fillRule="evenodd"

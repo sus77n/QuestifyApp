@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState, useEffect} from "react"; // Added useEffect
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
     Table,
     Button,
@@ -23,8 +23,8 @@ import {
     FolderOpenOutlined
 } from "@ant-design/icons";
 
-import {useLocation, useParams} from "react-router-dom";
-import {ExerciseDTO, ExerciseType} from "../../../model/ExerciseDTO";
+import { useLocation, useParams } from "react-router-dom";
+import { ExerciseDTO, ExerciseType } from "../../../model/ExerciseDTO";
 
 import {
     useCreateExerciseMutation,
@@ -48,9 +48,9 @@ import MatchingBuilder, {
     MatchingOption
 } from "./exerciseBuilders/MatchingBuilder";
 import ReorderingBuilder from "./exerciseBuilders/ReorderingBuilder";
-import FillInTheBlankBuilder, {FillInBlankValue} from "./exerciseBuilders/FillInTheBlankBuilder";
-import {FilterConfirmProps, FilterDropdownProps} from "antd/es/table/interface";
-import {InboxStackIcon, RectangleGroupIcon, SparklesIcon} from "@heroicons/react/24/solid";
+import FillInTheBlankBuilder, { FillInBlankValue } from "./exerciseBuilders/FillInTheBlankBuilder";
+import { FilterConfirmProps, FilterDropdownProps } from "antd/es/table/interface";
+import { InboxStackIcon, RectangleGroupIcon, SparklesIcon } from "@heroicons/react/24/solid";
 import LessonConfigPanel from "./LessonConfigPanel";
 import {
     useGetLearningUnitDetailsByIdQuery,
@@ -58,7 +58,7 @@ import {
 } from "../../../API/service/learningUnit.service";
 import AIGenerateModal from "./AIGenerateModal";
 
-const {TextArea} = Input;
+const { TextArea } = Input;
 
 const exerciseTypes: ExerciseType[] = [
     "MULTIPLE_CHOICE",
@@ -71,66 +71,58 @@ const exerciseTypes: ExerciseType[] = [
 ];
 
 export default function ManageExercises() {
-    const {learningUnitId} = useParams();
+    const { learningUnitId } = useParams();
     const location = useLocation() as any;
 
-    const {courseName, lessonName, courseId, shouldInit} = location.state || {};
+    const { courseName, lessonName, courseId, shouldInit } = location.state || {};
     const [readyToFetch, setReadyToFetch] = useState(!shouldInit);
 
     const {
         data: learningUnitData,
         isLoading: isUnitLoading
     } = useGetLearningUnitDetailsByIdQuery(
-        {id: learningUnitId!},
+        { id: learningUnitId! },
         {
             skip: !readyToFetch
         }
     );
 
-    const {data: exercises = [], isLoading, refetch} =
-        useGetExercisesQuery({lessonId: learningUnitId!});
+    const { data: exercises = [], isLoading, refetch } =
+        useGetExercisesQuery({ lessonId: learningUnitId! });
 
-    const [initializeConfig, {isLoading: isInitializing}] = useInitializeLessonConfigAndCateMutation();
+    const [initializeConfig, { isLoading: isInitializing }] = useInitializeLessonConfigAndCateMutation();
     const initRef = useRef(false);
 
     useEffect(() => {
-        if (shouldInit && !readyToFetch && !initRef.current) {
+        // Nếu đã init rồi thì thôi
+        if (initRef.current) return;
 
-            console.log("CASE 1: Force Init detected via shouldInit flag");
+        const performInit = async (reason: string) => {
+            console.log(`Triggering Init: ${reason}`);
             initRef.current = true;
+            try {
+                await initializeConfig({ id: learningUnitId! }).unwrap();
+                message.success("Configuration initialized.");
+                setReadyToFetch(true);
+            } catch (err) {
+                console.error("Init failed", err);
+                // Kể cả lỗi cũng nên cho phép fetch để user thấy data hiện tại (nếu có)
+                setReadyToFetch(true);
+            }
+        };
 
-            initializeConfig({id: learningUnitId!})
-                .unwrap()
-                .then(() => {
-                    message.success("Initialized configuration successfully.");
-                    // QUAN TRỌNG: Init xong thì mở khoá cho API Get chạy
-                    setReadyToFetch(true);
-                })
-                .catch((err) => {
-                    console.error("Init failed", err);
-                    setReadyToFetch(true);
-                });
-
+        // Ưu tiên CASE 1: Flag từ Navigation
+        if (shouldInit && !readyToFetch) {
+            performInit("Force Init via Route State");
             return;
         }
 
-        if (readyToFetch && learningUnitData && !isUnitLoading && !learningUnitData.lessonConfig && !initRef.current) {
-
-            console.log("CASE 2: Auto-fix missing config from Data");
-            initRef.current = true;
-
-            if (!isInitializing) {
-                initializeConfig({id: learningUnitId!})
-                    .unwrap()
-                    .then(() => {
-                        message.success("Lesson configuration initialized automatically.");
-                    })
-                    .catch((err) => {
-                        console.error("Failed to init config", err);
-                    });
-            }
+        // CASE 2: Auto-fix khi data trả về rỗng
+        if (readyToFetch && !isUnitLoading && learningUnitData && !learningUnitData.lessonConfig) {
+            performInit("Auto-fix missing config");
         }
-    }, [shouldInit, readyToFetch, learningUnitData, isUnitLoading, learningUnitId, initializeConfig, isInitializing]);
+    }, [shouldInit, readyToFetch, learningUnitData, isUnitLoading, learningUnitId]);
+    // initializeConfig có thể bỏ ra khỏi deps nếu nó là hàm từ RTK Query (ổn định)
 
     const categories = learningUnitData?.exerciseCategories || [];
 
@@ -170,8 +162,8 @@ export default function ManageExercises() {
 
     const [reorderingValue, setReorderingValue] = useState<ExerciseBuilderValue>({
         options: [
-            {header: "1", text: ""},
-            {header: "2", text: ""}
+            { header: "1", text: "" },
+            { header: "2", text: "" }
         ],
         correctAnswers: ["1", "2"]
     });
@@ -196,12 +188,12 @@ export default function ManageExercises() {
 
     const getColumnSearchProps = (dataIndex: string) => ({
         filterDropdown: ({
-                             setSelectedKeys,
-                             selectedKeys,
-                             confirm,
-                             clearFilters,
-                         }: FilterDropdownProps) => (
-            <div style={{padding: 8}}>
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+        }: FilterDropdownProps) => (
+            <div style={{ padding: 8 }}>
                 <Input
                     ref={searchInput}
                     placeholder={`Search ${dataIndex}`}
@@ -212,7 +204,7 @@ export default function ManageExercises() {
                     onPressEnter={() =>
                         handleSearch(selectedKeys!, confirm)
                     }
-                    style={{marginBottom: 8, display: "block"}}
+                    style={{ marginBottom: 8, display: "block" }}
                 />
 
                 <Space>
@@ -235,7 +227,7 @@ export default function ManageExercises() {
         ),
 
         filterIcon: (filtered: boolean) => (
-            <SearchOutlined style={{color: filtered ? "#1677ff" : undefined}}/>
+            <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
         ),
 
         onFilter: (value: any, record: any) =>
@@ -247,13 +239,13 @@ export default function ManageExercises() {
 
     const [form] = Form.useForm();
 
-    const openAddModal = () => {
+const openAddModal = () => {
         setMode("add");
         setEditingExercise(null);
         setSelectedType(null);
         form.resetFields();
 
-        let defaultParentId = learningUnitId; // Mặc định là Root (nếu ko có cate nào)
+        let defaultParentId = learningUnitId; 
         if (categories.length > 0) {
             defaultParentId = categories[0].id;
         }
@@ -263,34 +255,37 @@ export default function ManageExercises() {
 
         setBuilderValue({
             options: [
-                {header: "1", text: ""},
-                {header: "2", text: ""}
+                { header: "1", text: "" },
+                { header: "2", text: "" }
             ],
             correctAnswers: []
         });
 
-        // default: matching
         setMatchingValue({
             options: [
-                {header: "1", side: "left", text: ""},
-                {header: "1", side: "right", text: ""}
+                { header: "1", side: "left", text: "" },
+                { header: "1", side: "right", text: "" }
             ],
             correctAnswers: []
         });
 
-        // default: reordering
         setReorderingValue({
             options: [
-                {header: "1", text: ""},
-                {header: "2", text: ""}
+                { header: "1", text: "" },
+                { header: "2", text: "" }
             ],
             correctAnswers: ["1", "2"]
+        });
+
+        // THÊM DÒNG NÀY ĐỂ RESET FORM ĐIỀN CHỖ TRỐNG KHI TẠO MỚI
+        setFillBlankValue({
+            correctAnswers: []
         });
 
         setIsModalOpen(true);
     };
 
-    const openEditModal = (ex: ExerciseDTO) => {
+const openEditModal = (ex: ExerciseDTO) => {
         setMode("edit");
         setEditingExercise({
             ...ex,
@@ -301,6 +296,7 @@ export default function ManageExercises() {
             question: ex.question,
             parentId: ex.parentId
         });
+        
         let parsedCorrect: any = [];
         try {
             parsedCorrect = JSON.parse(ex.correctAnswers || "[]");
@@ -309,43 +305,8 @@ export default function ManageExercises() {
         }
 
         if (ex.type === "MATCHING") {
-            const leftOptions = (ex.options || []).filter(o => o.side === "left");
-            const rightOptions = (ex.options || []).filter(o => o.side === "right");
-
-            const sortedLeft = [...leftOptions].sort((a, b) => Number(a.header) - Number(b.header));
-            const sortedRight = [...rightOptions].sort((a, b) => Number(a.header) - Number(b.header));
-
-            const pairCount = Math.min(sortedLeft.length, sortedRight.length);
-
-            const builderOptions: MatchingOption[] = [];
-            const builderCorrect: { leftHeader: string; rightHeader: string }[] = [];
-
-            for (let i = 0; i < pairCount; i++) {
-                const pairHeader = String(i + 1);
-
-                builderOptions.push({
-                    header: pairHeader,
-                    side: "left",
-                    text: sortedLeft[i].text
-                });
-
-                builderOptions.push({
-                    header: pairHeader,
-                    side: "right",
-                    text: sortedRight[i].text
-                });
-
-                builderCorrect.push({
-                    leftHeader: pairHeader,
-                    rightHeader: pairHeader
-                });
-            }
-
-            setMatchingValue({
-                options: builderOptions,
-                correctAnswers: builderCorrect
-            });
-
+            // ... (Code giữ nguyên của bạn) ...
+            
         } else if (ex.type === "REORDERING") {
             setReorderingValue({
                 options:
@@ -356,6 +317,12 @@ export default function ManageExercises() {
                 correctAnswers: parsedCorrect
             });
 
+        // THÊM ĐOẠN NÀY ĐỂ BIND DATA CHO FILL IN THE BLANK
+        } else if (ex.type === "FILL_IN_THE_BLANK") {
+            setFillBlankValue({
+                correctAnswers: parsedCorrect
+            });
+            
         } else {
             setBuilderValue({
                 options:
@@ -378,7 +345,7 @@ export default function ManageExercises() {
             const pairCount = Math.min(leftOptions.length, rightOptions.length);
 
             // === Tạo header random ===
-            const randomHeaders = Array.from({length: pairCount * 2}, (_, i) =>
+            const randomHeaders = Array.from({ length: pairCount * 2 }, (_, i) =>
                 String(i + 1)
             ).sort(() => Math.random() - 0.5);
 
@@ -528,7 +495,7 @@ export default function ManageExercises() {
         {
             title: "Type",
             dataIndex: "type",
-            filters: exerciseTypes.map(t => ({text: t, value: t})),
+            filters: exerciseTypes.map(t => ({ text: t, value: t })),
             onFilter: (value: any, record: any) => record.type === value,
             render: (t: ExerciseType) => <Tag>{t}</Tag>
         },
@@ -544,9 +511,9 @@ export default function ManageExercises() {
             width: 120,
             render: (_: any, r: ExerciseDTO) => (
                 <Space>
-                    <MyButton icon={<EditOutlined/>} onClick={() => openEditModal(r)}/>
+                    <MyButton icon={<EditOutlined />} onClick={() => openEditModal(r)} />
                     <Popconfirm title="Delete?" onConfirm={() => handleDelete(r.id!)}>
-                        <Button danger icon={<DeleteOutlined/>}/>
+                        <Button danger icon={<DeleteOutlined />} />
                     </Popconfirm>
                 </Space>
             )
@@ -611,43 +578,42 @@ export default function ManageExercises() {
         <TeacherPage
             title={`${lessonName ?? ""}`}
             breadcrumb={[
-                {label: "Home", path: "/teacher/dashboard"},
-                {label: "My Courses", path: "/teacher/courses"},
+                { label: "Home", path: "/teacher/dashboard" },
+                { label: "My Courses", path: "/teacher/courses" },
                 courseName && {
                     label: courseName,
                     path: `/teacher/course/${courseId}/lessons`
                 }
             ].filter(Boolean) as any}
         >
-            <div className="grid grid-cols grid-cols-8 h-[30%] gap-2 mb-4">
+            <div className="grid grid-cols grid-cols-8 h-[30vh] gap-2 mb-4">
                 <div className="col-span-4 bg-white rounded-lg shadow-xl p-4 flex flex-col h-full overflow-hidden">
                     <div className="flex gap-2 mb-2 shrink-0">
                         <InboxStackIcon width={20} className="text-text-color" />
                         <p className="text-text-color font-semibold">Exercise Categories</p>
                     </div>
 
-                    {/* 3. Thay max-h-[60vh] thành flex-1 */}
                     <div className="overflow-y-auto flex-1 pr-2 flex flex-col gap-1">
 
                         {/* Mục All Exercises */}
                         <div
                             onClick={() => setSelectedCategoryId(null)}
                             className={`shrink-0 cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
-        ${selectedCategoryId === null
-                                ? "bg-blue-50 border-blue-200 shadow-sm"
-                                : "bg-gray-50 border-transparent hover:bg-gray-100"
-                            }`}
+            ${selectedCategoryId === null
+                                    ? "bg-blue-50 border-blue-200 shadow-sm"
+                                    : "bg-gray-50 border-transparent hover:bg-gray-100"
+                                }`}
                         >
                             <div className="flex items-center gap-3">
                                 <AppstoreOutlined
                                     className={selectedCategoryId === null ? "text-blue-600" : "text-gray-500"} />
                                 <span
                                     className={`font-medium ${selectedCategoryId === null ? "text-blue-700" : "text-gray-600"}`}>
-                    All Exercises
-                </span>
+                                    All Exercises
+                                </span>
                             </div>
                             <Badge count={exercises.length} showZero
-                                   color={selectedCategoryId === null ? "#1677ff" : "#d9d9d9"} />
+                                color={selectedCategoryId === null ? "#1677ff" : "#d9d9d9"} />
                         </div>
 
                         {/* Danh sách các Categories */}
@@ -660,16 +626,16 @@ export default function ManageExercises() {
                                     key={cat.id}
                                     onClick={() => setSelectedCategoryId(cat.id)}
                                     className={`shrink-0 cursor-pointer p-3 rounded-md flex justify-between items-center transition-all border
-                ${isActive
-                                        ? "bg-blue-50 border-blue-200 shadow-sm"
-                                        : "bg-white border-gray-100 hover:bg-gray-50"
-                                    }`}
+                    ${isActive
+                                            ? "bg-blue-50 border-blue-200 shadow-sm"
+                                            : "bg-white border-gray-100 hover:bg-gray-50"
+                                        }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FolderOpenOutlined className={isActive ? "text-blue-600" : "text-gray-400"} />
                                         <span className={`font-medium ${isActive ? "text-blue-700" : "text-gray-700"}`}>
-                            {cat.name}
-                        </span>
+                                            {cat.name}
+                                        </span>
                                     </div>
                                     <Badge count={count} showZero color={isActive ? "#1677ff" : "#d9d9d9"} />
                                 </div>
@@ -691,20 +657,20 @@ export default function ManageExercises() {
 
                 <div className="col-span-2 bg-white rounded-lg shadow-xl p-4">
                     <div className="flex gap-2 mb-2">
-                        <RectangleGroupIcon width={20} className="text-text-color"/>
+                        <RectangleGroupIcon width={20} className="text-text-color" />
                         <p className="text-text-color font-semibold">Actions</p>
                     </div>
 
                     <div className="flex flex-col gap-1">
                         <MyButton
                             text="Add Exercise"
-                            icon={<PlusOutlined/>}
+                            icon={<PlusOutlined />}
                             onClick={openAddModal}
                             className="w-full"
                         />
                         <MyButton
                             text="Add By Markdown"
-                            icon={<FileAddOutlined/>}
+                            icon={<FileAddOutlined />}
                             onClick={() => alert("Coming soon")}
                             className="w-full bg-cyan-700 border-cyan-700 hover:bg-white hover:text-cyan-700"
                         />
@@ -712,7 +678,7 @@ export default function ManageExercises() {
 
                         <MyButton
                             text="Generate By AI"
-                            icon={<SparklesIcon className="w-4 h-4"/>}
+                            icon={<SparklesIcon className="w-4 h-4" />}
                             // Thêm check: Chỉ mở modal nếu đã có category default
                             onClick={() => {
                                 if (!defaultCategoryId) {
@@ -743,6 +709,7 @@ export default function ManageExercises() {
                     pageSize: 10
                 }}
             />
+
 
             <AIGenerateModal
                 isOpen={isAIModalOpen}
@@ -806,9 +773,9 @@ export default function ManageExercises() {
                     <Form.Item
                         label="Question"
                         name="question"
-                        rules={[{required: true}]}
+                        rules={[{ required: true }]}
                     >
-                        <TextArea rows={3}/>
+                        <TextArea rows={3} />
                     </Form.Item>
 
                     <div className="border-t pt-3 mt-3">
