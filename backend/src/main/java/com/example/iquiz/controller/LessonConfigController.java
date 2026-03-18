@@ -1,7 +1,7 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
-import com.example.iquiz.dto.lesssonConfig.LessonConfigDto;
+import com.example.iquiz.dto.LessonConfigDto;
 import com.example.iquiz.service.LessonConfigService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +15,6 @@ import java.util.UUID;
 public class LessonConfigController {
 
     private final LessonConfigService service;
-
-    @PostMapping
-    public ApiResponse<LessonConfigDto> create(@Valid @RequestBody LessonConfigDto dto) {
-        LessonConfigDto created = service.save(dto);
-        return ApiResponse.success(created, "Lesson configuration created successfully");
-    }
 
     @GetMapping("/{lessonId}")
     public ApiResponse<LessonConfigDto> getByLesson(@PathVariable UUID lessonId) {

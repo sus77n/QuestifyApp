@@ -2,7 +2,6 @@ package com.example.iquiz.mapper;
 
 import com.example.iquiz.dto.answer.OptionDto;
 import com.example.iquiz.entity.Answer;
-import com.example.iquiz.repository.ExerciseRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,7 @@ public class AnswerMapper {
                         answer.getMetadata(),
                         new TypeReference<Map<String, String>>() {}
                 );
-                side = map.get("side");
+                side = map.get("metadata");
             }
         } catch (Exception e) {
             side = null;
@@ -47,9 +46,9 @@ public class AnswerMapper {
         answer.setText(dto.text());
         answer.setHeader(dto.header());
 
-        if (dto.side() != null) {
+        if (dto.metadata() != null) {
             try {
-                Map<String, String> map = Map.of("side", dto.side());
+                Map<String, String> map = Map.of("side", dto.metadata());
                 String metadataJson = objectMapper.writeValueAsString(map);
                 answer.setMetadata(metadataJson);
             } catch (Exception e) {

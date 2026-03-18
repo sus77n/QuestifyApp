@@ -6,7 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -27,7 +30,7 @@ public class Answer {
     /**
      * Matedata can include JSON for things like:
      * - explanation
-     * - side ("left"/"right" for matching)
+     * - metadata ("left"/"right" for matching)
      * - image URL, etc.
      */
     @Column(columnDefinition = "TEXT")
@@ -40,4 +43,12 @@ public class Answer {
     @JoinColumn(name = "exercise_id", nullable = false)
     @JsonIgnore
     private Exercise exercise;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

@@ -29,30 +29,6 @@ public class Exercise {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;
 
-    /**
-     * DEFAULT JSON FORMAT FOR ALL TYPES:
-     * {
-     *   "correctAnswers": [ ... ],  // Primary correct answers
-     *   "config": { ... }           // Optional configuration
-     * }
-     *
-     * SPECIFIC STRUCTURES:
-     *
-     * MULTIPLE_CHOICE/SELECT_MULTIPLE/TRUE_FALSE:
-     *   { "correctAnswers": [1, 3] }  // Array of correct option IDs
-     *
-     * SHORT_ANSWER:
-     *   { "correctAnswers": ["encapsulation"] }  // Array of acceptable answers
-     *
-     * MATCHING:
-     *   { "correctAnswers": [{"leftId": 1, "rightId": 3}, {"leftId": 2, "rightId": 1}] }
-     *
-     * REORDERING:
-     *   { "correctAnswers": ["1", "3", "4", "2"] }  // Correct order ids
-     *
-     * FILL_IN_THE_BLANK:
-     *   { "correctAnswers": ["oxygen", "hydrogen"] }  // Answers for each blank in order
-     */
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String correctAnswerJson;

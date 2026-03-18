@@ -40,22 +40,12 @@ public class AuthController {
                             schema = @Schema(implementation = AuthRequest.class),
                             examples = {
                                     @ExampleObject(
-                                            name = "Admin Example",
-                                            summary = "Login as admin",
-                                            value = """
-                                                    {
-                                                      "usernameOrEmail": "admin",
-                                                      "password": "su123456"
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
                                             name = "User Example",
                                             summary = "Login as regular user",
                                             value = """
                                                     {
                                                       "usernameOrEmail": "minh",
-                                                      "password": "su123456"
+                                                      "password": "12345678"
                                                     }
                                                     """
                                     )

@@ -1,22 +1,22 @@
 package com.example.iquiz.service.learningUnit;
 
+import com.example.iquiz.dto.ai.GenerateExercisesRequest;
 import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
-import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
-import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.entity.Exercise;
-import com.example.iquiz.entity.LearningUnit;
-import com.example.iquiz.entity.LearningUnitType;
-import com.example.iquiz.entity.User;
+import com.example.iquiz.dto.learningUnit.*;
+import com.example.iquiz.entity.*;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.LearningUnitMapper;
+import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.LearningUnitRepository;
 import com.example.iquiz.repository.ExerciseCategoryRepository;
+import com.example.iquiz.repository.LessonConfigRepository;
+import com.example.iquiz.service.AIService;
 import com.example.iquiz.utility.LearningUnitUtil;
 import com.example.iquiz.utility.UserUtil;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,16 +24,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 @Service
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class LearningUnitService {
 
-    private final LearningUnitRepository learningUnitRepository;
-    private final ExerciseCategoryRepository exerciseCategoryRepository;
-    private final LearningUnitMapper learningUnitMapper;
-    private final LearningUnitUtil learningUnitUtil;
-    private final UserUtil userUtil;
-    private final ExerciseMapper exerciseMapper;
+    LearningUnitRepository learningUnitRepository;
+    ExerciseCategoryRepository exerciseCategoryRepository;
+    LearningUnitMapper learningUnitMapper;
+    LearningUnitUtil learningUnitUtil;
+    UserUtil userUtil;
+    ExerciseMapper exerciseMapper;
+    ExerciseRepository exerciseRepository;
+    private final AIService aIService;
+    private final LessonConfigRepository lessonConfigRepository;
 
     public List<LearningUnitDto> getAllLearningUnits() {
         return learningUnitRepository.findAll().stream()
@@ -41,18 +46,21 @@ public class LearningUnitService {
                 .toList();
     }
 
-    public LearningUnitDto getLearningUnitById(UUID id) {
+    public LearningUnitDto getLearningUnitById(UUID id, boolean includeCategory) {
         LearningUnit learningUnit = learningUnitRepository.findWithChildren(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
-
-        return learningUnitMapper.toDto(learningUnit);
+        if (includeCategory) {
+            return learningUnitMapper.toDto(learningUnit);
+        } else {
+            return learningUnitMapper.toDtoWithoutCategory(learningUnit);
+        }
     }
 
-    public LearningUnitDto getLearningUnitByIdWithAuth(UUID id, UUID userId) {
+    public LearningUnitWithStatisticDto getLearningUnitWithStatisticByIdAndStudentId(UUID id, UUID userId) {
         LearningUnit learningUnit = learningUnitRepository.findWithChildren(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
-
-        return learningUnitMapper.toDtoWithAuth(learningUnit, userId);
+        LearningUnitWithStatisticDto dto = learningUnitMapper.toDtoWithStatistic(learningUnit, userId);
+        return dto;
     }
 
     public LearningUnitDto saveLearningUnit(LearningUnitDto dto) {
@@ -63,6 +71,79 @@ public class LearningUnitService {
         return learningUnitMapper.toDto(entity);
     }
 
+
+    @Transactional
+    public LessonDetailDto initializeLesson(UUID id) {
+        LearningUnit lesson = learningUnitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        if (lesson.getLessonConfig() == null) {
+            LessonConfig defaultLessonConfig = new LessonConfig();
+            defaultLessonConfig.setLesson(lesson);
+            defaultLessonConfig.setNoRepeatScope(true);
+            defaultLessonConfig.setQuestionsPerAttempt(10);
+            defaultLessonConfig.setPassThreshold(50);
+
+            lesson.setLessonConfig(defaultLessonConfig);
+        }
+
+        if (lesson.getChildren() == null || lesson.getChildren().isEmpty()) {
+            LearningUnitType type = exerciseCategoryRepository.findByName("Exercise Category")
+                    .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", "Exercise Category"));
+            LearningUnit exerciseCategory = new LearningUnit();
+            exerciseCategory.setName("Default Exercise Category");
+            exerciseCategory.setType(type);
+            exerciseCategory.setParent(lesson);
+            exerciseCategory.setCreatedBy(lesson.getCreatedBy());
+
+            lesson.getChildren().add(exerciseCategory);
+        }
+
+        learningUnitRepository.save(lesson);
+
+        return learningUnitMapper.toLessonDetailDto(lesson);
+    }
+
+    @Transactional
+    public LessonDetailDto getLessonDetailsById(UUID id) {
+        LearningUnit lesson = learningUnitRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        return learningUnitMapper.toLessonDetailDto(lesson);
+    }
+
+    @Transactional
+    public LearningUnitDto combineLearningUnit(CreateLearningUnitChildDto dto, List<UUID> selectedIds) {
+        User user = userUtil.getUserFromAuthContext();
+        LearningUnit parent = learningUnitRepository.findById(dto.parentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", dto.parentId()));
+
+        LearningUnitType type = parent.getType();
+        int nextLevel = type.getLevel() + 1;
+        LearningUnitType childType = exerciseCategoryRepository.findByLevel(nextLevel).stream().findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "level", nextLevel));
+
+        LearningUnit entity = new LearningUnit();
+        entity.setName(dto.name());
+        entity.setCreatedBy(user);
+        entity.setType(childType);
+        entity.setParent(parent);
+
+        LearningUnit practice = learningUnitRepository.save(entity);
+
+        List<LearningUnit> originals = learningUnitRepository.findLeafNodesFromSubtree(selectedIds);
+        //Tổ chức code dở quáaaa
+        List<CreateExerciseCategoryDto> copiedChildren = originals.stream()
+                .map(original -> learningUnitMapper.toCreateExerciseCategoryDtoForGenerateExercise(original))
+                .toList();
+
+
+        aIService.generateExercises(new GenerateExercisesRequest(practice.getId(), copiedChildren));
+
+        return learningUnitMapper.toDto(practice);
+    }
+
+    @Transactional
     public LearningUnitDto saveLearningUnitChild(CreateLearningUnitChildDto dto) {
         User user = userUtil.getUserFromAuthContext();
         LearningUnit parent = learningUnitRepository.findById(dto.parentId())
@@ -70,7 +151,7 @@ public class LearningUnitService {
 
         LearningUnitType type = parent.getType();
         int nextLevel = type.getLevel() + 1;
-        LearningUnitType childType = exerciseCategoryRepository.findByLevel(nextLevel)
+        LearningUnitType childType = exerciseCategoryRepository.findByLevel(nextLevel).stream().findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "level", nextLevel));
 
         LearningUnit entity = new LearningUnit();
@@ -82,25 +163,43 @@ public class LearningUnitService {
         return learningUnitMapper.toDto(entity);
     }
 
+    @Transactional
     public List<LearningUnit> saveGeneratedCategoriesBulk(UUID parentId, List<CreateExerciseCategoryDto> dtos) {
         User user = userUtil.getUserFromAuthContext();
-        List<LearningUnit> learningUnits = dtos.stream().map(dto -> {;
-            LearningUnit parent = learningUnitRepository.findById(parentId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", parentId));
 
+        LearningUnit lesson = learningUnitRepository.findById(parentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", parentId));
+
+        List<LearningUnit> savedUnits = dtos.stream().map(dto -> {
             LearningUnitType type = exerciseCategoryRepository.findByName(dto.type())
                     .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", dto.type()));
 
-            LearningUnit unit = learningUnitMapper.generatedCategoryToEntity(dto);
-            unit.setParent(parent);
-            unit.setType(type);
-            unit.setCreatedBy(user);
+            LearningUnit newCate = learningUnitMapper.generatedCategoryToEntity(dto);
+            newCate.setParent(lesson);
+            newCate.setType(type);
+            newCate.setCreatedBy(user);
 
-            return unit;
+            if (newCate.getExercises() == null) {
+                newCate.setExercises(new ArrayList<>());
+            }
+
+            LearningUnit savedCate = learningUnitRepository.save(newCate);
+
+            List<Exercise> exercises = exerciseRepository.findAllById(dto.exerciseIds());
+            exercises.forEach(ex -> ex.setParent(savedCate));
+
+            exerciseRepository.saveAll(exercises);
+
+            savedCate.getExercises().clear();
+            savedCate.getExercises().addAll(exercises);
+
+            return savedCate;
         }).toList();
-        return learningUnitRepository.saveAll(learningUnits);
+
+        return savedUnits;
     }
 
+    @Transactional
     public LearningUnitDto updateLearningUnit(UUID id, LearningUnitDto dto) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
@@ -127,36 +226,28 @@ public class LearningUnitService {
     }
 
     public void deleteLearningUnit(UUID id) {
-        if (!learningUnitRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Learning Unit", "id", id);
-        }
-        learningUnitRepository.deleteById(id);
+        LearningUnit unit = learningUnitRepository.findWithChildren(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        learningUnitRepository.delete(unit);
     }
 
-    public List<LearningUnitDto> getLearningUnitsByTypeLevel(int level) {
+    public List<LearningUnitWithStatisticDto> getLearningUnitsByTypeLevel(int level) {
+        User user = userUtil.getUserFromAuthContext();
         return learningUnitRepository.findByTypeLevel(level).stream()
-                .map(learningUnitMapper::toDtoShallow)
+                .map(lu -> learningUnitMapper.toDtoWithStatistic(lu, user.getId()))
                 .toList();
     }
 
     public long countByLearningUnitId(UUID id) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
-        return learningUnitUtil.countExercises(learningUnit);
+        return learningUnitRepository.countExercisesUnderLearningUnit(learningUnit.getId());
     }
 
-    public List<LearningUnitChildDto> getAllExerciseStatisticLUWithUserId(UUID userId) {
-        List<LearningUnit> courseUnit = learningUnitRepository.findAllByType_Name("Course");
-        return courseUnit.stream()
-                .map(course -> new LearningUnitChildDto(
-                        course.getId(),
-                        course.getName(),
-                        course.getCode(),
-                        course.getType() != null ? course.getType().getName() : null,
-                        learningUnitUtil.getNumberOfCompletedExercise(userId, course),
-                        learningUnitUtil.countExercises(course)
-                ))
-                .toList();
+    public List<LearningUnitWithStatisticDto> getIncompleteCourses() {
+        User user = userUtil.getUserFromAuthContext();
+        return learningUnitRepository.findIncompleteCoursesWithStatistics(user.getId());
     }
 
     @Transactional
@@ -170,6 +261,7 @@ public class LearningUnitService {
                 .map(exerciseMapper::toDtoWithAnswer)
                 .toList();
     }
+
 
 }
 

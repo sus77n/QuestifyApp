@@ -256,8 +256,8 @@ public class MarkdownReaderUtil {
                 ans.setHeader(mo.group(1).trim());
                 ans.setText(mo.group(2).trim());
 
-                if (inLeft) ans.setMetadata("{\"side\":\"left\"}");
-                else if (inRight) ans.setMetadata("{\"side\":\"right\"}");
+                if (inLeft) ans.setMetadata("{\"metadata\":\"left\"}");
+                else if (inRight) ans.setMetadata("{\"metadata\":\"right\"}");
                 else ans.setMetadata(null);
 
                 options.add(ans);

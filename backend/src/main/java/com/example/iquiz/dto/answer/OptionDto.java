@@ -6,5 +6,5 @@ public record OptionDto(
         UUID id,
         String text,
         String header,
-        String side
+        String metadata
 ) {}

@@ -7,5 +7,6 @@ public enum ExerciseType {
     REORDERING,
     FILL_IN_THE_BLANK,
     SELECT_MULTIPLE,
-    TRUE_FALSE
+    TRUE_FALSE,
+    UNDEFINED
 }

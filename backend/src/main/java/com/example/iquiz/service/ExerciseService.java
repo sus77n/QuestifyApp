@@ -1,5 +1,6 @@
 package com.example.iquiz.service;
 
+import com.example.iquiz.dto.ai.ExportedCategoryDto;
 import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.answer.OptionDto;
@@ -7,6 +8,7 @@ import com.example.iquiz.entity.Answer;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.mapper.AIContentMapper;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.mapper.AnswerMapper;
 import com.example.iquiz.repository.ExerciseRepository;
@@ -17,8 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,11 +38,8 @@ public class ExerciseService {
     private AnswerMapper answerMapper;
     @Autowired
     private ExerciseCategoryRepository exerciseCategoryRepository;
-
-    public List<ExerciseResponseDto> getAllExercises() {
-        return exerciseRepository.findAll()
-                .stream().map(exerciseMapper::toDto).collect(Collectors.toList());
-    }
+    @Autowired
+    private AIContentMapper aIContentMapper;
 
     public ExerciseResponseDto getExerciseById(UUID exerciseId) {
         return exerciseMapper.toDto(exerciseRepository.findById(exerciseId)
@@ -86,7 +88,7 @@ public class ExerciseService {
         LearningUnit defaultCategory;
         if (!parent.getType().getName().equalsIgnoreCase("Exercise Category")) {
             defaultCategory = new LearningUnit();
-            defaultCategory.setName("Original Exercises");
+            defaultCategory.setName("Default Exercise Category");
             defaultCategory.setParent(parent);
             defaultCategory.setCreatedBy(parent.getCreatedBy());
             defaultCategory.setType(exerciseCategoryRepository.findByName("Exercise Category")
@@ -112,6 +114,37 @@ public class ExerciseService {
 
     public void deleteExercise(UUID exerciseId) {
         exerciseRepository.deleteById(exerciseId);
+    }
+
+    public void saveGeneratedExercisesBulk(List<ExportedCategoryDto> dtos) {
+        List<UUID> categoryIds = dtos.stream()
+                .map(ExportedCategoryDto::categoryId)
+                .toList();
+
+        Map<UUID, LearningUnit> parentMap = learningUnitRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(LearningUnit::getId, Function.identity()));
+
+        List<Exercise> allNewExercises = new ArrayList<>();
+
+        for (ExportedCategoryDto categoryDto : dtos) {
+            LearningUnit parentCategory = parentMap.get(categoryDto.categoryId());
+
+            if (parentCategory == null) {
+                continue;
+            }
+
+            List<Exercise> exercises = categoryDto.exercises().stream()
+                    .map(exDto -> {
+                        Exercise ex = aIContentMapper.toExercise(exDto);
+                        ex.setParent(parentCategory);
+                        return ex;
+                    })
+                    .toList();
+
+            allNewExercises.addAll(exercises);
+        }
+
+        exerciseRepository.saveAll(allNewExercises);
     }
 
 }

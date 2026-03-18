@@ -1,11 +1,10 @@
 package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
+import com.example.iquiz.dto.ai.ExportedCategoryDto;
 import com.example.iquiz.dto.exercise.ExerciseRequestDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.answer.OptionDto;
-import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
-import com.example.iquiz.service.AIService;
 import com.example.iquiz.service.ExerciseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,6 @@ public class ExerciseController {
 
     @Autowired
     private final ExerciseService exerciseService;
-
-    @Autowired
-    private final AIService aIService;
 
     @GetMapping("/{id}")
     public ApiResponse<ExerciseResponseDto> getExercise(@PathVariable UUID id) {
@@ -56,6 +52,12 @@ public class ExerciseController {
     public ApiResponse<Void> deleteExercise(@PathVariable UUID id) {
         exerciseService.deleteExercise(id);
         return ApiResponse.success(null, "Exercise deleted successfully");
+    }
+
+    @PostMapping("/bulk")
+    public ApiResponse<Void> generateExercises(@RequestBody List<ExportedCategoryDto> categories) {
+        exerciseService.saveGeneratedExercisesBulk(categories);
+        return ApiResponse.success(null, "Exercises generated successfully");
     }
 
 }

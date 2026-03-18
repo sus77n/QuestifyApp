@@ -17,11 +17,11 @@ import java.util.UUID;
 public class LessonConfig {
 
     @Id
-    @Column(name = "lesson_id")
-    private UUID lessonId; // PK đồng thời là FK
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // dùng lesson_id làm cả PK và FK
+    @MapsId
     @JoinColumn(name = "lesson_id")
     private LearningUnit lesson;
 

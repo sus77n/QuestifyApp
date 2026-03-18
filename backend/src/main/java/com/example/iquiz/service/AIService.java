@@ -1,60 +1,47 @@
 package com.example.iquiz.service;
 
-import com.example.iquiz.dto.exercise.ExerciseResponseDto;
-import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
+import com.example.iquiz.dto.ai.ExportedCategoryDto;
+import com.example.iquiz.dto.ai.GenerateExercisesRequest;
 import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
+import com.example.iquiz.enums.AITaskType;
 import com.example.iquiz.enums.PromptTemplate;
 import com.example.iquiz.exception.ConflictException;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.mapper.AIContentMapper;
 import com.example.iquiz.repository.ExerciseRepository;
 import com.example.iquiz.repository.LearningUnitRepository;
 import com.example.iquiz.service.learningUnit.LearningUnitService;
+import com.example.iquiz.utility.AIUtil;
+import com.example.iquiz.utility.MarkdownUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genai.Client;
-import com.google.genai.types.GenerateContentResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AIService {
-
-    @Autowired
-    private Client client;
-
-    @Value("${gemini.model}")
-    private String MODEL_NAME;
-
     @Autowired
     private ExerciseRepository exerciseRepository;
     @Autowired
     private LearningUnitRepository learningUnitRepository;
     @Autowired
-    private MarkdownService markdownService;
-    @Autowired
     private LearningUnitService learningUnitService;
-
-    public String sendPrompt(String prompt) {
-        String contextHeader = markdownService.loadPrompt(PromptTemplate.CONTEXT_HEADER);
-        String body = """
-                %s
-                %s
-                """.formatted(
-                contextHeader, prompt);
-
-        GenerateContentResponse response =
-                client.models.generateContent(MODEL_NAME, body, null);
-
-        return response.text().trim();
-//        return body.trim();
-    }
+    @Autowired
+    private MarkdownUtil markdownUtil;
+    @Autowired
+    private AIUtil aIUtil;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Transactional
     public List<CreateExerciseCategoryDto> defineExerciseCategory(UUID originalExCateId) {
@@ -62,39 +49,13 @@ public class AIService {
                 .orElseThrow(() -> new ResourceNotFoundException("LearningUnit (Exercise Category)", "Id", originalExCateId));
 
         LearningUnit lesson = exCategory.getParent();
-        if (lesson == null) {
-            throw new IllegalStateException("Exercise category has no parent lesson");
-        }
 
         List<Exercise> exercises = exerciseRepository.findByParent_Id(originalExCateId);
         if (exercises.isEmpty()) {
-            throw new IllegalStateException("No exercises found for exercise category " + originalExCateId);
+            throw new ResourceNotFoundException("Exercises in Exercise Category", "Id", originalExCateId);
         }
-
-
-        StringBuilder exercisesBlock = new StringBuilder();
-        int index = 1;
-        for (Exercise ex : exercises) {
-            exercisesBlock.append("### Exercise ")
-                    .append(index++)
-                    .append("\n\n");
-
-            exercisesBlock.append("- ID: `").append(ex.getId()).append("`\n");
-            exercisesBlock.append("- Type: `").append(ex.getType()).append("`\n");
-            exercisesBlock.append("- Difficulty: `").append(ex.getDifficulty()).append("`\n\n");
-            exercisesBlock.append("**Question:**\n\n");
-            exercisesBlock.append(ex.getQuestion()).append("\n\n");
-
-            if (ex.getCorrectAnswerJson() != null && !ex.getCorrectAnswerJson().isBlank()) {
-                exercisesBlock.append("**CorrectAnswersJson (raw):**\n\n");
-                exercisesBlock.append("```json\n")
-                        .append(ex.getCorrectAnswerJson())
-                        .append("\n```\n\n");
-            }
-        }
-
-        String template = markdownService.loadPrompt(PromptTemplate.DEFINE_EXERCISE_CATEGORY);
-
+        String exercisesBlock = markdownUtil.exercisesToCompactText(exercises);
+        String template = markdownUtil.loadPrompt(PromptTemplate.DEFINE_EXERCISE_CATEGORY);
         String prompt = template.formatted(
                 lesson.getId(),
                 lesson.getName(),
@@ -103,31 +64,86 @@ public class AIService {
                 exercisesBlock
         );
 
-
-        String responseJson = sendPrompt(prompt);
-
+        String responseJson = aIUtil.sendPrompt(prompt, AITaskType.DEFINE_EXERCISE_CATEGORY);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
             List<CreateExerciseCategoryDto> dtos = mapper.readValue(
                     responseJson,
-                    new TypeReference<List<CreateExerciseCategoryDto>>() {
+                    new TypeReference<>() {
+                    }
+            );
+            return dtos;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
+        }
+    }
+
+    @Transactional
+    public List<ExportedCategoryDto> generateExercises(GenerateExercisesRequest request) {
+        UUID lessonId = request.lessonId();
+
+        List<CreateExerciseCategoryDto> categories = request.categories();
+        List<LearningUnit> categoryEntities = learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
+
+        StringBuilder exerciseCategoryContainingExercises = new StringBuilder();
+        for (int i = 0; i < categoryEntities.size(); i++) {
+            String exercisesBlock = markdownUtil.categoryWithExercisesToCompactText(categoryEntities.get(i), i + 1);
+            exerciseCategoryContainingExercises.append(exercisesBlock);
+        }
+
+        String template = markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
+        String prompt = template.formatted(
+                exerciseCategoryContainingExercises.toString()
+        );
+
+        String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+
+        try {
+            List<ExportedCategoryDto> dtos = objectMapper.readValue(
+                    response,
+                    new TypeReference<>() {
                     }
             );
 
             return dtos;
         } catch (Exception ex) {
-            throw new ConflictException("Failed to parse AI response");
+            ex.printStackTrace();
+            throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
         }
     }
 
-
     @Transactional
-    public List<Exercise> generateExercises(UUID lessonId ,List<CreateExerciseCategoryDto> categories) {
-        List<LearningUnit> categoryEntities = learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
-
-
-
-        return null;
+    public List<ExportedCategoryDto> generateCombinedExercises(UUID lessonId, List<CreateExerciseCategoryDto> categories) {
+//        List<LearningUnit> categoryEntities = learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
+//
+//        StringBuilder exerciseCategoryContainingExercises = new StringBuilder();
+//        for (int i = 0; i < categoryEntities.size(); i++) {
+//            String exercisesBlock = markdownUtil.categoryWithExercisesToCompactText(categoryEntities.get(i), i + 1);
+//            exerciseCategoryContainingExercises.append(exercisesBlock);
+//        }
+//
+//        String template = markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
+//        String prompt = template.formatted(
+//                exerciseCategoryContainingExercises.toString()
+//        );
+//
+//        String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+//
+//        try {
+//            List<ExportedCategoryDto> dtos = objectMapper.readValue(
+//                    response,
+//                    new TypeReference<>() {
+//                    }
+//            );
+//
+//            return dtos;
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
+//        }
+        return  null;
     }
+
 }

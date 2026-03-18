@@ -51,6 +51,7 @@ public class CourseService {
         LearningUnit entity = learningUnitMapper.courseDtoToEntity(dto);
         entity.setCreatedBy(user);
         entity.setType(type);
+        entity.setStatus(1);
         entity = learningUnitRepository.save(entity);
         return learningUnitMapper.toCourseDto(entity);
     }

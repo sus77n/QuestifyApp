@@ -50,7 +50,10 @@ public class ExerciseMapper {
                 entity.getDifficulty(),
                 entity.getPredefinedAnswers() != null ?
                         answerMapper.toDtoList(entity.getPredefinedAnswers()) : new ArrayList<OptionDto>(),
-                ExerciseTypeUtil.removeCorrectAnswerJson(entity.getCorrectAnswerJson())
+                ExerciseTypeUtil.removeCorrectAnswerJson(entity.getCorrectAnswerJson()),
+                entity.getParent() != null ? entity.getParent().getId() : null,
+                entity.getCreatedAt(),
+                entity.getUpdatedAt()
         );
     }
 }

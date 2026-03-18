@@ -15,6 +15,6 @@ public record LearningUnitDto(
         String createdBy,
         UUID parentId,
         List<LearningUnitDto> children,
-        Long numberOfComplete,
         long numberOfExercise
-) {}
+) implements LearningUnitDtoInterface {
+}

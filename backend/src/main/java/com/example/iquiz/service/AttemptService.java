@@ -1,7 +1,9 @@
 package com.example.iquiz.service;
 
+import com.example.iquiz.dto.attempt.AttemptDto;
 import com.example.iquiz.dto.attempt.AttemptResponseDto;
 import com.example.iquiz.dto.attempt.AttemptStartResponseDto;
+import com.example.iquiz.dto.attempt.AttemptWithDetailsDto;
 import com.example.iquiz.dto.attemptDetail.ResultDto;
 import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.dto.attemptDetail.AttemptDetailDto;
@@ -9,6 +11,7 @@ import com.example.iquiz.entity.*;
 import com.example.iquiz.enums.AttemptStatus;
 import com.example.iquiz.exception.ConflictException;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import com.example.iquiz.mapper.AttemptMapper;
 import com.example.iquiz.mapper.ExerciseMapper;
 import com.example.iquiz.repository.*;
 
@@ -38,23 +41,29 @@ public class AttemptService {
     private final ExerciseCategoryDistributionRepository exerciseCategoryDistributionRepository;
     private final ExerciseMapper exerciseMapper;
     private final UserMasteryRepository userMasteryRepository;
+    private final AttemptMapper attemptMapper;
+    private final ParticipantProgressRepository participantProgressRepository;
 
-
-    public Attempt save(Attempt attempt) {
-        return attemptRepository.save(attempt);
+    public AttemptDto save(Attempt attempt) {
+        return attemptMapper.toDto(attemptRepository.save(attempt));
     }
 
-    public Attempt findById(UUID id) {
-        return attemptRepository.findById(id)
+    public AttemptWithDetailsDto findById(UUID id) {
+        Attempt attempt = attemptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Attempt", "Id", id));
+        return attemptMapper.toWithDetailsDto(attempt);
     }
 
-    public List<Attempt> findByUser(UUID userId) {
-        return attemptRepository.findByUserId(userId);
+    public List<AttemptDto> findByUser(UUID userId) {
+        return attemptRepository.findByUserId(userId).stream()
+                .map(attemptMapper::toDto)
+                .toList();
     }
 
-    public List<Attempt> findByLesson(UUID lessonId) {
-        return attemptRepository.findByLessonId(lessonId);
+    public List<AttemptDto> findByLearningUnit(UUID learningUnitId) {
+        return attemptRepository.findByLearningUnitId(learningUnitId).stream()
+                .map(attemptMapper::toDto)
+                .toList();
     }
 
     public void delete(UUID id) {
@@ -291,6 +300,21 @@ public class AttemptService {
         List<ExerciseResponseDto> questionDtos = selectedExercises.stream()
                 .map(exerciseMapper::toDto)
                 .toList();
+
+//        participantProgressRepository
+//                .findByUserIdAndCourseId(userId, lesson.getParent().getId())
+//                .orElseGet(() -> {
+//                    ParticipantProgress progress = new ParticipantProgress();
+//                    progress.setUser(user);
+//                    progress.setCourseId(courseId);
+//                    progress.setAttemptCount(0);
+//                    progress.setCompletedExercises(0);
+//                    progress.setTotalExercises(totalExercises);
+//                    progress.setStatus("IN_PROGRESS");
+//                    progress.setLastActivityAt(LocalDateTime.now());
+//
+//                    return participantProgressRepository.save(progress);
+//                });
 
         return new AttemptStartResponseDto(
                 attempt.getId(),

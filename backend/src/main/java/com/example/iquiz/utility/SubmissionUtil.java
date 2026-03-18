@@ -29,6 +29,7 @@ public class SubmissionUtil {
                 case MATCHING -> scoreMatching(userAnswerJson, correctJson);
                 case REORDERING -> scoreReordering(userAnswerJson, correctJson);
                 case FILL_IN_THE_BLANK -> scoreFillInBlank(userAnswerJson, correctJson);
+                default -> ZERO_SCORE;
             };
         } catch (Exception e) {
             logCalculationError(exercise.getId(), userAnswerJson, correctJson, e);
@@ -58,9 +59,9 @@ public class SubmissionUtil {
 
                 for (Answer a : exercise.getPredefinedAnswers()) {
                     String meta = a.getMetadata();
-                    if (meta != null && meta.contains("\"side\":\"left\"")) {
+                    if (meta != null && meta.contains("left")) {
                         leftMap.put(a.getHeader(), a);
-                    } else if (meta != null && meta.contains("\"side\":\"right\"")) {
+                    } else if (meta != null && meta.contains("right")) {
                         rightMap.put(a.getHeader(), a);
                     }
                 }

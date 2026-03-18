@@ -2,11 +2,7 @@ package com.example.iquiz.controller;
 
 import com.example.iquiz.dto.ApiResponse;
 import com.example.iquiz.dto.exercise.ExerciseWithAnswerDto;
-import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
-import com.example.iquiz.dto.learningUnit.CreateLearningUnitChildDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitChildDto;
-import com.example.iquiz.dto.learningUnit.LearningUnitDto;
-import com.example.iquiz.service.AIService;
+import com.example.iquiz.dto.learningUnit.*;
 import com.example.iquiz.service.learningUnit.LearningUnitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +20,6 @@ public class LearningUnitController {
     @Autowired
     private final LearningUnitService learningUnitService;
 
-    @Autowired
-    private final AIService aIService;
-
     @GetMapping
     public ApiResponse<List<LearningUnitDto>> getAll() {
         List<LearningUnitDto> list = learningUnitService.getAllLearningUnits();
@@ -39,6 +32,18 @@ public class LearningUnitController {
         return ApiResponse.success(created, "Learning unit created successfully");
     }
 
+    @PostMapping("/combined")
+    public ApiResponse<LearningUnitDto> createCombinedLearningUnit(@Valid @RequestBody CreateLearningUnitChildDto dto, List<UUID> selectedIds) {
+        LearningUnitDto created = learningUnitService.combineLearningUnit(dto, selectedIds);
+        return ApiResponse.success(created, "Learning unit created successfully");
+    }
+
+    @PostMapping("/{id}")
+    public ApiResponse<LearningUnitDtoInterface> initializeLesson(@PathVariable UUID id) {
+        LessonDetailDto lesson = learningUnitService.initializeLesson(id);
+        return ApiResponse.success(lesson, "Lesson initialized successfully");
+    }
+
     @PostMapping("/child")
     public ApiResponse<LearningUnitDto> createLearningUnitChild(@Valid @RequestBody CreateLearningUnitChildDto dto) {
         LearningUnitDto created = learningUnitService.saveLearningUnitChild(dto);
@@ -46,17 +51,26 @@ public class LearningUnitController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<LearningUnitDto> getLearningUnitById(
+    public ApiResponse<LearningUnitDtoInterface> getLearningUnitById(
             @PathVariable UUID id,
-            @RequestParam(required = false) UUID userId
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeCategory
     ) {
-        LearningUnitDto dto;
+        LearningUnitDtoInterface dto;
         if (userId != null) {
-            dto = learningUnitService.getLearningUnitByIdWithAuth(id, userId);
+            dto = learningUnitService.getLearningUnitWithStatisticByIdAndStudentId(id, userId);
         } else {
-            dto = learningUnitService.getLearningUnitById(id);
+            dto = learningUnitService.getLearningUnitById(id, includeCategory);
         }
-        return ApiResponse.success(dto, "Fetched learning unit details");
+        return ApiResponse.success(dto, "Fetched learning unit successfully");
+    }
+
+    @GetMapping("/{id}/lesson-details")
+    public ApiResponse<LearningUnitDtoInterface> getLearningUnitById(
+            @PathVariable UUID id
+    ) {
+        LearningUnitDtoInterface dto = learningUnitService.getLessonDetailsById(id);
+        return ApiResponse.success(dto, "Fetched Lesson Details successfully");
     }
 
     @PutMapping("/{id}")
@@ -75,8 +89,8 @@ public class LearningUnitController {
     }
 
     @GetMapping("/type/level/{level}")
-    public ApiResponse<List<LearningUnitDto>> getLearningUnitsByTypeLevel(@PathVariable int level) {
-        List<LearningUnitDto> list = learningUnitService.getLearningUnitsByTypeLevel(level);
+    public ApiResponse<List<LearningUnitWithStatisticDto>> getLearningUnitsByTypeLevel(@PathVariable int level) {
+        List<LearningUnitWithStatisticDto> list = learningUnitService.getLearningUnitsByTypeLevel(level);
         return ApiResponse.success(list, "Fetched learning units by type level");
     }
 
@@ -87,19 +101,19 @@ public class LearningUnitController {
     }
 
     @GetMapping("/courses/completed/{userId}")
-    public ApiResponse<List<LearningUnitChildDto>> getCompletedCourses(@PathVariable UUID userId) {
-        List<LearningUnitChildDto> completed = learningUnitService.getAllExerciseStatisticLUWithUserId(userId).stream()
-                .filter(c -> c.numberOfComplete() > 0 && c.numberOfComplete() >= c.numberOfExercise())
+    public ApiResponse<List<LearningUnitWithStatisticDto>> getCompletedCourses(@PathVariable UUID userId) {
+        List<LearningUnitWithStatisticDto> completed = learningUnitService.getIncompleteCourses().stream()
+                .filter(c -> c.getNumberOfComplete() > 0 && c.getNumberOfComplete() >= c.getNumberOfExercise())
                 .toList();
         return ApiResponse.success(completed, "Fetched completed courses");
     }
 
     @GetMapping("/courses/incompleted/{userId}")
-    public ApiResponse<List<LearningUnitChildDto>> getIncompletedCourses(@PathVariable UUID userId) {
-        List<LearningUnitChildDto> incompleted = learningUnitService.getAllExerciseStatisticLUWithUserId(userId).stream()
-                .filter(c -> c.numberOfComplete() < c.numberOfExercise())
-                .toList();
-        return ApiResponse.success(incompleted, "Fetched incompleted courses");
+    public ApiResponse<List<LearningUnitWithStatisticDto>> getIncompletedCourses(@PathVariable UUID userId) {
+        return ApiResponse.success(
+                learningUnitService.getIncompleteCourses(),
+                "Fetched incomplete courses"
+        );
     }
 
     @GetMapping("/{id}/exercises")
@@ -108,15 +122,4 @@ public class LearningUnitController {
         return ApiResponse.success(exerciseDtos, "Fetched exercises for the course");
     }
 
-    @PostMapping("/generate/categories/{originalExCateId}")
-    public ApiResponse<List<CreateExerciseCategoryDto>> defineExerciseCategories(@PathVariable UUID originalExCateId) {
-        List<CreateExerciseCategoryDto> categories = aIService.defineExerciseCategory(originalExCateId);
-        return ApiResponse.success(categories, "Exercise categories defined successfully");
-    }
-
-    @PostMapping("/generate/exercises")
-    public ApiResponse<List<ExerciseWithAnswerDto>> generateExercises(@RequestParam UUID lessonId, @RequestParam List<CreateExerciseCategoryDto> categories) {
-        List exercises = aIService.generateExercises(lessonId, categories);
-        return ApiResponse.success(exercises, "Exercises generated successfully");
-    }
 }
