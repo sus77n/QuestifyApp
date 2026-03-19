@@ -93,11 +93,12 @@ export default function ManageUser() {
     };
 
     const columns: ColumnsType<UserDTO> = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            sorter: (a, b) => a.id! - b.id!,
-            width: 90,
+{
+            title: "No.",
+            key: "stt",
+            width: 70,
+            align: "center",
+            render: (_, __, index) => index + 1, 
         },
         {
             title: "Username",
