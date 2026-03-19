@@ -1,21 +1,19 @@
 import React, { useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import { useGetAllIncompletedCoursesByUserIdQuery } from "../../API/service/learningUnit.service";
-import { CourseDTO } from "../../model/LearningUnitDTO";
 import { Spinner } from "../material/material";
+import { useGetAllIncompletedCoursesByUserIdQuery } from "../../API/service/progress.service";
+import { ProgressDTO } from "src/model/ProgressDTO";
 
 const MyCourse = () => {
-  const [selectedCourse, setSelectedCourse] = useState<CourseDTO | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<ProgressDTO | null>(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
   const userId = localStorage.getItem("id")!;
   const username = localStorage.getItem("username");
 
   const { data: ongoingCourses, isLoading: isLoadingCourses } =
-    useGetAllIncompletedCoursesByUserIdQuery(userId, {
-      skip: !userId,
-    });
+    useGetAllIncompletedCoursesByUserIdQuery();
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -26,7 +24,7 @@ const MyCourse = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSelectCourse = (course: CourseDTO) => {
+  const handleSelectCourse = (course: ProgressDTO) => {
     navigate(`/topics/${course.id}`);
   };
 
@@ -49,7 +47,7 @@ const MyCourse = () => {
                     <Spinner />
                   </div>
                 ) : ongoingCourses?.length ? (
-                  ongoingCourses.map((course: CourseDTO, index: number) => {
+                  ongoingCourses.map((course: ProgressDTO, index: number) => {
                     const courseWithIndex = {
                       ...course,
                       index,
@@ -62,12 +60,12 @@ const MyCourse = () => {
                         className="cursor-pointer"
                       >
                         <CardCourseMini
-                          courseCode={course.code}
-                          courseName={course.name}
+                          courseCode={course.courseCode}
+                          courseName={course.courseName}
                           index={index}
-                          progress={course.numberOfComplete}
-                          total={course.numberOfExercise}
-                          isSelected={selectedCourse?.id === course.id}
+                          progress={course.completedExercises}
+                          total={course.totalExercises}
+                          isSelected={selectedCourse?.id?.toString() === course.id?.toString()}
                         />
                       </div>
                     );
@@ -91,7 +89,7 @@ const MyCourse = () => {
                 ← Back
               </button>
               <h1 className="text-xl font-semibold text-white">
-                {selectedCourse.code}
+                {selectedCourse.courseName}
               </h1>
               <div className="w-16"></div>
             </div>
@@ -104,12 +102,12 @@ const MyCourse = () => {
                   alt="Course avatar"
                 />
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
-                  {selectedCourse.name}
+                  {selectedCourse.courseName}
                 </h2>
                 <div className="mt-4 w-full">
                   <ProgressLineMobile
-                    progress={selectedCourse.numberOfComplete}
-                    total={selectedCourse.numberOfExercise}
+                    progress={selectedCourse.completedExercises}
+                    total={selectedCourse.totalExercises}
                   />
                 </div>
               </div>
@@ -151,18 +149,18 @@ const MyCourse = () => {
               </h2>
 
               <div className="flex flex-1 flex-wrap gap-4">
-                {ongoingCourses?.map((course: CourseDTO, index: number) => (
+                {ongoingCourses?.map((course: ProgressDTO, index: number) => (
                   <div
                     className="w-[450px]"
                     onClick={() => handleSelectCourse(course)}
                     key={course.id}
                   >
                     <CardCourseMini
-                      courseCode={course.code}
-                      courseName={course.name}
+                      courseCode={course.courseCode}
+                      courseName={course.courseName}
                       index={index}
-                      progress={course.numberOfComplete}
-                      total={course.numberOfExercise}
+                      progress={course.completedExercises}
+                      total={course.totalExercises}
                     />
                   </div>
                 ))}
@@ -263,11 +261,10 @@ const CardCourseMini = ({
             p-3 relative flex items-center h-24 md:h-30 mt-3
             border-b-2 ${isSelected ? "border-text-color" : "border-b-gray-200"} 
             transition-[border-color,border-radius] duration-200 ease-in-out
-            ${
-              isSelected
-                ? "rounded-xl border-2 border-text-color shadow-lg bg-white/5"
-                : "hover:border-2 hover:border-text-color hover:rounded-xl hover:shadow-lg"
-            }
+            ${isSelected
+          ? "rounded-xl border-2 border-text-color shadow-lg bg-white/5"
+          : "hover:border-2 hover:border-text-color hover:rounded-xl hover:shadow-lg"
+        }
             cursor-pointer
         `}
     >
@@ -289,9 +286,8 @@ const CardCourseMini = ({
       </div>
       <div className="absolute right-3 md:right-5 flex items-center justify-end">
         <ChevronRightIcon
-          className={`h-4 w-4 md:h-5 md:w-5 transition-all duration-300 ${
-            isSelected ? "text-text-color translate-x-1" : "text-gray-400"
-          }`}
+          className={`h-4 w-4 md:h-5 md:w-5 transition-all duration-300 ${isSelected ? "text-text-color translate-x-1" : "text-gray-400"
+            }`}
         />
       </div>
     </div>

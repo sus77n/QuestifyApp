@@ -15,3 +15,8 @@ backend/target/
 frontend/node_modules/
 frontend/.env
 frontend/build/
+Report1_UML_Diagram.drawio
+frontend/vite.config.js
+frontend/vite.config.js
+*.drawio
+frontend/package-lock.json

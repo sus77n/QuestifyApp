@@ -37,8 +37,7 @@ public class LearningUnitService {
     UserUtil userUtil;
     ExerciseMapper exerciseMapper;
     ExerciseRepository exerciseRepository;
-    private final AIService aIService;
-    private final LessonConfigRepository lessonConfigRepository;
+    AIService aIService;
 
     public List<LearningUnitDto> getAllLearningUnits() {
         return learningUnitRepository.findAll().stream()
@@ -225,9 +224,12 @@ public class LearningUnitService {
         return learningUnitMapper.toDto(learningUnit);
     }
 
+    @Transactional
     public void deleteLearningUnit(UUID id) {
         LearningUnit unit = learningUnitRepository.findWithChildren(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));
+
+        List<Exercise> exercises = exerciseRepository.findExercisesWithAnswers(id);
 
         learningUnitRepository.delete(unit);
     }

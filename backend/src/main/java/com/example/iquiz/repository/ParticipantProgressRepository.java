@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface ParticipantProgressRepository extends JpaRepository<ParticipantProgress, UUID> {
 
     Optional<ParticipantProgress> findByUserIdAndCourseId(UUID userId, UUID courseId);
+
+    List<ParticipantProgress> findAllByUser_Id(UUID userId);
 }

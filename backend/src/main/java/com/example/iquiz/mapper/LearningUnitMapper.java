@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring", uses = {LessonConfigMapper.class})
+@Mapper(
+        componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL
+)
 public abstract class LearningUnitMapper {
 
     @Autowired

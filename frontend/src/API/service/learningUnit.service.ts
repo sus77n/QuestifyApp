@@ -1,6 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import {
-  CourseDTO,
   LearningUnitDTO,
   LearningUnitWithChildren,
   LearningUnitWithLessonConfig
@@ -91,14 +90,6 @@ export const learningUnitService = createApi({
       invalidatesTags: [{ type: "LearningUnit", id: "LIST" }],
     }),
 
-    getAllCompletedCoursesByUserId: builder.query<CourseDTO[], string>({
-      query: (userId) => `/learning-units/courses/completed/${userId}`,
-    }),
-
-    getAllIncompletedCoursesByUserId: builder.query<CourseDTO[], string>({
-      query: (userId) => `/learning-units/courses/incompleted/${userId}`,
-    }),
-
     generateCategoryContent: builder.mutation<LearningUnitDTO[], { originalExCateId: string }>({
       query: ({ originalExCateId }) => ({
         url: `/ai/define/categories/${originalExCateId}`,
@@ -140,8 +131,6 @@ export const {
   useCreateLearningUnitMutation,
   useUpdateLearningUnitMutation,
   useDeleteLearningUnitMutation,
-  useGetAllCompletedCoursesByUserIdQuery,
-  useGetAllIncompletedCoursesByUserIdQuery,
   useGetLearningUnitWithChildrenQuery,
   useInitializeLessonConfigAndCateMutation,
   useGetLearningUnitDetailsByIdQuery,

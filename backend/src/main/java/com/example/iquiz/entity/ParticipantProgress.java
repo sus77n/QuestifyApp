@@ -1,5 +1,6 @@
 package com.example.iquiz.entity;
 
+import com.example.iquiz.enums.UserProgress;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +46,10 @@ public class ParticipantProgress extends AuditableEntity {
 
     @Column(name = "total_exercises", nullable = false)
     private int totalExercises;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private UserProgress status;
 
     @Column(name = "progress_percent", precision = 5, scale = 2)
     private BigDecimal progressPercent;

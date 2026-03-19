@@ -100,22 +100,6 @@ public class LearningUnitController {
         return ApiResponse.success(count, "Counted learning units successfully");
     }
 
-    @GetMapping("/courses/completed/{userId}")
-    public ApiResponse<List<LearningUnitWithStatisticDto>> getCompletedCourses(@PathVariable UUID userId) {
-        List<LearningUnitWithStatisticDto> completed = learningUnitService.getIncompleteCourses().stream()
-                .filter(c -> c.getNumberOfComplete() > 0 && c.getNumberOfComplete() >= c.getNumberOfExercise())
-                .toList();
-        return ApiResponse.success(completed, "Fetched completed courses");
-    }
-
-    @GetMapping("/courses/incompleted/{userId}")
-    public ApiResponse<List<LearningUnitWithStatisticDto>> getIncompletedCourses(@PathVariable UUID userId) {
-        return ApiResponse.success(
-                learningUnitService.getIncompleteCourses(),
-                "Fetched incomplete courses"
-        );
-    }
-
     @GetMapping("/{id}/exercises")
     public ApiResponse<List<ExerciseWithAnswerDto>> getExerciseIdsByCourseId(@PathVariable UUID id) {
         List<ExerciseWithAnswerDto> exerciseDtos = learningUnitService.getExerciseIdsByLearningUnitId(id);

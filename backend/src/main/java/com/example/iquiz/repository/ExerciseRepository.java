@@ -16,5 +16,12 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
     List<Exercise> findByParent_Id(UUID parentId);
 
     List<Exercise> findByParent_IdIn(List<UUID> parentIds);
+
+    @Query("""
+    SELECT e FROM Exercise e
+    LEFT JOIN FETCH e.predefinedAnswers
+    WHERE e.parent.id = :id
+""")
+    List<Exercise> findExercisesWithAnswers(UUID id);
 }
 

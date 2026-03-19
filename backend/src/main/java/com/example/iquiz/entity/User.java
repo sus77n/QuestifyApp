@@ -65,4 +65,16 @@ public class User {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Transient
+    public String getFullName() {
+        if (isBlank(firstName) || isBlank(lastName)) {
+            return email;
+        }
+        return firstName.trim() + " " + lastName.trim();
+    }
+
+    private boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
 }

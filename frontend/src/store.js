@@ -4,10 +4,11 @@ import { exerciseService } from "./API/service/exercise.service";
 import { userService } from "./API/service/user.service";
 import { learningUnitService } from "./API/service/learningUnit.service";
 import { submissionService } from "./API/service/submission.service";
-import { attemptService} from "./API/service/attempt.service";
-import { courseService} from "./API/service/course.service";
-import {apiErrorMiddleware} from "./apiErrorMiddleware";
-import {lessonConfigService} from "./API/service/lessonConfig.service";
+import { attemptService } from "./API/service/attempt.service";
+import { courseService } from "./API/service/course.service";
+import { apiErrorMiddleware } from "./apiErrorMiddleware";
+import { lessonConfigService } from "./API/service/lessonConfig.service";
+import { progressService } from "./API/service/progress.service";
 
 
 export const store = configureStore({
@@ -19,7 +20,8 @@ export const store = configureStore({
     [submissionService.reducerPath]: submissionService.reducer,
     [attemptService.reducerPath]: attemptService.reducer,
     [courseService.reducerPath]: courseService.reducer,
-    [lessonConfigService.reducerPath]:lessonConfigService.reducer,
+    [lessonConfigService.reducerPath]: lessonConfigService.reducer,
+    [progressService.reducerPath]: progressService.reducer,
 
   },
   middleware: (getDefaultMiddleware) =>
@@ -29,9 +31,10 @@ export const store = configureStore({
       userService.middleware,
       learningUnitService.middleware,
       submissionService.middleware,
-        attemptService.middleware,
-        courseService.middleware,
-        lessonConfigService.middleware,
-        apiErrorMiddleware,
+      attemptService.middleware,
+      courseService.middleware,
+      lessonConfigService.middleware,
+      progressService.middleware,
+      apiErrorMiddleware,
     ),
 });

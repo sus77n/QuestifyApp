@@ -24,6 +24,11 @@ public class UserMastery {
     @JoinColumn(name = "lesson_id", nullable = false)
     private LearningUnit lesson;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("exerciseCategoryId")
+    @JoinColumn(name = "exercise_category_id", nullable = false)
+    private LearningUnit category;
+
     @Column(name = "accuracy", nullable = false)
     private double accuracy = 0.0;
 

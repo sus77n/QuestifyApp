@@ -14,7 +14,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "attempts")
+@Table(
+        name = "attempts",
+        indexes = {
+                @Index(name = "idx_attempt_started_at", columnList = "started_at DESC")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor

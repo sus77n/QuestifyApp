@@ -18,7 +18,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "learning_units")
+@Table(
+        name = "learning_units",
+        indexes = {
+                @Index(name = "idx_created_at", columnList = "createdAt DESC")
+        }
+)
 @NoArgsConstructor @AllArgsConstructor @Getter @Setter
 public class LearningUnit {
 
@@ -40,7 +45,7 @@ public class LearningUnit {
     @JsonBackReference
     private LearningUnitType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_id")
     @JsonBackReference
     private LearningUnit parent;

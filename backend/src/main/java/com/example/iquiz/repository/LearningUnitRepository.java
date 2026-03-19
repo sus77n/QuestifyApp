@@ -130,4 +130,17 @@ public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID
                    ON ba.exercise_id = ue.exercise_id
             """, nativeQuery = true)
     long getExerciseStatistic(UUID learningUnitId, UUID userId);
+
+    @Query(value = """
+                WITH RECURSIVE hierarchy AS (
+                    SELECT * FROM learning_units WHERE id = :id
+                    UNION ALL
+                    SELECT lu.* FROM learning_units lu
+                    JOIN hierarchy h ON lu.id = h.parent_id
+                )
+                SELECT * FROM hierarchy
+                WHERE parent_id IS NULL
+                LIMIT 1
+            """, nativeQuery = true)
+    Optional<LearningUnit> findRootByLearningUnitId(@Param("id") UUID id);
 }

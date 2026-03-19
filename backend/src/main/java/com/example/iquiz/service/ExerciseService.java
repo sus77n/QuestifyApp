@@ -146,5 +146,4 @@ public class ExerciseService {
 
         exerciseRepository.saveAll(allNewExercises);
     }
-
 }
