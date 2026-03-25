@@ -30,14 +30,6 @@ public class LearningUnitTypeService {
                 .toList();
     }
 
-    public LearningUnitTypeDto getLearningUnitTypeByType(String type) {
-        return learningUnitTypeMapper.toDto(
-                exerciseCategoryRepository.findByName(type)
-                        .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", type))
-
-        );
-    }
-
     public LearningUnitTypeDto saveLearningUnitType(LearningUnitTypeDto dto) {
         LearningUnitType entity = learningUnitTypeMapper.toEntity(dto);
         exerciseCategoryRepository.save(entity);

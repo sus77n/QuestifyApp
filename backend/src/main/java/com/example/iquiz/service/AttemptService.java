@@ -125,6 +125,8 @@ public class AttemptService {
                 result.getCategoryStats()
         );
 
+
+
         return new AttemptResponseDto(
                 attempt.getId(),
                 attempt.getUser().getId(),

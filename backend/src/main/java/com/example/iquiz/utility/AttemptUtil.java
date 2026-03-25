@@ -56,6 +56,7 @@ public class AttemptUtil {
     ) {
 
         int correctCount = 0;
+        int wrongCount = 0;
         List<ResultDto> feedbacks = new ArrayList<>();
         List<AttemptDetail> details = new ArrayList<>();
         Map<UUID, int[]> categoryStats = new HashMap<>();
@@ -76,7 +77,12 @@ public class AttemptUtil {
                     submissionUtil.calculateScore(exercise, userAnswerJson);
 
             boolean isCorrect = score.compareTo(BigDecimal.valueOf(50)) >= 0;
-            if (isCorrect) correctCount++;
+            if (isCorrect) {
+                correctCount++;
+            }
+            else {
+                wrongCount++;
+            }
 
             AttemptDetail detail = new AttemptDetail();
             detail.setExercise(exercise);
@@ -105,7 +111,7 @@ public class AttemptUtil {
                 (double) correctCount / submissions.size() * 100
         ).setScale(2, RoundingMode.HALF_UP);
 
-        return new SubmissionResult(details, feedbacks, categoryStats, finalScore);
+        return new SubmissionResult(details, feedbacks, categoryStats, finalScore, correctCount, wrongCount);
     }
 
     public void updateMastery(

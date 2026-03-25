@@ -18,4 +18,6 @@ public class SubmissionResult {
     private List<ResultDto> feedbacks;        // for API response
     private Map<UUID, int[]> categoryStats;   // for mastery update
     private BigDecimal finalScore;            // for Attempt
+    private int correctCount;                   // for Attempt
+    private int wrongCount;
 }
