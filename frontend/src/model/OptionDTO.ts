@@ -3,4 +3,9 @@ export interface OptionDTO {
   header?: string;
   text: string;
   side?: string;
+  metadata: MetaData
+}
+
+export interface MetaData {
+  side?: string
 }

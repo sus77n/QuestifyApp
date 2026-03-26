@@ -1,8 +1,8 @@
-import React, {useState} from "react";
-import {LearningUnitChildDto} from "../../../../model/LearningUnitChildDto";
-import {useLazyGetLearningUnitByIdQuery} from "../../../../API/service/learningUnit.service";
-import {ChevronDownIcon, ChevronUpIcon} from "@heroicons/react/24/outline";
-import {LessonCard} from "./LessonCard";
+import React, { useState } from "react";
+import { LearningUnitChildDto } from "../../../../model/LearningUnitChildDto";
+import { useLazyGetLearningUnitByIdQuery } from "../../../../API/service/learningUnit.service";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import { LessonCard } from "./LessonCard";
 
 export const TopicCardDropdown = ({
     index,
@@ -25,27 +25,47 @@ export const TopicCardDropdown = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [lessons, setLessons] = useState<LearningUnitChildDto[]>([]);
+    const [hasFetched, setHasFetched] = useState(false); 
     const [fetchUnit] = useLazyGetLearningUnitByIdQuery();
 
     const handleClickRow = async () => {
-        if (onTitleClick) {
-            onTitleClick();
-        }
+        const nextOpenState = !isOpen;
+        setIsOpen(nextOpenState);
 
-        setIsOpen(!isOpen);
+        if (!nextOpenState) return;
+
         const userId = localStorage.getItem("id");
         if (!userId) return;
 
-        if (!lessons.length && !isOpen) {
+        if (hasFetched) {
+            if (lessons.length === 0 && onTitleClick) {
+                onTitleClick();
+            }
+            return;
+        }
+
+        try {
             const res = await fetchUnit({ userId, id: childrenId }).unwrap();
-            if (res?.children?.length) setLessons(res.children);
+            setHasFetched(true);
+            
+            const fetchedChildren = res?.children || [];
+
+            if (fetchedChildren.length > 0) {
+                setLessons(fetchedChildren);
+            } else {
+                if (onTitleClick) {
+                    onTitleClick();
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch unit:", error);
         }
     };
 
     return (
         <div className="bg-white rounded-xl border-2 border-text-color mb-2">
             <div 
-                className={`flex justify-between items-center p-3 rounded-xl cursor-pointer ${selectedLessonId === childrenId ? 'bg-gray-100' : ''}`} 
+                className={`flex justify-between items-center p-3 rounded-xl cursor-pointer transition-colors ${selectedLessonId === childrenId ? 'bg-gray-100' : 'hover:bg-gray-50'}`} 
                 onClick={handleClickRow}
             >
                 <div className="flex items-center gap-2">
@@ -69,7 +89,7 @@ export const TopicCardDropdown = ({
             </div>
 
             {isOpen && (
-                <div className="px-4 pb-4 pt-2 border-t-2 border-text-color">
+                <div className="px-4 pb-4 pt-2 border-t-2 border-text-color bg-white rounded-b-xl">
                     {lessons.length > 0 ? (
                         lessons.map((lesson, i) => (
                             <LessonCard
@@ -83,7 +103,7 @@ export const TopicCardDropdown = ({
                             />
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500">No lessons found</p>
+                        <p className="text-sm text-gray-500 italic py-2">Không có bài học con nào trong Chapter này.</p>
                     )}
                 </div>
             )}

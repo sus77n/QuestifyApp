@@ -1,5 +1,6 @@
 import { OptionDTO } from "./OptionDTO";
 
+
 export interface ExerciseDTO {
   id?: string
   parentId?: string;

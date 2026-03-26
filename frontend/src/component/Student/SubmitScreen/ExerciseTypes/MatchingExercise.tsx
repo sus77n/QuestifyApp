@@ -11,8 +11,9 @@ export default function MatchingExercise({
     submission?: SubmissionDTO;
     onSubmissionChange: (s: SubmissionDTO) => void;
 }) {
-    const left = exercise.options?.filter(o => o.side === "left") ?? [];
-    const right = exercise.options?.filter(o => o.side === "right") ?? [];
+// Sửa lại đường dẫn truy cập vào metadata
+const left = exercise.options?.filter(o => o.metadata?.side === "left") ?? [];
+const right = exercise.options?.filter(o => o.metadata?.side === "right") ?? [];
 
     // ---- INIT ORDER FROM SUBMISSION (HEADER-BASED) ----
     const initialOrder = submission?.userAnswerJson
