@@ -1,20 +1,22 @@
 import React from "react";
-import {Alert, Input} from "antd";
+import { Alert, Input } from "antd";
 
 export interface FillInBlankValue {
     correctAnswers: string[];
 }
 
 export interface FillInBlankProps {
+    question: string;
     value: FillInBlankValue;
     onChange: (v: FillInBlankValue) => void;
     error?: string | null;
 }
 
 const FillInTheBlankBuilder: React.FC<FillInBlankProps> = ({
-                                                               value,
-                                                               onChange,error
-                                                           }) => {
+    question,
+    value,
+    onChange, error
+}) => {
 
     const updateAnswers = (text: string) => {
         const lines = text

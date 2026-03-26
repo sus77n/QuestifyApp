@@ -37,7 +37,8 @@ import MyButton from "../../material/material";
 import TeacherPage from "../TeacherPage";
 
 import MultipleChoiceBuilder, {
-    ExerciseBuilderValue
+    ExerciseBuilderValue,
+    BuilderOption
 } from "./exerciseBuilders/MultipleChoiceBuilder";
 
 import SelectMultipleBuilder from "./exerciseBuilders/SelectMultipleBuilder";
@@ -172,7 +173,6 @@ export default function ManageExercises() {
         correctAnswers: []
     });
 
-
     const searchInput = useRef(null);
 
     const handleSearch = (
@@ -239,7 +239,7 @@ export default function ManageExercises() {
 
     const [form] = Form.useForm();
 
-const openAddModal = () => {
+    const openAddModal = () => {
         setMode("add");
         setEditingExercise(null);
         setSelectedType(null);
@@ -263,8 +263,8 @@ const openAddModal = () => {
 
         setMatchingValue({
             options: [
-                { header: "1", side: "left", text: "" },
-                { header: "1", side: "right", text: "" }
+                { header: "1", metadata: { side: "left" }, text: "" },
+                { header: "1", metadata: { side: "right" }, text: "" }
             ],
             correctAnswers: []
         });
@@ -277,7 +277,6 @@ const openAddModal = () => {
             correctAnswers: ["1", "2"]
         });
 
-        // THÊM DÒNG NÀY ĐỂ RESET FORM ĐIỀN CHỖ TRỐNG KHI TẠO MỚI
         setFillBlankValue({
             correctAnswers: []
         });
@@ -285,7 +284,7 @@ const openAddModal = () => {
         setIsModalOpen(true);
     };
 
-const openEditModal = (ex: ExerciseDTO) => {
+    const openEditModal = (ex: ExerciseDTO) => {
         setMode("edit");
         setEditingExercise({
             ...ex,
@@ -305,15 +304,58 @@ const openEditModal = (ex: ExerciseDTO) => {
         }
 
         if (ex.type === "MATCHING") {
-            // ... (Code giữ nguyên của bạn) ...
+            const dbOptions = ex.options || [];
             
+            let parsedCorrectPairs = [];
+            try {
+                const parsed = JSON.parse(ex.correctAnswers || "[]");
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const inner = JSON.parse(parsed[0]);
+                    parsedCorrectPairs = inner.correctAnswers || [];
+                }
+            } catch {
+                parsedCorrectPairs = [];
+            }
+
+            let mappedOptions = dbOptions.map(o => ({
+                id: o.id,
+                header: o.header || "",
+                text: o.text || "",
+                metadata: {
+                    side: (o.metadata?.side === "left" || o.metadata?.side === "right") ? (o.metadata.side as "left" | "right") : "left"
+                }
+            }));
+            const hasSideInfo = dbOptions.some(o => o.metadata?.side);
+            if (!hasSideInfo && parsedCorrectPairs.length > 0) {
+                const leftHeaders = parsedCorrectPairs.map((p: any) => String(p.leftHeader));
+                
+                mappedOptions = dbOptions.map(o => ({
+                    id: o.id,
+                    header: o.header || "",
+                    text: o.text || "",
+                    metadata: {
+                        side: leftHeaders.includes(String(o.header)) ? "left" : "right"
+                    }
+                }));
+            }
+
+            setMatchingValue({
+                options: mappedOptions,
+                correctAnswers: parsedCorrectPairs
+            });
         } else if (ex.type === "REORDERING") {
+            const dbOptions = ex.options?.map(o => ({
+                header: o.header || "",
+                text: o.text
+            })) || [];
+            
+            // Sort options by the order in correctAnswers
+            const sortedOptions = parsedCorrect.map((header:any) => 
+                dbOptions.find(o => o.header === header)
+            ).filter(Boolean) as BuilderOption[];
+
             setReorderingValue({
-                options:
-                    ex.options?.map(o => ({
-                        header: o.header || "",
-                        text: o.text
-                    })) || [],
+                options: sortedOptions,
                 correctAnswers: parsedCorrect
             });
 
@@ -339,8 +381,8 @@ const openEditModal = (ex: ExerciseDTO) => {
 
     const mapToPayload = () => {
         if (selectedType === "MATCHING") {
-            const leftOptions = matchingValue.options.filter(o => o.side === "left");
-            const rightOptions = matchingValue.options.filter(o => o.side === "right");
+            const leftOptions = matchingValue.options.filter(o => o.metadata?.side === "left");
+            const rightOptions = matchingValue.options.filter(o => o.metadata?.side === "right");
 
             const pairCount = Math.min(leftOptions.length, rightOptions.length);
 
@@ -349,8 +391,8 @@ const openEditModal = (ex: ExerciseDTO) => {
                 String(i + 1)
             ).sort(() => Math.random() - 0.5);
 
-            const options: { header: string; side: string; text: string }[] = [];
-            const correctPairs: { leftHeader: string; rightHeader: string }[] = [];
+const options: { header: string; text: string; metadata: { side: "left" | "right" } }[] = []; 
+           const correctPairs: { leftHeader: string; rightHeader: string }[] = [];
 
             let headerIndex = 0;
 
@@ -360,14 +402,14 @@ const openEditModal = (ex: ExerciseDTO) => {
 
                 options.push({
                     header: leftHeader,
-                    side: "left",
-                    text: leftOptions[i].text
+                    text: leftOptions[i].text,
+                    metadata: { side: "left" }
                 });
 
                 options.push({
                     header: rightHeader,
-                    side: "right",
-                    text: rightOptions[i].text
+                    text: rightOptions[i].text,
+                    metadata: { side: "right" }
                 });
 
                 correctPairs.push({
@@ -407,7 +449,6 @@ const openEditModal = (ex: ExerciseDTO) => {
                 correctAnswers: JSON.stringify(fillBlankValue.correctAnswers)
             };
         }
-
 
         const optionsMapped =
             selectedType === "SHORT_ANSWER"
@@ -519,6 +560,7 @@ const openEditModal = (ex: ExerciseDTO) => {
             )
         }
     ];
+    const questionText = Form.useWatch("question", form);
 
     const renderBuilder = () => {
         if (!selectedType) {
@@ -561,6 +603,7 @@ const openEditModal = (ex: ExerciseDTO) => {
             case "FILL_IN_THE_BLANK":
                 return (
                     <FillInTheBlankBuilder
+                    question={questionText}
                         value={fillBlankValue}
                         onChange={setFillBlankValue}
                         error={validationError}
@@ -705,9 +748,7 @@ const openEditModal = (ex: ExerciseDTO) => {
                     y: 'calc(100vh - 460px)',
                     x: 800
                 }}
-                pagination={{
-                    pageSize: 10
-                }}
+                pagination={false}
             />
 
 
@@ -731,7 +772,6 @@ const openEditModal = (ex: ExerciseDTO) => {
                         paddingRight: '8px'
                     }
                 }}
-
                 onCancel={() => setIsModalOpen(false)}
                 footer={[
                     <Button key="save" type="primary" onClick={handleSave}>

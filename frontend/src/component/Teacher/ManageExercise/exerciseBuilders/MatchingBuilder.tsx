@@ -1,10 +1,16 @@
 import React from "react";
-import {Alert, Button, Input} from "antd";
+import { Alert, Button, Input } from "antd";
 
 export interface MatchingOption {
-    header: string;           // cùng header cho left & right của 1 cặp
-    side: "left" | "right";
+    id?: string;
+    header: string;
     text: string;
+    // Thêm metadata để khớp với JSON từ API
+    metadata?: {
+        side: "left" | "right";
+    };
+    // Giữ lại side ở ngoài để dự phòng cho các item được tạo mới chưa gọi API
+    side?: "left" | "right"; 
 }
 
 export interface MatchingCorrectPair {
@@ -27,20 +33,27 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
                                                              value,
                                                              onChange, error
                                                          }) => {
-    const { options, correctAnswers } = value;
+    // Đảm bảo options luôn là mảng để tránh lỗi crash nếu API trả về null/undefined
+    const options = value?.options || [];
+    const correctAnswers = value?.correctAnswers || [];
 
     /* =========================
        Helpers
     ========================== */
 
+    // Hàm lấy side an toàn từ cả API (metadata.side) hoặc State tạo mới (side)
+    const getSide = (o: MatchingOption) => o.metadata?.side || o.side;
+
     // luôn đảm bảo mỗi header có 1 left + 1 right
     const normalizePairs = (opts: MatchingOption[]): MatchingOption[] => {
-        const grouped: Record<string, { left?: MatchingOption; right?: MatchingOption }> =
-            {};
+        const grouped: Record<string, { left?: MatchingOption; right?: MatchingOption }> = {};
 
         for (const o of opts) {
             if (!grouped[o.header]) grouped[o.header] = {};
-            grouped[o.header][o.side] = o;
+            const side = getSide(o);
+            if (side === "left" || side === "right") {
+                grouped[o.header][side] = o;
+            }
         }
 
         const headers = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
@@ -49,9 +62,9 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
         headers.forEach((h) => {
             const g = grouped[h];
             const left: MatchingOption =
-                g.left ?? { header: h, side: "left", text: "" };
+                g.left ?? { header: h, metadata: { side: "left" }, text: "" };
             const right: MatchingOption =
-                g.right ?? { header: h, side: "right", text: "" };
+                g.right ?? { header: h, metadata: { side: "right" }, text: "" };
             result.push(left, right);
         });
 
@@ -59,8 +72,8 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
     };
 
     const normalizedOptions = normalizePairs(options);
-    const leftOptions = normalizedOptions.filter((o) => o.side === "left");
-    const rightOptions = normalizedOptions.filter((o) => o.side === "right");
+    const leftOptions = normalizedOptions.filter((o) => getSide(o) === "left");
+    const rightOptions = normalizedOptions.filter((o) => getSide(o) === "right");
 
     /* =========================
        Update text
@@ -71,7 +84,7 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
         text: string
     ) => {
         const updated = normalizedOptions.map((o) =>
-            o.header === header && o.side === side ? { ...o, text } : o
+            o.header === header && getSide(o) === side ? { ...o, text } : o
         );
 
         // correctAnswers: mặc định leftHeader = rightHeader
@@ -98,8 +111,9 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
         const maxHeader = headers.length ? Math.max(...headers) : 0;
         const header = String(maxHeader + 1);
 
-        const left: MatchingOption = { header, side: "left", text: "" };
-        const right: MatchingOption = { header, side: "right", text: "" };
+        // Khi tạo mới, ta bọc side vào trong metadata luôn để nhất quán với dữ liệu API
+        const left: MatchingOption = { header, metadata: { side: "left" }, text: "" };
+        const right: MatchingOption = { header, metadata: { side: "right" }, text: "" };
 
         const updated = [...normalizedOptions, left, right];
         const newCorrect: MatchingCorrectPair[] = [
@@ -171,6 +185,7 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
 
             {/* Error display */}
             {error && <Alert message={error} type="error" showIcon className="mb-2" />}
+            
             {leftOptions.map((left) => {
                 const right = rightOptions.find((r) => r.header === left.header);
 
@@ -180,9 +195,9 @@ const MatchingBuilder: React.FC<MatchingBuilderProps> = ({
                         className="border rounded-lg p-4 space-y-3"
                     >
                         <div className="flex gap-3 items-center">
-              <span className="font-semibold text-gray-600">
-                Pair #{left.header}
-              </span>
+                            <span className="font-semibold text-gray-600 whitespace-nowrap">
+                                Pair #{left.header}
+                            </span>
 
                             <Input
                                 className="flex-1"
