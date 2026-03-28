@@ -1,5 +1,6 @@
 package com.example.iquiz.utility;
 
+import com.example.iquiz.dto.answer.MatchingPair;
 import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.exception.ApiException;
 import com.example.iquiz.exception.ConflictException;
@@ -45,30 +46,37 @@ public class ExerciseTypeUtil {
     // ==================== PARSING METHODS ====================
     public static List<Object> parseAnswers(String json) {
         try {
-            if (json == null || json.equalsIgnoreCase("null") || json.equals("")) {
+            if (json == null || json.equalsIgnoreCase("null") || json.isBlank()) {
                 return List.of();
             }
 
-            JsonNode root = objectMapper.readTree(json);
+            json = sanitizeJson(json);
+
+            JsonNode root = safeReadTree(json);
+            if (root == null) return List.of();
+
             if (root.isArray()) {
-                return objectMapper.convertValue(root, new TypeReference<List<Object>>() {
-                });
+                return objectMapper.convertValue(root, new TypeReference<List<Object>>() {});
             }
 
             if (root.isObject()) {
                 JsonNode answersNode = root.get("correctAnswers");
                 if (answersNode != null && answersNode.isArray()) {
-                    return objectMapper.convertValue(answersNode, new TypeReference<>() {
-                    });
+                    return objectMapper.convertValue(
+                            answersNode,
+                            new TypeReference<List<Object>>() {}
+                    );
                 }
             }
 
             if (root.isValueNode()) {
                 return List.of(objectMapper.convertValue(root, Object.class));
             }
+
             return List.of();
+
         } catch (Exception e) {
-            throw new ApiException("Failed to parse correct answers", ErrorCode.INTERNAL_SERVER_ERROR, e);
+            return List.of();
         }
     }
 
@@ -81,24 +89,34 @@ public class ExerciseTypeUtil {
     }
 
     public static List<MatchingPair> parseMatchingPairs(String json) {
+        if (json == null || json.isBlank()) return List.of();
+
         try {
-            List<Object> raw = parseAnswers(json);
+            json = sanitizeJson(json);
+
+            JsonNode root = objectMapper.readTree(json);
+
+            JsonNode arrayNode;
+
+            if (root.isArray()) {
+                arrayNode = root;
+            } else if (root.has("correctAnswers")) {
+                arrayNode = root.get("correctAnswers");
+            } else {
+                return List.of();
+            }
 
             List<MatchingPair> result = new ArrayList<>();
-            for (Object v : raw) {
-                if (v instanceof Map<?, ?> map) {
-                    Object left = map.get("leftHeader");
-                    Object right = map.get("rightHeader");
 
-                    if (left instanceof String && right instanceof String) {
-                        MatchingPair p = new MatchingPair();
-                        p.setLeftHeader(left.toString());
-                        p.setRightHeader(right.toString());
-                        result.add(p);
-                    }
-                }
+            for (JsonNode node : arrayNode) {
+                result.add(new MatchingPair(
+                        node.get("leftHeader").asText(),
+                        node.get("rightHeader").asText()
+                ));
             }
+
             return result;
+
         } catch (Exception e) {
             return List.of();
         }
@@ -127,33 +145,40 @@ public class ExerciseTypeUtil {
         }
     }
 
-    // SUPPORT CLASS
-    public static class MatchingPair {
-        private String leftHeader;
-        private String rightHeader;
+    public static JsonNode safeReadTree(String json) {
+        try {
+            return objectMapper.readTree(json);
+        } catch (Exception e) {
+            try {
+                String fixed = json.trim();
 
-        public MatchingPair() {
+                if (fixed.startsWith("{") && !fixed.endsWith("}")) {
+                    fixed += "}";
+                }
+                if (fixed.contains("[") && !fixed.endsWith("]")) {
+                    fixed += "]";
+                }
+
+                return objectMapper.readTree(fixed);
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+    }
+
+    private static String sanitizeJson(String json) {
+        json = json.trim();
+
+        // If starts with {"correctAnswers":[ but does not end with ]}
+        if (json.startsWith("{") && !json.endsWith("}")) {
+            json = json + "]}";
         }
 
-        public MatchingPair(String leftHeader, String rightHeader) {
-            this.leftHeader = leftHeader;
-            this.rightHeader = rightHeader;
+        // If starts with [ but does not end with ]
+        if (json.startsWith("[") && !json.endsWith("]")) {
+            json = json + "]";
         }
 
-        public String getLeftHeader() {
-            return leftHeader;
-        }
-
-        public String getRightHeader() {
-            return rightHeader;
-        }
-
-        public void setLeftHeader(String leftHeader) {
-            this.leftHeader = leftHeader;
-        }
-
-        public void setRightHeader(String rightHeader) {
-            this.rightHeader = rightHeader;
-        }
+        return json;
     }
 }

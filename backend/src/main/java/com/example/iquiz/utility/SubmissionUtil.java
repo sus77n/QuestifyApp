@@ -1,5 +1,6 @@
 package com.example.iquiz.utility;
 
+import com.example.iquiz.dto.answer.MatchingPair;
 import com.example.iquiz.entity.Answer;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.enums.ExerciseType;
@@ -52,7 +53,7 @@ public class SubmissionUtil {
                 return ExerciseTypeUtil.parseToList(answerJson);
             }
             case MATCHING -> {
-                List<ExerciseTypeUtil.MatchingPair> pairs = ExerciseTypeUtil.parseMatchingPairs(answerJson);
+                List<MatchingPair> pairs = ExerciseTypeUtil.parseMatchingPairs(answerJson);
 
                 Map<String, Answer> leftMap = new HashMap<>();
                 Map<String, Answer> rightMap = new HashMap<>();
@@ -68,7 +69,7 @@ public class SubmissionUtil {
 
                 List<String> output = new ArrayList<>();
 
-                for (ExerciseTypeUtil.MatchingPair pair : pairs) {
+                for (MatchingPair pair : pairs) {
                     Answer leftAns = leftMap.get(pair.getLeftHeader());
                     Answer rightAns = rightMap.get(pair.getRightHeader());
 
@@ -179,7 +180,6 @@ public class SubmissionUtil {
         String user = userText.toLowerCase().trim();
         String correct = correctText.toLowerCase().trim();
 
-        // Quick equality check (for safety, though usually caught earlier)
         if (user.equals(correct)) return FULL_SCORE;
 
         String[] userWords = user.split("\\s+");
@@ -205,21 +205,21 @@ public class SubmissionUtil {
 
     private BigDecimal scoreMatching(String userJson, String correctJson) {
 
-        List<ExerciseTypeUtil.MatchingPair> userPairs =
+        List<MatchingPair> userPairs =
                 ExerciseTypeUtil.parseMatchingPairs(userJson);
 
-        List<ExerciseTypeUtil.MatchingPair> correctPairs =
+        List<MatchingPair> correctPairs =
                 ExerciseTypeUtil.parseMatchingPairs(correctJson);
 
         if (userPairs.isEmpty() || correctPairs.isEmpty()) return ZERO_SCORE;
 
         Map<String, String> correctMap = new HashMap<>();
-        for (ExerciseTypeUtil.MatchingPair p : correctPairs) {
+        for (MatchingPair p : correctPairs) {
             correctMap.put(p.getLeftHeader(), p.getRightHeader());
         }
 
         int correct = 0;
-        for (ExerciseTypeUtil.MatchingPair u : userPairs) {
+        for (MatchingPair u : userPairs) {
             if (Objects.equals(correctMap.get(u.getLeftHeader()), u.getRightHeader())) {
                 correct++;
             }

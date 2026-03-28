@@ -1,5 +1,6 @@
 package com.example.iquiz.service;
 
+import com.example.iquiz.dto.ai.ExerciseGenerationConfig;
 import com.example.iquiz.dto.ai.ExportedCategoryDto;
 import com.example.iquiz.dto.ai.GenerateExercisesRequest;
 import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
@@ -85,33 +86,56 @@ public class AIService {
         UUID lessonId = request.lessonId();
 
         List<CreateExerciseCategoryDto> categories = request.categories();
-        List<LearningUnit> categoryEntities = learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
+        List<LearningUnit> categoryEntities =
+                learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
 
-        StringBuilder exerciseCategoryContainingExercises = new StringBuilder();
-        for (int i = 0; i < categoryEntities.size(); i++) {
-            String exercisesBlock = markdownUtil.categoryWithExercisesToCompactText(categoryEntities.get(i), i + 1);
-            exerciseCategoryContainingExercises.append(exercisesBlock);
-        }
+        List<ExportedCategoryDto> result = new ArrayList<>();
 
         String template = markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
-        String prompt = template.formatted(
-                exerciseCategoryContainingExercises.toString()
-        );
 
-        String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+        ExerciseGenerationConfig cfg = ExerciseGenerationConfig.builder().build();
+        String config = markdownUtil.loadPrompt(PromptTemplate.EXERCISE_GENERATION_CONFIG)
+                .formatted(
+                        cfg.getMultipleChoice(),
+                        cfg.getSelectMultiple(),
+                        cfg.getTrueFalse(),
+                        cfg.getMatching(),
+                        cfg.getReordering(),
+                        cfg.getFillInBlank(),
+                        cfg.getShortAnswer(),
+                        cfg.getTotal()
+                );
 
-        try {
-            List<ExportedCategoryDto> dtos = objectMapper.readValue(
-                    response,
-                    new TypeReference<>() {
-                    }
-            );
+        template = template + "\n\n" + config;
 
-            return dtos;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
+        for (int i = 0; i < categoryEntities.size(); i++) {
+
+            LearningUnit category = categoryEntities.get(i);
+
+            // Build text for ONE category only
+            String categoryBlock =
+                    markdownUtil.categoryWithExercisesToCompactText(category, i + 1);
+
+            String prompt = template.formatted(categoryBlock);
+
+            String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+
+            try {
+                List<ExportedCategoryDto> dtos = objectMapper.readValue(
+                        response,
+                        new TypeReference<List<ExportedCategoryDto>>() {
+                        }
+                );
+
+                result.addAll(dtos);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
+            }
         }
+
+        return result;
     }
 
     @Transactional
@@ -143,7 +167,7 @@ public class AIService {
 //            ex.printStackTrace();
 //            throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
 //        }
-        return  null;
+        return null;
     }
 
 }

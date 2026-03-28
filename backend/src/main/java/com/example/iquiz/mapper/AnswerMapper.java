@@ -19,26 +19,44 @@ public class AnswerMapper {
 
     public OptionDto toOptionDto(Answer answer) {
 
-        String side = null;
+        String side = extractSide(answer.getMetadata());
 
-        try {
-            if (answer.getMetadata() != null) {
-                Map<String, String> map = objectMapper.readValue(
-                        answer.getMetadata(),
-                        new TypeReference<Map<String, String>>() {}
-                );
-                side = map.get("metadata");
-            }
-        } catch (Exception e) {
-            side = null;
-        }
+        Map<String, String> metadataMap = Map.of("side", side);
 
         return new OptionDto(
                 answer.getId(),
                 answer.getText(),
                 answer.getHeader(),
-                side
+                metadataMap
         );
+    }
+
+    private String extractSide(String metadata) {
+        if (metadata == null || metadata.isBlank()) {
+            return "left";
+        }
+
+        metadata = metadata.trim();
+
+        try {
+            if ("left".equalsIgnoreCase(metadata) || "right".equalsIgnoreCase(metadata)) {
+                return metadata.toLowerCase();
+            }
+
+            if (metadata.startsWith("{")) {
+                Map<String, String> map = objectMapper.readValue(
+                        metadata,
+                        new TypeReference<Map<String, String>>() {
+                        }
+                );
+
+                return map.getOrDefault("side", "left");
+            }
+
+        } catch (Exception ignored) {
+        }
+
+        return "left";
     }
 
     public Answer toEntity(OptionDto dto) {
@@ -46,15 +64,14 @@ public class AnswerMapper {
         answer.setText(dto.text());
         answer.setHeader(dto.header());
 
-        if (dto.metadata() != null) {
-            try {
-                Map<String, String> map = Map.of("side", dto.metadata());
-                String metadataJson = objectMapper.writeValueAsString(map);
+        try {
+            if (dto.metadata() != null && !dto.metadata().isEmpty()) {
+                String metadataJson = objectMapper.writeValueAsString(dto.metadata());
                 answer.setMetadata(metadataJson);
-            } catch (Exception e) {
+            } else {
                 answer.setMetadata(null);
             }
-        } else {
+        } catch (Exception e) {
             answer.setMetadata(null);
         }
 

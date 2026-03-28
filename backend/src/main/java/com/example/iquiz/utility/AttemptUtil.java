@@ -12,6 +12,7 @@ import com.example.iquiz.repository.LearningUnitRepository;
 import com.example.iquiz.repository.UserMasteryRepository;
 import com.example.iquiz.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AttemptUtil {
@@ -67,11 +69,14 @@ public class AttemptUtil {
 
             String userAnswerJson = dto.userAnswerJson();
 
+            log.info("userAnswerJson: {}", userAnswerJson);
             List<String> userAnswers =
                     submissionUtil.parseAnswers(userAnswerJson, exercise);
-
+            log.info("userAnswers: {}", userAnswers);
+            log.info("expect json: {}", exercise.getCorrectAnswerJson());
             List<String> expectedAnswers =
                     submissionUtil.parseAnswers(exercise.getCorrectAnswerJson(), exercise);
+            log.info("expectedAnswers: {}", expectedAnswers);
 
             BigDecimal score =
                     submissionUtil.calculateScore(exercise, userAnswerJson);
