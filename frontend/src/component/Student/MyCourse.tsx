@@ -24,8 +24,8 @@ const MyCourse = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSelectCourse = (course: ProgressDTO) => {
-    navigate(`/topics/${course.id}`);
+  const handleSelectCourse = (progress: ProgressDTO) => {
+    navigate(`/topics/${progress.courseId}`);
   };
 
   if (isMobileView) {
@@ -47,25 +47,25 @@ const MyCourse = () => {
                     <Spinner />
                   </div>
                 ) : ongoingCourses?.length ? (
-                  ongoingCourses.map((course: ProgressDTO, index: number) => {
+                  ongoingCourses.map((progress: ProgressDTO, index: number) => {
                     const courseWithIndex = {
-                      ...course,
+                      ...progress,
                       index,
                     };
 
                     return (
                       <div
-                        key={course.id}
+                        key={progress.courseId}
                         onClick={() => setSelectedCourse(courseWithIndex)}
                         className="cursor-pointer"
                       >
                         <CardCourseMini
-                          courseCode={course.courseCode}
-                          courseName={course.courseName}
+                          courseCode={progress.courseCode}
+                          courseName={progress.courseName}
                           index={index}
-                          progress={course.completedExercises}
-                          total={course.totalExercises}
-                          isSelected={selectedCourse?.id?.toString() === course.id?.toString()}
+                          progress={progress.completedExercises}
+                          total={progress.totalExercises}
+                          isSelected={selectedCourse?.courseId?.toString() === progress.courseId?.toString()}
                         />
                       </div>
                     );
@@ -149,18 +149,18 @@ const MyCourse = () => {
               </h2>
 
               <div className="flex flex-1 flex-wrap gap-4">
-                {ongoingCourses?.map((course: ProgressDTO, index: number) => (
+                {ongoingCourses?.map((progress: ProgressDTO, index: number) => (
                   <div
                     className="w-[450px]"
-                    onClick={() => handleSelectCourse(course)}
-                    key={course.id}
+                    onClick={() => handleSelectCourse(progress)}
+                    key={progress.courseId}
                   >
                     <CardCourseMini
-                      courseCode={course.courseCode}
-                      courseName={course.courseName}
+                      courseCode={progress.courseCode}
+                      courseName={progress.courseName}
                       index={index}
-                      progress={course.completedExercises}
-                      total={course.totalExercises}
+                      progress={progress.completedExercises}
+                      total={progress.totalExercises}
                     />
                   </div>
                 ))}

@@ -289,9 +289,9 @@ const Profile = () => {
           </div>
           <div className="space-y-3">
             {filteredCourses.length > 0 ? (
-              filteredCourses.map((course) => (
-                <div key={course.id} className="border-b pb-3">
-                  <div className="font-medium text-text-color">{course.courseName}</div>
+              filteredCourses.map((progress) => (
+                <div key={progress.courseId} className="border-b pb-3">
+                  <div className="font-medium text-text-color">{progress.courseName}</div>
                   {/* <p className="text-sm text-gray-700">{course.courseDescription}</p> */}
                 </div>
               ))
@@ -384,11 +384,11 @@ const Profile = () => {
               </thead>
               <tbody>
                 {filteredCourses.length > 0 ? (
-                  filteredCourses.map((course, index) => (
-                    <tr key={course.id} className="bg-white border-b hover:bg-gray-50 text-black">
+                  filteredCourses.map((progress, index) => (
+                    <tr key={progress.courseId} className="bg-white border-b hover:bg-gray-50 text-black">
                       <td className="px-6 py-4">{index + 1}</td>
-                      {/* <td className="px-6 py-4">{course.courseCode}</td> */}
-                      <td className="px-6 py-4">{course.courseName}</td>
+                      <td className="px-6 py-4">{progress.courseCode}</td>
+                      <td className="px-6 py-4">{progress.courseName}</td>
                     </tr>
                   ))
                 ) : (

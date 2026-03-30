@@ -37,7 +37,7 @@ public class ExerciseMapper {
         Exercise entity = new Exercise();
         entity.setQuestion(dto.question());
         entity.setType(dto.type());
-        entity.setDifficulty(dto.difficulty() != null ? dto.difficulty() : 3);
+        entity.setDifficulty(dto.difficulty() != null ? dto.difficulty() : 0);
 
         return entity;
     }

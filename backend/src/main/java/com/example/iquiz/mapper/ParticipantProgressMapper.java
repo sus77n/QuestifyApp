@@ -12,6 +12,7 @@ public interface ParticipantProgressMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "lastAttempt.id", target = "attemptId")
     @Mapping(source = "user.fullName", target = "userFullName")
+    @Mapping(source = "course.id", target = "courseId")
     @Mapping(source = "course.name", target = "courseName")
     @Mapping(source = "course.code", target = "courseCode")
     @Mapping(source = "progressPercent", target = "progressPercent", qualifiedByName = "bigDecimalToDouble")

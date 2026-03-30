@@ -194,6 +194,8 @@ public class SubmissionUtil {
             }
         }
 
+        if (correctWords.length == 0) return ZERO_SCORE;
+
         double ratio = (double) matched / correctWords.length;
 
         if (ratio >= MINIMUM_MATCH_THRESHOLD) {

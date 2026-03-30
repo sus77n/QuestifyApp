@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,15 +82,13 @@ public class AIService {
         }
     }
 
-    @Transactional
     public List<ExportedCategoryDto> generateExercises(GenerateExercisesRequest request) {
+
         UUID lessonId = request.lessonId();
 
         List<CreateExerciseCategoryDto> categories = request.categories();
         List<LearningUnit> categoryEntities =
                 learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
-
-        List<ExportedCategoryDto> result = new ArrayList<>();
 
         String template = markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
 
@@ -108,35 +107,68 @@ public class AIService {
 
         template = template + "\n\n" + config;
 
-        for (int i = 0; i < categoryEntities.size(); i++) {
+        int poolSize = Math.min(5, categoryEntities.size());
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 
-            LearningUnit category = categoryEntities.get(i);
+        try {
 
-            // Build text for ONE category only
-            String categoryBlock =
-                    markdownUtil.categoryWithExercisesToCompactText(category, i + 1);
+            List<CompletableFuture<List<ExportedCategoryDto>>> futures = new ArrayList<>();
 
-            String prompt = template.formatted(categoryBlock);
+            for (int i = 0; i < categoryEntities.size(); i++) {
+                int index = i;
 
-            String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+                String finalTemplate = template;
+                CompletableFuture<List<ExportedCategoryDto>> future =
+                        CompletableFuture.supplyAsync(() -> {
 
-            try {
-                List<ExportedCategoryDto> dtos = objectMapper.readValue(
-                        response,
-                        new TypeReference<List<ExportedCategoryDto>>() {
-                        }
-                );
+                                    LearningUnit category = categoryEntities.get(index);
 
-                result.addAll(dtos);
+                                    String categoryBlock =
+                                            markdownUtil.categoryWithExercisesToCompactText(category, index + 1);
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new ConflictException("Failed to parse AI response: " + ex.getMessage());
+                                    String prompt = finalTemplate.formatted(categoryBlock);
+
+                                    try {
+                                        String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+
+                                        response = aIUtil.validationAIResponse(response);
+
+                                        return objectMapper.readValue(
+                                                response,
+                                                new TypeReference<List<ExportedCategoryDto>>() {
+                                                }
+                                        );
+
+                                    } catch (Exception ex) {
+                                        throw new CompletionException(
+                                                new ConflictException("AI processing failed: " + ex.getMessage())
+                                        );
+                                    }
+
+                                }, executor)
+                                .orTimeout(15, TimeUnit.SECONDS);
+
+                futures.add(future);
             }
-        }
 
-        return result;
+            return futures.stream()
+                    .map(future -> {
+                        try {
+                            return future.join();
+                        } catch (CompletionException ex) {
+                            throw (ex.getCause() instanceof RuntimeException re)
+                                    ? re
+                                    : new RuntimeException(ex.getCause());
+                        }
+                    })
+                    .flatMap(List::stream)
+                    .toList();
+
+        } finally {
+            executor.shutdown();
+        }
     }
+
 
     @Transactional
     public List<ExportedCategoryDto> generateCombinedExercises(UUID lessonId, List<CreateExerciseCategoryDto> categories) {

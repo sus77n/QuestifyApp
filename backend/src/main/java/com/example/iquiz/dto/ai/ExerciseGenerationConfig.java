@@ -8,11 +8,11 @@ import lombok.Data;
 public class ExerciseGenerationConfig {
     int multipleChoice = 10;
     int selectMultiple = 10;
-    int trueFalse = 10;
-    int matching = 10;
-    int reordering = 10;
-    int fillInBlank = 10;
-    int shortAnswer = 10;
+    int trueFalse = 5;
+    int matching = 5;
+    int reordering = 5;
+    int fillInBlank = 5;
+    int shortAnswer = 5;
 
     public int getTotal() {
         return multipleChoice + selectMultiple + trueFalse +

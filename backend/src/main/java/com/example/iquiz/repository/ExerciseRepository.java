@@ -24,22 +24,5 @@ public interface ExerciseRepository extends JpaRepository<Exercise, UUID> {
             """)
     List<Exercise> findExercisesWithAnswers(UUID id);
 
-
-    @Query(value = """
-            WITH UnitTree AS (
-                SELECT id, parent_id
-                FROM learning_unit
-                WHERE id = :learningUnitId
-                UNION ALL
-                SELECT lu.id, lu.parent_id
-                FROM learning_unit lu
-                JOIN UnitTree t ON lu.parent_id = t.id
-            )
-            SELECT COUNT(*)
-            FROM exercise e
-            JOIN UnitTree t ON e.learning_unit_id = t.id
-            """, nativeQuery = true)
-    int countExercisesInLearningUnitTree(UUID learningUnitId);
-
 }
 

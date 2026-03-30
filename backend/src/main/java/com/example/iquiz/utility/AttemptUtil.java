@@ -69,14 +69,10 @@ public class AttemptUtil {
 
             String userAnswerJson = dto.userAnswerJson();
 
-            log.info("userAnswerJson: {}", userAnswerJson);
             List<String> userAnswers =
                     submissionUtil.parseAnswers(userAnswerJson, exercise);
-            log.info("userAnswers: {}", userAnswers);
-            log.info("expect json: {}", exercise.getCorrectAnswerJson());
             List<String> expectedAnswers =
                     submissionUtil.parseAnswers(exercise.getCorrectAnswerJson(), exercise);
-            log.info("expectedAnswers: {}", expectedAnswers);
 
             BigDecimal score =
                     submissionUtil.calculateScore(exercise, userAnswerJson);

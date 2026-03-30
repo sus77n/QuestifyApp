@@ -35,6 +35,7 @@ public class AttemptService {
     private final AttemptUtil attemptUtil;
     private final ExerciseUtil exerciseUtil;
     private final ProgressUtil progressUtil;
+    private final ParticipantProgressService participantProgressService;
 
     public AttemptDto save(Attempt attempt) {
         return attemptMapper.toDto(attemptRepository.save(attempt));
@@ -98,7 +99,6 @@ public class AttemptService {
         );
     }
 
-    @Transactional
     public AttemptResponseDto submitAttempt(UUID attemptId, List<AttemptDetailDto> submissions) {
 
         Attempt attempt = attemptRepository.findById(attemptId)
@@ -124,6 +124,8 @@ public class AttemptService {
                 attempt.getLesson().getId(),
                 result.getCategoryStats()
         );
+
+        participantProgressService.updateProgress(attempt, result);
 
         return new AttemptResponseDto(
                 attempt.getId(),

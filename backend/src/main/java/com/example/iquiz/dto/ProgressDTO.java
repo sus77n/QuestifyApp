@@ -11,6 +11,7 @@ public class ProgressDTO {
     private UUID id;
     private UUID attemptId;
     private String userFullName;
+    private UUID courseId;
     private String courseName;
     private String courseCode;
     private int attemptCount;

@@ -3,15 +3,17 @@ package com.example.iquiz.service;
 import com.example.iquiz.dto.ProgressDTO;
 import com.example.iquiz.dto.SubmissionResult;
 import com.example.iquiz.entity.Attempt;
+import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.entity.ParticipantProgress;
 import com.example.iquiz.enums.UserProgress;
+import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.mapper.ParticipantProgressMapper;
-import com.example.iquiz.repository.ExerciseRepository;
+import com.example.iquiz.repository.LearningUnitRepository;
+import com.example.iquiz.repository.LessonConfigRepository;
 import com.example.iquiz.repository.ParticipantProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -27,7 +29,9 @@ public class ParticipantProgressService {
     @Autowired
     private final ParticipantProgressMapper participantProgressMapper;
     @Autowired
-    private ExerciseRepository exerciseRepository;
+    private LearningUnitRepository learningUnitRepository;
+    @Autowired
+    private LessonConfigRepository lessonConfigRepository;
 
     public List<ProgressDTO> findIncompletedCoursesByParticipantId(UUID participantId) {
         if (participantId == null) {
@@ -54,24 +58,29 @@ public class ParticipantProgressService {
                 .toList();
     }
 
-    @Transactional
     public void updateProgress(Attempt attempt, SubmissionResult result) {
 
         UUID userId = attempt.getUser().getId();
-        UUID courseId = attempt.getLesson().getParent().getId();
+        LearningUnit course = learningUnitRepository.findRootByLearningUnitId(attempt.getLesson().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "Children Id", attempt.getLesson().getId()));
 
         ParticipantProgress progress =
-                participantProgressRepository.findByUserIdAndCourseId(userId, courseId)
-                        .orElseGet(() -> createNewProgress(attempt));
+                participantProgressRepository.findByUserIdAndCourseId(userId, course.getId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Participant progress", "User and Course", userId + " " + course));
 
         progress.setAttemptCount(progress.getAttemptCount() + 1);
-
         progress.setCompletedExercises(result.getCorrectCount());
 
         if (progress.getBestScore() == null ||
                 attempt.getScore().compareTo(progress.getBestScore()) > 0) {
             progress.setBestScore(attempt.getScore());
         }
+
+        if (progress.getTotalExercises() == 0)
+            progress.setTotalExercises(
+                    lessonConfigRepository.countQuestionsPerAttemptInLearningUnitTree(
+                            course.getId()
+                    ));
 
         BigDecimal percent = BigDecimal.valueOf(progress.getCompletedExercises())
                 .divide(BigDecimal.valueOf(progress.getTotalExercises()), 2, RoundingMode.HALF_UP)
@@ -91,22 +100,5 @@ public class ParticipantProgressService {
         progress.setLastActivityAt(LocalDateTime.now());
 
         participantProgressRepository.save(progress);
-    }
-
-    private ParticipantProgress createNewProgress(Attempt attempt) {
-
-        int totalExercises = exerciseRepository.countExercisesInLearningUnitTree(
-                attempt.getLesson().getParent().getId()
-        );
-
-        return ParticipantProgress.builder()
-                .user(attempt.getUser())
-                .course(attempt.getLesson().getParent())
-                .attemptCount(0)
-                .completedExercises(0)
-                .totalExercises(totalExercises)
-                .status(UserProgress.IN_PROGRESS)
-                .progressPercent(BigDecimal.ZERO)
-                .build();
     }
 }

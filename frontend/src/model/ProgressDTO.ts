@@ -2,6 +2,7 @@ export interface ProgressDTO {
   id: string;
   attemptId: string;
   userFullName: string;
+  courseId: string;
   courseName: string;
   courseCode: string;
   attemptCount: number;
