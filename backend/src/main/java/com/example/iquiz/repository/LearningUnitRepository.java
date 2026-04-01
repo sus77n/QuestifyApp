@@ -95,21 +95,20 @@ public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID
     long countExercisesUnderLearningUnit(UUID id);
 
     @Query(value = """
-    WITH best_attempt AS (
-        SELECT a.id
-        FROM attempts a
-        WHERE a.lesson_id = :lessonId
-          AND a.user_id = :userId
-          AND a.attempt_status = 'SUBMITTED'
-        ORDER BY a.score DESC
-        LIMIT 1
-    )
-    
-    SELECT COUNT(*)
-    FROM attempt_details ad
-    JOIN best_attempt ba ON ad.attempt_id = ba.id
-    WHERE ad.score BETWEEN 50 AND 100
-    """, nativeQuery = true)
+            WITH best_attempt AS (
+                SELECT a.id
+                FROM attempts a
+                WHERE a.lesson_id = :lessonId
+                  AND a.user_id = :userId
+                ORDER BY a.score DESC
+                LIMIT 1
+            )
+            
+            SELECT COUNT(*)
+            FROM attempt_details ad
+            JOIN best_attempt ba ON ad.attempt_id = ba.id
+            WHERE ad.score BETWEEN 50 AND 100
+            """, nativeQuery = true)
     long countPassedExercisesInBestAttempt(UUID lessonId, UUID userId);
 
     @Query(value = """
