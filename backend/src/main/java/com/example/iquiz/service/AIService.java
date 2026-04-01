@@ -1,8 +1,6 @@
 package com.example.iquiz.service;
 
-import com.example.iquiz.dto.ai.ExerciseGenerationConfig;
-import com.example.iquiz.dto.ai.ExportedCategoryDto;
-import com.example.iquiz.dto.ai.GenerateExercisesRequest;
+import com.example.iquiz.dto.ai.*;
 import com.example.iquiz.dto.learningUnit.CreateExerciseCategoryDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
@@ -19,16 +17,15 @@ import com.example.iquiz.utility.MarkdownUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class AIService {
@@ -37,13 +34,18 @@ public class AIService {
     @Autowired
     private LearningUnitRepository learningUnitRepository;
     @Autowired
-    private LearningUnitService learningUnitService;
-    @Autowired
     private MarkdownUtil markdownUtil;
     @Autowired
     private AIUtil aIUtil;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private AIContentMapper aIContentMapper;
+    @Autowired
+    @Qualifier("aiExecutor")
+    private Executor aiExecutor;
+
+    private final Semaphore aiLimiter = new Semaphore(1);
 
     @Transactional
     public List<CreateExerciseCategoryDto> defineExerciseCategory(UUID originalExCateId) {
@@ -56,7 +58,8 @@ public class AIService {
         if (exercises.isEmpty()) {
             throw new ResourceNotFoundException("Exercises in Exercise Category", "Id", originalExCateId);
         }
-        String exercisesBlock = markdownUtil.exercisesToCompactText(exercises);
+        List<ExerciseCompactDto> compactExercises = exercises.stream().map(aIContentMapper::toExerciseCompactDto).toList();
+        String exercisesBlock = markdownUtil.exercisesToCompactText(compactExercises);
         String template = markdownUtil.loadPrompt(PromptTemplate.DEFINE_EXERCISE_CATEGORY);
         String prompt = template.formatted(
                 lesson.getId(),
@@ -88,9 +91,11 @@ public class AIService {
 
         List<CreateExerciseCategoryDto> categories = request.categories();
         List<LearningUnit> categoryEntities =
-                learningUnitService.saveGeneratedCategoriesBulk(lessonId, categories);
+                aIUtil.buildGeneratedCategories(lessonId, categories);
 
-        String template = markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
+        String template =
+                markdownUtil.loadPrompt(PromptTemplate.CONTEXT_HEADER) + "\n\n" +
+                markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
 
         ExerciseGenerationConfig cfg = ExerciseGenerationConfig.builder().build();
         String config = markdownUtil.loadPrompt(PromptTemplate.EXERCISE_GENERATION_CONFIG)
@@ -107,66 +112,55 @@ public class AIService {
 
         template = template + "\n\n" + config;
 
-        int poolSize = Math.min(5, categoryEntities.size());
-        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+        List<CategoryCompactDto> categoryDtos = categoryEntities.stream()
+                .map(aIContentMapper::toCategoryCompactDto)
+                .toList();
 
-        try {
+        List<CompletableFuture<List<ExportedCategoryDto>>> futures = new ArrayList<>();
+        for (CategoryCompactDto category : categoryDtos) {
+            String finalTemplate = template;
+            CompletableFuture<List<ExportedCategoryDto>> future =
+                    CompletableFuture.supplyAsync(() -> {
 
-            List<CompletableFuture<List<ExportedCategoryDto>>> futures = new ArrayList<>();
+                        String categoryBlock =
+                                markdownUtil.categoryWithExercisesToCompactText(category, 1);
 
-            for (int i = 0; i < categoryEntities.size(); i++) {
-                int index = i;
+                        String prompt = finalTemplate.formatted(categoryBlock);
 
-                String finalTemplate = template;
-                CompletableFuture<List<ExportedCategoryDto>> future =
-                        CompletableFuture.supplyAsync(() -> {
-
-                                    LearningUnit category = categoryEntities.get(index);
-
-                                    String categoryBlock =
-                                            markdownUtil.categoryWithExercisesToCompactText(category, index + 1);
-
-                                    String prompt = finalTemplate.formatted(categoryBlock);
-
-                                    try {
-                                        String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
-
-                                        response = aIUtil.validationAIResponse(response);
-
-                                        return objectMapper.readValue(
-                                                response,
-                                                new TypeReference<List<ExportedCategoryDto>>() {
-                                                }
-                                        );
-
-                                    } catch (Exception ex) {
-                                        throw new CompletionException(
-                                                new ConflictException("AI processing failed: " + ex.getMessage())
-                                        );
-                                    }
-
-                                }, executor)
-                                .orTimeout(15, TimeUnit.SECONDS);
-
-                futures.add(future);
-            }
-
-            return futures.stream()
-                    .map(future -> {
                         try {
-                            return future.join();
-                        } catch (CompletionException ex) {
-                            throw (ex.getCause() instanceof RuntimeException re)
-                                    ? re
-                                    : new RuntimeException(ex.getCause());
-                        }
-                    })
-                    .flatMap(List::stream)
-                    .toList();
+                            aiLimiter.acquire();
+                            String response = aIUtil.sendPrompt(prompt, AITaskType.QUESTION_GENERATION);
+                            response = aIUtil.validationAIResponse(response);
 
-        } finally {
-            executor.shutdown();
+                            return objectMapper.readValue(
+                                    response,
+                                    new TypeReference<List<ExportedCategoryDto>>() {
+                                    }
+                            );
+
+                        } catch (Exception ex) {
+                            throw new CompletionException(
+                                    new ConflictException("AI processing failed: " + ex.getMessage())
+                            );
+                        } finally {
+                            aiLimiter.release();
+                        }
+
+                    }, aiExecutor).orTimeout(10, TimeUnit.MINUTES);
+
+            futures.add(future);
         }
+
+        CompletableFuture.allOf(
+                futures.toArray(new CompletableFuture[0])
+        ).join();
+
+        aIUtil.saveAllGeneratedCategories(categoryEntities);
+
+        return futures.stream()
+                .flatMap(f -> f.join().stream())
+                .toList();
+
     }
 
 

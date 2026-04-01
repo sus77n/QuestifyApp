@@ -15,7 +15,7 @@ public interface LessonConfigRepository extends JpaRepository<LessonConfig, UUID
     void deleteByLessonId(UUID lessonId);
 
     @Query(value = """
-            WITH UnitTree AS (
+            WITH RECURSIVE UnitTree AS (
                 SELECT id, parent_id
                 FROM learning_units
                 WHERE id = :learningUnitId

@@ -1,5 +1,7 @@
 package com.example.iquiz.utility;
 
+import com.example.iquiz.dto.ai.CategoryCompactDto;
+import com.example.iquiz.dto.ai.ExerciseCompactDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.enums.PromptTemplate;
@@ -10,7 +12,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
@@ -26,90 +31,70 @@ public class MarkdownUtil {
         }
     }
 
-    public StringBuilder exerciseToMarkdown(Exercise ex, int index) {
-        StringBuilder exerciseBlock = new StringBuilder();
-        exerciseBlock.append("## Exercise ")
-                .append(index)
-                .append("\n\n");
-
-        exerciseBlock.append("- ID: `").append(ex.getId()).append("`\n");
-        exerciseBlock.append("- Type: `").append(ex.getType()).append("`\n");
-        exerciseBlock.append("- Difficulty: `").append(ex.getDifficulty()).append("`\n\n");
-        exerciseBlock.append("**Question:**\n\n");
-        exerciseBlock.append(ex.getQuestion()).append("\n\n");
-
-        if (ex.getCorrectAnswerJson() != null && !ex.getCorrectAnswerJson().isBlank()) {
-            exerciseBlock.append("**CorrectAnswersJson (raw):**\n\n");
-            exerciseBlock.append(ex.getCorrectAnswerJson()).append("\n\n");
+    public String exercisesToCompactText(List<ExerciseCompactDto> exercises) {
+        if (exercises == null || exercises.isEmpty()) {
+            return "";
         }
-        return exerciseBlock;
+
+        return exercises.stream()
+                .map(this::exerciseToCompactLine)
+                .collect(Collectors.joining("\n"));
     }
 
-    public String exercisesToCompactText(List<Exercise> exercises) {
-        StringBuilder exercisesBlock = new StringBuilder();
-        for (Exercise ex : exercises) {
-            exercisesBlock.append(exerciseToCompactLine(ex)).append("\n");
-        }
-        return exercisesBlock.toString();
-    }
 
-    private String exerciseToCompactLine(Exercise ex) {
-        String cleanQuestion = "";
-        if (ex.getQuestion() != null) {
-            cleanQuestion = ex.getQuestion().replace("\n", " ").trim();
-        }
-
-        String cleanAnswer = "";
-        if (ex.getCorrectAnswerJson() != null && !ex.getCorrectAnswerJson().isBlank()) {
-            cleanAnswer = ex.getCorrectAnswerJson().replace("\n", "").replace(" ", "").trim();
-        }
-
-        return String.format("[%s] TYPE:%s | DIFF:%s | Q:%s | ANS:%s",
+    private String exerciseToCompactLine(ExerciseCompactDto ex) {
+        return String.format(
+                "[%s] TYPE:%s | DIFF:%s | Q:%s | ANS:%s",
                 ex.getId(),
-                ex.getType(),
-                ex.getDifficulty(),
-                cleanQuestion,
-                cleanAnswer
+                safe(ex.getType()),
+                safe(ex.getDifficulty()),
+                cleanText(ex.getQuestion()),
+                cleanJson(ex.getCorrectAnswer())
         );
     }
 
-    public String categoryWithExercisesToCompactText(LearningUnit category, int index) {
-        StringBuilder categoryBlock = new StringBuilder();
 
-        categoryBlock.append(String.format("--- CATEGORY %d ---\n", index));
+    public String categoryWithExercisesToCompactText(CategoryCompactDto category, int index) {
+        StringBuilder sb = new StringBuilder(256);
 
-        categoryBlock.append(getAncestorPathText(category));
+        sb.append("--- CATEGORY ").append(index).append(" ---\n")
+                .append("Hierarchy: ").append(safe(category.getHierarchyPath())).append("\n")
+                .append("Name: ").append(safe(category.getName()))
+                .append(" [ID: ").append(category.getId()).append("]\n")
+                .append("Desc: ").append(cleanText(category.getDescription())).append("\n")
+                .append("Exercises:\n");
 
-        categoryBlock.append(String.format("Name: %s [ID: %s]\n", category.getName(), category.getId()));
-        String cleanDesc = category.getDescription() != null ? category.getDescription().replace("\n", " ").trim() : "";
-        categoryBlock.append("Desc: ").append(cleanDesc).append("\n");
-
-        categoryBlock.append("Exercises:\n");
-        if (category.getExercises() != null) {
-            for (Exercise ex : category.getExercises()) {
-                categoryBlock.append(exerciseToCompactLine(ex)).append("\n");
-            }
+        if (category.getExercises() != null && !category.getExercises().isEmpty()) {
+            sb.append(exercisesToCompactText(category.getExercises())).append("\n");
         }
-        categoryBlock.append("\n");
 
-        return categoryBlock.toString();
+        sb.append("\n");
+        return sb.toString();
     }
 
-    public String getAncestorPathText(LearningUnit unit) {
-        StringBuilder path = new StringBuilder();
-        LearningUnit current = unit;
 
-        while (current != null) {
-            String node = current.getType().getName() + ": " + current.getName();
+    public String buildHierarchyPath(LearningUnit unit) {
+        List<String> nodes = new ArrayList<>();
 
-            if (path.length() > 0) {
-                path.insert(0, " > ");
-            }
-
-            path.insert(0, node);
-            current = current.getParent();
+        while (unit != null) {
+            nodes.add(unit.getType().getName() + ": " + unit.getName());
+            unit = unit.getParent();
         }
 
-        return "Hierarchy: " + path.toString() + "\n";
+        Collections.reverse(nodes);
+        return String.join(" > ", nodes);
+    }
+
+
+    private String cleanText(String input) {
+        return input == null ? "" : input.replace("\n", " ").trim();
+    }
+
+    private String cleanJson(String input) {
+        return input == null ? "" : input.replace("\n", "").replace(" ", "").trim();
+    }
+
+    private String safe(Object obj) {
+        return obj == null ? "" : obj.toString();
     }
 }

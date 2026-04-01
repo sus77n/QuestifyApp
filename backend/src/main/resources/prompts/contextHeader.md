@@ -2,6 +2,7 @@
 
 **STRICT OUTPUT PROTOCOL:**
 - Output ONLY raw, valid JSON based on the schema provided in the task.
+- Never return "null" as a string
 - NO markdown formatting (no ```json), NO code blocks, NO conversational text.
 - The response must be immediately parsable by `JSON.parse()`.
 

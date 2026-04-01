@@ -163,42 +163,6 @@ public class LearningUnitService {
     }
 
     @Transactional
-    public List<LearningUnit> saveGeneratedCategoriesBulk(UUID parentId, List<CreateExerciseCategoryDto> dtos) {
-        User user = userUtil.getUserFromAuthContext();
-
-        LearningUnit lesson = learningUnitRepository.findById(parentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", parentId));
-
-        List<LearningUnit> savedUnits = dtos.stream().map(dto -> {
-            LearningUnitType type = exerciseCategoryRepository.findByName(dto.type())
-                    .orElseThrow(() -> new ResourceNotFoundException("Learning Unit Type", "name", dto.type()));
-
-            LearningUnit newCate = learningUnitMapper.generatedCategoryToEntity(dto);
-            newCate.setParent(lesson);
-            newCate.setType(type);
-            newCate.setCreatedBy(user);
-
-            if (newCate.getExercises() == null) {
-                newCate.setExercises(new ArrayList<>());
-            }
-
-            LearningUnit savedCate = learningUnitRepository.save(newCate);
-
-            List<Exercise> exercises = exerciseRepository.findAllById(dto.exerciseIds());
-            exercises.forEach(ex -> ex.setParent(savedCate));
-
-            exerciseRepository.saveAll(exercises);
-
-            savedCate.getExercises().clear();
-            savedCate.getExercises().addAll(exercises);
-
-            return savedCate;
-        }).toList();
-
-        return savedUnits;
-    }
-
-    @Transactional
     public LearningUnitDto updateLearningUnit(UUID id, LearningUnitDto dto) {
         LearningUnit learningUnit = learningUnitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning Unit", "id", id));

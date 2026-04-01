@@ -3,6 +3,7 @@ package com.example.iquiz.aspect;
 import com.example.iquiz.enums.AITaskStatus;
 import com.example.iquiz.enums.AITaskType;
 import com.example.iquiz.service.AILogService;
+import com.example.iquiz.utility.AIUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -19,9 +20,8 @@ public class AILogAspect {
 
     @Autowired
     private AILogService aiLogService;
-
-    @Value("${gemini.model}")
-    private String modelName;
+    @Autowired
+    private AIUtil aIUtil;
 
     @Around("@annotation(com.example.iquiz.annotation.LogAI)")
     public Object logAIInteraction(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -70,7 +70,7 @@ public class AILogAspect {
                     outputResponse,
                     status,
                     timestamp,
-                    modelName,
+                    aIUtil.getModelByTask(taskType),
                     username
             );
         }

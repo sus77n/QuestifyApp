@@ -6,6 +6,7 @@ OUTPUT PROTOCOL (STRICT):
 - Do NOT include explanations, markdown, or comments.
 - Do NOT wrap the JSON in ```json.
 - Do NOT generate id or uuid fields.
+- categoryId must be null (without quotes) if not provided
 - Ensure the JSON is valid and parsable.
 - Do NOT include trailing commas.
 - Preserve all logical symbols (¬, ∧, ∨, →, ↔) inside strings.
