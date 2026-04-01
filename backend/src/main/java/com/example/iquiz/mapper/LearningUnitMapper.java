@@ -136,7 +136,7 @@ public abstract class LearningUnitMapper {
         if (unit.getLessonConfig() != null) {
 
             numberOfExercise = unit.getLessonConfig().getQuestionsPerAttempt();
-            numberOfComplete = learningUnitRepository.getExerciseStatistic(unit.getId(), userId);
+            numberOfComplete = learningUnitRepository.countPassedExercisesInBestAttempt(unit.getId(), userId);
 
         } else {
 

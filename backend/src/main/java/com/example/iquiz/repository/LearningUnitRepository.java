@@ -95,41 +95,22 @@ public interface LearningUnitRepository extends JpaRepository<LearningUnit, UUID
     long countExercisesUnderLearningUnit(UUID id);
 
     @Query(value = """
-            WITH RECURSIVE unit_tree AS (
-                SELECT id
-                FROM learning_units
-                WHERE id = :learningUnitId
-            
-                UNION ALL
-            
-                SELECT lu.id
-                FROM learning_units lu
-                JOIN unit_tree ut ON lu.parent_id = ut.id
-            ),
-            
-            unit_exercises AS (
-                SELECT e.id AS exercise_id
-                FROM exercises e
-                JOIN unit_tree ut ON e.learning_unit_id = ut.id
-            ),
-            
-            best_attempts AS (
-                SELECT
-                    ad.exercise_id,
-                    MAX(ad.score) AS best_score
-                FROM attempts a
-                JOIN attempt_details ad ON ad.attempt_id = a.id
-                WHERE a.user_id = :userId
-                GROUP BY ad.exercise_id
-            )
-            
-            SELECT
-                COUNT(CASE WHEN ba.best_score >= 50 THEN 1 END)
-            FROM unit_exercises ue
-            LEFT JOIN best_attempts ba
-                   ON ba.exercise_id = ue.exercise_id
-            """, nativeQuery = true)
-    long getExerciseStatistic(UUID learningUnitId, UUID userId);
+    WITH best_attempt AS (
+        SELECT a.id
+        FROM attempts a
+        WHERE a.lesson_id = :lessonId
+          AND a.user_id = :userId
+          AND a.attempt_status = 'SUBMITTED'
+        ORDER BY a.score DESC
+        LIMIT 1
+    )
+    
+    SELECT COUNT(*)
+    FROM attempt_details ad
+    JOIN best_attempt ba ON ad.attempt_id = ba.id
+    WHERE ad.score BETWEEN 50 AND 100
+    """, nativeQuery = true)
+    long countPassedExercisesInBestAttempt(UUID lessonId, UUID userId);
 
     @Query(value = """
                 WITH RECURSIVE hierarchy AS (
