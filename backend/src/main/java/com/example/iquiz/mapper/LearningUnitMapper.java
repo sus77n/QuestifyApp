@@ -10,10 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Mapper(
-        componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL
-)
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 public abstract class LearningUnitMapper {
 
     @Autowired
@@ -42,19 +39,15 @@ public abstract class LearningUnitMapper {
             }
         }
 
-        return new LearningUnitDto(
-                dto.id(),
-                dto.name(),
-                dto.code(),
-                dto.description(),
-                dto.type(),
-                dto.status(),
-                dto.createdAt(),
-                dto.createdBy(),
-                dto.parentId(),
-                children,
-                0
-        );
+        long numberOfExercise;
+
+        if (unit.getLessonConfig() != null) {
+            numberOfExercise = unit.getLessonConfig().getQuestionsPerAttempt();
+        } else {
+            numberOfExercise = children.stream().mapToLong(LearningUnitDto::numberOfExercise).sum();
+        }
+
+        return new LearningUnitDto(dto.id(), dto.name(), dto.code(), dto.description(), dto.type(), dto.status(), dto.createdAt(), dto.createdBy(), dto.parentId(), children, numberOfExercise);
     }
 
     public LearningUnitDto toDtoWithoutCategory(LearningUnit unit) {
@@ -67,34 +60,24 @@ public abstract class LearningUnitMapper {
 
         List<LearningUnitDto> children;
 
-        if (unit.getChildren() == null
-                || (!unit.getChildren().isEmpty()
-                && unit.getChildren().get(0).getType().getName()
-                .equalsIgnoreCase("Exercise Category"))) {
+        if (unit.getChildren() == null || (!unit.getChildren().isEmpty() && unit.getChildren().get(0).getType().getName().equalsIgnoreCase("Exercise Category"))) {
 
             children = new ArrayList<>();
 
         } else {
 
-            children = unit.getChildren()
-                    .stream()
-                    .map(this::toDtoWithoutCategory)
-                    .toList();
+            children = unit.getChildren().stream().map(this::toDtoWithoutCategory).toList();
         }
 
-        return new LearningUnitDto(
-                dto.id(),
-                dto.name(),
-                dto.code(),
-                dto.description(),
-                dto.type(),
-                dto.status(),
-                dto.createdAt(),
-                dto.createdBy(),
-                dto.parentId(),
-                children,
-                0
-        );
+        long numberOfExercise;
+
+        if (unit.getLessonConfig() != null) {
+            numberOfExercise = unit.getLessonConfig().getQuestionsPerAttempt();
+        } else {
+            numberOfExercise = children.stream().mapToLong(LearningUnitDto::numberOfExercise).sum();
+        }
+
+        return new LearningUnitDto(dto.id(), dto.name(), dto.code(), dto.description(), dto.type(), dto.status(), dto.createdAt(), dto.createdBy(), dto.parentId(), children, numberOfExercise);
     }
 
     @Mapping(target = "type", source = "type.name")
@@ -115,19 +98,13 @@ public abstract class LearningUnitMapper {
 
         List<LearningUnitWithStatisticDto> children;
 
-        if (unit.getChildren() == null
-                || (!unit.getChildren().isEmpty()
-                && unit.getChildren().get(0).getType().getName()
-                .equalsIgnoreCase("Exercise Category"))) {
+        if (unit.getChildren() == null || (!unit.getChildren().isEmpty() && unit.getChildren().get(0).getType().getName().equalsIgnoreCase("Exercise Category"))) {
 
             children = new ArrayList<>();
 
         } else {
 
-            children = unit.getChildren()
-                    .stream()
-                    .map(child -> toDtoWithStatistic(child, userId))
-                    .toList();
+            children = unit.getChildren().stream().map(child -> toDtoWithStatistic(child, userId)).toList();
         }
 
         long numberOfExercise;
@@ -140,29 +117,12 @@ public abstract class LearningUnitMapper {
 
         } else {
 
-            numberOfExercise = children.stream()
-                    .mapToLong(LearningUnitWithStatisticDto::getNumberOfExercise)
-                    .sum();
+            numberOfExercise = children.stream().mapToLong(LearningUnitWithStatisticDto::getNumberOfExercise).sum();
 
-            numberOfComplete = children.stream()
-                    .mapToLong(LearningUnitWithStatisticDto::getNumberOfComplete)
-                    .sum();
+            numberOfComplete = children.stream().mapToLong(LearningUnitWithStatisticDto::getNumberOfComplete).sum();
         }
 
-        return new LearningUnitWithStatisticDto(
-                base.getId(),
-                base.getName(),
-                base.getCode(),
-                base.getDescription(),
-                base.getType(),
-                base.getStatus(),
-                base.getCreatedAt(),
-                base.getCreatedBy(),
-                base.getParentId(),
-                children,
-                numberOfComplete < numberOfExercise ? numberOfComplete : numberOfExercise,
-                numberOfExercise
-        );
+        return new LearningUnitWithStatisticDto(base.getId(), base.getName(), base.getCode(), base.getDescription(), base.getType(), base.getStatus(), base.getCreatedAt(), base.getCreatedBy(), base.getParentId(), children, numberOfComplete < numberOfExercise ? numberOfComplete : numberOfExercise, numberOfExercise);
     }
 
     @Mapping(target = "type", ignore = true)
@@ -214,19 +174,7 @@ public abstract class LearningUnitMapper {
             }
         }
 
-        return new LessonDetailDto(
-                base.id(),
-                base.name(),
-                base.code(),
-                base.description(),
-                base.type(),
-                base.status(),
-                base.createdAt(),
-                base.createdBy(),
-                base.parentId(),
-                children,
-                base.lessonConfig()
-        );
+        return new LessonDetailDto(base.id(), base.name(), base.code(), base.description(), base.type(), base.status(), base.createdAt(), base.createdBy(), base.parentId(), children, base.lessonConfig());
     }
 
     public String fullName(LearningUnit unit) {
@@ -235,9 +183,7 @@ public abstract class LearningUnitMapper {
             return null;
         }
 
-        return unit.getCreatedBy().getFirstName()
-                + " "
-                + unit.getCreatedBy().getLastName();
+        return unit.getCreatedBy().getFirstName() + " " + unit.getCreatedBy().getLastName();
     }
 
     public CreateExerciseCategoryDto toCreateExerciseCategoryDtoForGenerateExercise(LearningUnit unit) {
@@ -246,12 +192,6 @@ public abstract class LearningUnitMapper {
             return null;
         }
 
-        return new CreateExerciseCategoryDto(
-                unit.getName(),
-                unit.getCode(),
-                unit.getType().getName(),
-                unit.getDescription(),
-                null
-        );
+        return new CreateExerciseCategoryDto(unit.getName(), unit.getCode(), unit.getType().getName(), unit.getDescription(), null);
     }
 }

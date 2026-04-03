@@ -40,12 +40,12 @@ interface Props {
 }
 
 const AIGenerateModal: React.FC<Props> = ({
-                                              isOpen,
-                                              onClose,
-                                              learningUnitId,
-                                              defaultCategoryId,
-                                              categories
-                                          }) => {
+    isOpen,
+    onClose,
+    learningUnitId,
+    defaultCategoryId,
+    categories
+}) => {
     // --- STATE ---
     const [currentStep, setCurrentStep] = useState(0);
     const [suggestedCategories, setSuggestedCategories] = useState<LearningUnitDTO[]>([]);
@@ -125,6 +125,7 @@ const AIGenerateModal: React.FC<Props> = ({
 
             dataToProcess.forEach((catBlock: any) => {
                 const categoryId = catBlock.categoryId;
+                const categoryName = catBlock.categoryName;
                 const exercises = catBlock.exercises || [];
 
                 exercises.forEach((ex: any) => {
@@ -149,7 +150,8 @@ const AIGenerateModal: React.FC<Props> = ({
                         difficulty: ex.difficulty,
                         options,
                         correctAnswers,
-                        parentId: categoryId
+                        parentId: categoryId,
+                        parentName: categoryName
                     });
                 });
             });
@@ -184,7 +186,7 @@ const AIGenerateModal: React.FC<Props> = ({
                 if (categoryId != null) {
                     map.set(categoryId, {
                         categoryId,
-                        categoryName: "",
+                        categoryName: ex.parentName,
                         exercises: []
                     });
                 }
@@ -200,7 +202,9 @@ const AIGenerateModal: React.FC<Props> = ({
                         id: null,
                         text: o.text,
                         header: o.header,
-                        metadata: o.side ?? ""
+                        metadata: o.side
+                            ? { side: o.side }
+                            : null
                     })),
                     correctAnswerJson: {
                         correctAnswers: JSON.parse(ex.correctAnswers || "[]")
@@ -249,7 +253,7 @@ const AIGenerateModal: React.FC<Props> = ({
     const renderCard = (ex: ExerciseDTO, idx: number) => {
         const isEditing = editModes[idx];
         let parsedCorrect: any[] = [];
-        try { parsedCorrect = JSON.parse(ex.correctAnswers || "[]"); } catch {}
+        try { parsedCorrect = JSON.parse(ex.correctAnswers || "[]"); } catch { }
 
         // Helper check correct cho UI preview (hỗ trợ cả string "1" lẫn object matching)
         const isCorrect = (header: string) => {
@@ -274,9 +278,9 @@ const AIGenerateModal: React.FC<Props> = ({
                 }
                 extra={
                     <Space>
-                        <Button type={isEditing ? "primary" : "default"} size="small" icon={isEditing ? <CheckOutlined/> : <EditOutlined/>} onClick={() => toggleEdit(idx)} />
+                        <Button type={isEditing ? "primary" : "default"} size="small" icon={isEditing ? <CheckOutlined /> : <EditOutlined />} onClick={() => toggleEdit(idx)} />
                         <Popconfirm title="Delete?" onConfirm={() => removeEx(idx)}>
-                            <Button danger size="small" icon={<DeleteOutlined/>} />
+                            <Button danger size="small" icon={<DeleteOutlined />} />
                         </Popconfirm>
                     </Space>
                 }
@@ -314,7 +318,7 @@ const AIGenerateModal: React.FC<Props> = ({
                         // Standard types (Choice, etc)
                         ex.options?.map((opt, oIdx) => (
                             <div key={oIdx} className={`flex items-center gap-2 p-2 rounded ${!isEditing && isCorrect(opt.header as string) ? 'bg-green-50 border border-green-200' : 'bg-white border border-transparent'}`}>
-                                <Badge count={opt.header} style={{backgroundColor: '#d9d9d9'}} />
+                                <Badge count={opt.header} style={{ backgroundColor: '#d9d9d9' }} />
                                 {isEditing ? (
                                     <Input
                                         value={opt.text}

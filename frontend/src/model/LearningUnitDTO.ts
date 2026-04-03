@@ -44,7 +44,7 @@ export interface LearningUnitWithChildren {
   createdAt: Date;
   createdBy: string;
   children: LearningUnitWithChildren[];
-  numberOfExercises: number;
+  numberOfExercise: number;
   updatedAt?: string;
   parentId: string;
 }

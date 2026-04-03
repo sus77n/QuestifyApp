@@ -93,6 +93,8 @@ public class AIService {
         List<LearningUnit> categoryEntities =
                 aIUtil.buildGeneratedCategories(lessonId, categories);
 
+        aIUtil.saveAllGeneratedCategories(categoryEntities);
+
         String template =
                 markdownUtil.loadPrompt(PromptTemplate.CONTEXT_HEADER) + "\n\n" +
                 markdownUtil.loadPrompt(PromptTemplate.GENERATE_EXERCISES);
@@ -154,8 +156,6 @@ public class AIService {
         CompletableFuture.allOf(
                 futures.toArray(new CompletableFuture[0])
         ).join();
-
-        aIUtil.saveAllGeneratedCategories(categoryEntities);
 
         return futures.stream()
                 .flatMap(f -> f.join().stream())

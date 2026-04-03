@@ -4,6 +4,7 @@ import { OptionDTO } from "./OptionDTO";
 export interface ExerciseDTO {
   id?: string
   parentId?: string;
+  parentName?: string;
   question: string;
   difficulty: number;
   correctAnswers?: string;

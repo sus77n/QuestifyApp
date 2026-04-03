@@ -143,7 +143,7 @@ const Course = () => {
                       {selectedCourse.name}
                     </h2>
                     <p className="text-gray-400 text-sm mt-2">
-                      Total exercises: {selectedCourse.numberOfExercises}
+                      Total exercises: {selectedCourse.numberOfExercise}
                     </p>
                     <p className="text-gray-400 text-sm mt-1">
                       Created by: {selectedCourse.createdBy || "Unknown"}
@@ -169,7 +169,7 @@ const Course = () => {
                               (chapter: LearningUnitWithChildren, index: number) => (
                                   <CardChapterMobile
                                       key={chapter.id}
-                                      numberOfExercise={chapter.numberOfExercises}
+                                      numberOfExercise={chapter.numberOfExercise}
                                       courseName={chapter.name}
                                       index={index + 1}
                                   />
@@ -270,7 +270,7 @@ const Course = () => {
                           {selectedCourse.name}
                         </h2>
                         <p className="text-gray-400 text-sm md:text-md mt-2">
-                          Total of exercises: {selectedCourse.numberOfExercises}
+                          Total of exercises: {selectedCourse.numberOfExercise}
                         </p>
                         <p className="text-gray-400 text-sm md:text-md">
                           Created by: {selectedCourse.createdBy}
