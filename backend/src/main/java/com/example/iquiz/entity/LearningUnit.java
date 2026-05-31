@@ -24,7 +24,10 @@ import java.util.UUID;
                 @Index(name = "idx_created_at", columnList = "createdAt DESC")
         }
 )
-@NoArgsConstructor @AllArgsConstructor @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class LearningUnit {
 
     @Id

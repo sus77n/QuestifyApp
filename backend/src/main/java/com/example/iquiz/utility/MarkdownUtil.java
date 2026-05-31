@@ -1,7 +1,9 @@
 package com.example.iquiz.utility;
 
 import com.example.iquiz.dto.ai.CategoryCompactDto;
+import com.example.iquiz.dto.ai.EvaluateSubmissionItemDto;
 import com.example.iquiz.dto.ai.ExerciseCompactDto;
+import com.example.iquiz.dto.attemptDetail.ResultDto;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.entity.LearningUnit;
 import com.example.iquiz.enums.PromptTemplate;
@@ -36,33 +38,83 @@ public class MarkdownUtil {
             return "";
         }
 
-        return exercises.stream()
-                .map(this::exerciseToCompactLine)
-                .collect(Collectors.joining("\n"));
+        return exercises.stream().map(this::exerciseToCompactLine).collect(Collectors.joining("\n"));
     }
 
+    public String attemptToCompactFeedbackText(
+            List<ResultDto> results
+    ) {
+
+        StringBuilder sb = new StringBuilder();
+
+        int index = 1;
+
+        for (ResultDto result : results) {
+
+            sb.append("""
+                    
+                    [%d]
+                    Question:
+                    %s
+                    
+                    Type:
+                    %s
+                    
+                    User Answer:
+                    %s
+                    
+                    Expected Answer:
+                    %s
+                    
+                    Score:
+                    %s
+                    
+                    """.formatted(
+                    index++,
+                    result.getQuestion(),
+                    result.getExerciseType(),
+                    String.join(", ", result.getUserAnswer()),
+                    String.join(", ", result.getExpectedAnswer()),
+                    result.getScore()
+            ));
+        }
+
+        return sb.toString();
+    }
+
+    public String submissionEvaluationToCompactText(List<EvaluateSubmissionItemDto> items) {
+        StringBuilder sb = new StringBuilder();
+        int index = 1;
+        for (EvaluateSubmissionItemDto item : items) {
+            sb.append("""
+                    
+                    [%d]
+                    Exercise ID: %s
+                    Type: %s
+                    Question:
+                    %s
+                    
+                    Expected Answer:
+                    %s
+                    
+                    User Answer:
+                    %s
+                    
+                    """.formatted(index++, item.getExerciseId(), item.getType(), item.getQuestion(), item.getExpectedAnswer(), item.getUserAnswer()));
+        }
+
+        return sb.toString();
+    }
 
     private String exerciseToCompactLine(ExerciseCompactDto ex) {
-        return String.format(
-                "[%s] TYPE:%s | DIFF:%s | Q:%s | ANS:%s",
-                ex.getId(),
-                safe(ex.getType()),
-                safe(ex.getDifficulty()),
-                cleanText(ex.getQuestion()),
-                cleanJson(ex.getCorrectAnswer())
-        );
+        return String.format("[%s] TYPE:%s | DIFF:%s | Q:%s | ANS:%s", ex.getId(), safe(ex.getType()), safe(ex.getDifficulty()), cleanText(ex.getQuestion()), cleanJson(ex.getCorrectAnswer()));
     }
 
 
     public String categoryWithExercisesToCompactText(CategoryCompactDto category, int index) {
         StringBuilder sb = new StringBuilder(256);
 
-        sb.append("--- CATEGORY ").append(index).append(" ---\n")
-                .append("Hierarchy: ").append(safe(category.getHierarchyPath())).append("\n")
-                .append("Name: ").append(safe(category.getName()))
-                .append(" [ID: ").append(category.getId()).append("]\n")
-                .append("Desc: ").append(cleanText(category.getDescription())).append("\n")
-                .append("Exercises:\n");
+        sb.append("--- CATEGORY ").append(index).append(" ---\n").append("Hierarchy: ").append(safe(category.getHierarchyPath())).append("\n").append("Name: ").append(safe(category.getName())).append(" [ID: ").append(category.getId()).append("]\n").append("Desc: ").append(cleanText(category.getDescription())).append("\n").append("Exercises:\n");
 
         if (category.getExercises() != null && !category.getExercises().isEmpty()) {
             sb.append(exercisesToCompactText(category.getExercises())).append("\n");

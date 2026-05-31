@@ -11,6 +11,8 @@ public enum PromptTemplate {
     DEFINE_EXERCISE_CATEGORY("defineExerciseCategory.md"),
     GENERATE_EXERCISES("generateExercises.md"),
     EXERCISE_GENERATION_CONFIG("exerciseGenerationConfig.md"),
+    ESSAY_SHORTANSWER_EVALUATION("essayAndShortAnswerEvaluate.md"),
+    ATTEMPT_FEEDBACK("attemptFeedback.md"),
     ;
 
     private final String fileName;

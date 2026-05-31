@@ -5,18 +5,18 @@ import com.example.iquiz.entity.Answer;
 import com.example.iquiz.entity.Exercise;
 import com.example.iquiz.enums.ExerciseType;
 import com.example.iquiz.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+@Slf4j
 @Component
 public class SubmissionUtil {
     private static final BigDecimal FULL_SCORE = BigDecimal.valueOf(100);
     private static final BigDecimal ZERO_SCORE = BigDecimal.ZERO;
-    private static final double MINIMUM_MATCH_THRESHOLD = 0.5;
-
 
     public BigDecimal calculateScore(Exercise exercise, String userAnswerJson) {
         String correctJson = exercise.getCorrectAnswerJson();
@@ -26,7 +26,6 @@ public class SubmissionUtil {
             return switch (exercise.getType()) {
                 case MULTIPLE_CHOICE -> scoreMultipleChoice(userAnswerJson, correctJson);
                 case SELECT_MULTIPLE, TRUE_FALSE -> scoreSelectMultiple(userAnswerJson, correctJson);
-                case SHORT_ANSWER -> scoreShortAnswer(userAnswerJson, correctJson);
                 case MATCHING -> scoreMatching(userAnswerJson, correctJson);
                 case REORDERING -> scoreReordering(userAnswerJson, correctJson);
                 case FILL_IN_THE_BLANK -> scoreFillInBlank(userAnswerJson, correctJson);
@@ -119,7 +118,6 @@ public class SubmissionUtil {
         return correctHeaders.contains(userChoice) ? FULL_SCORE : ZERO_SCORE;
     }
 
-
     private BigDecimal scoreSelectMultiple(String userJson, String correctJson) {
         List<String> userHeaders = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctHeaders = ExerciseTypeUtil.parseToList(correctJson);
@@ -147,62 +145,6 @@ public class SubmissionUtil {
         double ratio = Math.max(0.0, Math.min(1.0, raw));
 
         return BigDecimal.valueOf(ratio * 100).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal scoreShortAnswer(String userJson, String correctJson) {
-        List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
-        List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
-
-        if (userAnswers.isEmpty() || correctAnswers.isEmpty()) return ZERO_SCORE;
-
-        String userText = userAnswers.get(0).trim();
-
-        // Exact match for any acceptable answer
-        for (String correct : correctAnswers) {
-            if (userText.equalsIgnoreCase(correct.trim())) {
-                return FULL_SCORE;
-            }
-        }
-
-        // Partial credit: pick the best match among all acceptable answers
-        BigDecimal best = ZERO_SCORE;
-        for (String correct : correctAnswers) {
-            BigDecimal candidate = partialShortAnswerScore(userText, correct);
-            if (candidate.compareTo(best) > 0) {
-                best = candidate;
-            }
-        }
-
-        return best;
-    }
-
-    private BigDecimal partialShortAnswerScore(String userText, String correctText) {
-        String user = userText.toLowerCase().trim();
-        String correct = correctText.toLowerCase().trim();
-
-        if (user.equals(correct)) return FULL_SCORE;
-
-        String[] userWords = user.split("\\s+");
-        String[] correctWords = correct.split("\\s+");
-
-        Set<String> correctSet = new HashSet<>(Arrays.asList(correctWords));
-        int matched = 0;
-
-        for (String w : userWords) {
-            if (w.length() > 3 && correctSet.contains(w)) {
-                matched++;
-            }
-        }
-
-        if (correctWords.length == 0) return ZERO_SCORE;
-
-        double ratio = (double) matched / correctWords.length;
-
-        if (ratio >= MINIMUM_MATCH_THRESHOLD) {
-            return BigDecimal.valueOf(ratio * 100).setScale(2, RoundingMode.HALF_UP);
-        }
-
-        return ZERO_SCORE;
     }
 
     private BigDecimal scoreMatching(String userJson, String correctJson) {
@@ -248,7 +190,6 @@ public class SubmissionUtil {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-
     private BigDecimal scoreFillInBlank(String userJson, String correctJson) {
         List<String> userAnswers = ExerciseTypeUtil.parseToList(userJson);
         List<String> correctAnswers = ExerciseTypeUtil.parseToList(correctJson);
@@ -267,16 +208,9 @@ public class SubmissionUtil {
     }
 
     private void logCalculationError(UUID exerciseId, String userAnswer, String correctAnswer, Exception e) {
-        System.out.println("Unable to calculate score for exercise id: " + exerciseId);
-        System.out.println("User answer: " + userAnswer);
-        System.out.println("Correct answer: " + correctAnswer);
-        System.out.println("Error: " + e.getMessage());
+        log.warn("Error calculating score for exercise id: {}. User answer: {}. Correct answer: {}. Error: {}",
+                exerciseId, userAnswer, correctAnswer, e.getMessage());
     }
 
-    public Double calculateAverageScore(BigDecimal totalScore, int submissionCount) {
-        if (submissionCount == 0) return 0.0;
-        return totalScore.divide(BigDecimal.valueOf(submissionCount), 2, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
 
 }

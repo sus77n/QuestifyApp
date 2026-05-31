@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +54,7 @@ public class Exercise {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "learning_unit_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
     private LearningUnit parent;
 
     @OneToMany(
@@ -62,5 +64,17 @@ public class Exercise {
             fetch = FetchType.LAZY
     )
     private List<Answer> predefinedAnswers = new ArrayList<>();
+
+    @Column(nullable = false)
+    private Double difficultyRating = 1000.0;
+
+    @Column(nullable = false)
+    private Integer totalAttempts = 0;
+
+    @Column(nullable = false)
+    private Integer totalCorrect = 0;
+
+    @Version
+    private Long version;
 
 }

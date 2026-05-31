@@ -66,6 +66,10 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private Double rating = 1000.0;
+    private Integer totalAttempts = 0;
+    private Integer totalCorrect = 0;
+
     @Transient
     public String getFullName() {
         if (isBlank(firstName) || isBlank(lastName)) {

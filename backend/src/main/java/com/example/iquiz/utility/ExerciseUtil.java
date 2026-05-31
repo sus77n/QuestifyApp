@@ -1,15 +1,12 @@
 package com.example.iquiz.utility;
 
 import com.example.iquiz.dto.CatInfo;
-import com.example.iquiz.dto.exercise.ExerciseResponseDto;
 import com.example.iquiz.entity.*;
-import com.example.iquiz.enums.UserProgress;
 import com.example.iquiz.exception.ResourceNotFoundException;
 import com.example.iquiz.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,7 +18,6 @@ public class ExerciseUtil {
     private final ExerciseRepository exerciseRepository;
     private final AttemptDetailRepository attemptDetailRepository;
     private final LessonConfigRepository lessonConfigRepository;
-    private final ExerciseCategoryDistributionRepository exerciseCategoryDistributionRepository;
     private final UserMasteryRepository userMasteryRepository;
 
     public List<Exercise> selectExercises(UUID userId, LearningUnit lesson) {
@@ -81,15 +77,6 @@ public class ExerciseUtil {
     ) {
 
         Set<UUID> categoryIds = poolByCategory.keySet();
-        List<ExerciseCategoryDistribution> distributions =
-                exerciseCategoryDistributionRepository.findByParentLessonId(lesson.getId());
-
-        Map<UUID, ExerciseCategoryDistribution> distByCategory = distributions.stream()
-                .collect(Collectors.toMap(
-                        d -> d.getId().getExerciseCategoryId(),
-                        Function.identity(),
-                        (d1, d2) -> d1
-                ));
 
         List<UserMastery> masteryList =
                 userMasteryRepository.findByUserIdAndLessonId(userId, lesson.getId());
@@ -104,29 +91,17 @@ public class ExerciseUtil {
         List<CatInfo> catInfos = new ArrayList<>();
 
         for (UUID catId : categoryIds) {
-            ExerciseCategoryDistribution dist = distByCategory.get(catId);
-            double baseWeight = (dist != null && dist.getBaseWeight() != null)
-                    ? dist.getBaseWeight().doubleValue()
-                    : 1.0;
-
-            Double minPerAttempt = (dist != null && dist.getMinPerAttempt() != null)
-                    ? dist.getMinPerAttempt().doubleValue()
-                    : null;
-
-            Double maxPerAttempt = (dist != null && dist.getMaxPerAttempt() != null)
-                    ? dist.getMaxPerAttempt().doubleValue()
-                    : null;
 
             UserMastery mastery = masteryByCategory.get(catId);
             double accuracy = (mastery != null) ? mastery.getAccuracy() : 0.5; // default 50%
 
             CatInfo info = new CatInfo();
             info.setCategoryId(catId);
-            info.setBaseWeight(baseWeight);
-            info.setMin(minPerAttempt);
-            info.setMax(maxPerAttempt);
+            info.setBaseWeight(1.0);
+            info.setMin(null);
+            info.setMax(null);
             info.setAccuracy(accuracy);
-            info.setWeight((1.0 - accuracy) * baseWeight);
+            info.setWeight((1.0 - accuracy) * 1.0);
             catInfos.add(info);
         }
 

@@ -25,7 +25,10 @@ public class ExerciseGenerationConfig {
     int fillInBlank = 5;
 
     @Builder.Default
-    int shortAnswer = 5;
+    int shortAnswer = 3;
+
+    @Builder.Default
+    int essay = 2;
 
     public int getTotal() {
         return multipleChoice + selectMultiple + trueFalse +

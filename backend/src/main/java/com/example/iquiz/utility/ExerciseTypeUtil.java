@@ -169,12 +169,10 @@ public class ExerciseTypeUtil {
     private static String sanitizeJson(String json) {
         json = json.trim();
 
-        // If starts with {"correctAnswers":[ but does not end with ]}
         if (json.startsWith("{") && !json.endsWith("}")) {
             json = json + "]}";
         }
 
-        // If starts with [ but does not end with ]
         if (json.startsWith("[") && !json.endsWith("]")) {
             json = json + "]";
         }

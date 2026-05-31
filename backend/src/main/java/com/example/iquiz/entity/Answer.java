@@ -1,6 +1,6 @@
 package com.example.iquiz.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class Answer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Exercise exercise;
 

@@ -8,5 +8,6 @@ public enum ExerciseType {
     FILL_IN_THE_BLANK,
     SELECT_MULTIPLE,
     TRUE_FALSE,
+    ESSAY,
     UNDEFINED
 }

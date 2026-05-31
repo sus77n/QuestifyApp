@@ -13,7 +13,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserMasteryId implements Serializable {
+
     private UUID userId;
+
     private UUID lessonId;
+
     private UUID exerciseCategoryId;
 }

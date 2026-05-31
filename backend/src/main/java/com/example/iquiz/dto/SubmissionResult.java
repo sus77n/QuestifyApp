@@ -1,5 +1,6 @@
 package com.example.iquiz.dto;
 
+import com.example.iquiz.dto.ai.AttemptFeedbackDto;
 import com.example.iquiz.dto.attemptDetail.ResultDto;
 import com.example.iquiz.entity.AttemptDetail;
 import lombok.AllArgsConstructor;
@@ -14,10 +15,11 @@ import java.util.UUID;
 @AllArgsConstructor
 public class SubmissionResult {
 
-    private List<AttemptDetail> details;      // for DB save
-    private List<ResultDto> feedbacks;        // for API response
-    private Map<UUID, int[]> categoryStats;   // for mastery update
-    private BigDecimal finalScore;            // for Attempt
-    private int correctCount;                   // for Attempt
+    private List<AttemptDetail> details;
+    private List<ResultDto> results;
+    private Map<UUID, int[]> categoryStats;
+    private BigDecimal finalScore;
+    private int correctCount;
     private int wrongCount;
+    private AttemptFeedbackDto feedback;
 }

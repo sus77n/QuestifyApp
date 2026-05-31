@@ -134,7 +134,7 @@ public class AttemptService {
                 attempt.getScore(),
                 attempt.getAttemptStatus().name(),
                 attempt.getSubmittedAt(),
-                result.getFeedbacks()
+                result.getResults()
         );
     }
 }

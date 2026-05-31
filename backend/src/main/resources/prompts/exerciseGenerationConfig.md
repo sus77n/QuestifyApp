@@ -8,6 +8,7 @@ For this category, generate exactly:
 - %d REORDERING exercises
 - %d FILL_IN_THE_BLANK exercises
 - %d SHORT_ANSWER exercises
+- %d ESSAY exercises
 
 Total exercises per category = %d.
 
