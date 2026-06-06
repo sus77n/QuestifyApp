@@ -137,14 +137,10 @@ public class AttemptService {
 
         participantProgressService.updateProgress(attempt, result);
 
-        return new AttemptResponseDto(
-                attempt.getId(),
-                attempt.getUser().getId(),
-                attempt.getLesson().getId(),
-                attempt.getScore(),
-                attempt.getAttemptStatus().name(),
-                attempt.getSubmittedAt(),
-                result.getResults()
-        );
+        AttemptResponseDto attemptResponseDto = attemptMapper.toResponseDto(attempt);
+        attemptResponseDto.setResults(result.getResults());
+        attemptResponseDto.setFeedback(result.getFeedback());
+
+        return attemptResponseDto;
     }
 }

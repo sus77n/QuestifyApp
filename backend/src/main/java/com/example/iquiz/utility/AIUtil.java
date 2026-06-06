@@ -153,27 +153,27 @@ public class AIUtil {
         }
     }
 
-    public String callAIFix(String brokenJson) {
-        String fixPrompt = """
-                The following JSON is invalid.
-                Fix the JSON and return ONLY valid JSON.
-                Do not explain anything.
-                
-                Invalid JSON:
-                %s
-                """.formatted(brokenJson);
-
-        GenerateContentConfig config = GenerateContentConfig.builder()
-                .temperature(0.0F)
-                .topP(0.1F)
-                .responseMimeType("application/json")
-                .build();
-
-        GenerateContentResponse response =
-                client.models.generateContent(MODEL_NAME, fixPrompt, config);
-
-        return response.text().trim();
-    }
+//    public String callAIFix(String brokenJson) {
+//        String fixPrompt = """
+//                The following JSON is invalid.
+//                Fix the JSON and return ONLY valid JSON.
+//                Do not explain anything.
+//
+//                Invalid JSON:
+//                %s
+//                """.formatted(brokenJson);
+//
+//        GenerateContentConfig config = GenerateContentConfig.builder()
+//                .temperature(0.0F)
+//                .topP(0.1F)
+//                .responseMimeType("application/json")
+//                .build();
+//
+//        GenerateContentResponse response =
+//                client.models.generateContent(MODEL_NAME, fixPrompt, config);
+//
+//        return response.text().trim();
+//    }
 
     public List<LearningUnit> buildGeneratedCategories(UUID parentId, List<CreateExerciseCategoryDto> dtos) {
         User user = userUtil.getUserFromAuthContext();
