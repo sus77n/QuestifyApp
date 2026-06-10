@@ -16,7 +16,8 @@ public interface AttemptMapper {
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "lessonId", source = "lesson.id")
     @Mapping(target = "status", source = "attemptStatus")
-    @Mapping(target = "feedbacks", ignore = true)
+    @Mapping(target = "results", ignore = true)
+    @Mapping(target = "feedback", ignore = true)
     AttemptResponseDto toResponseDto(Attempt attempt);
 
     @Mapping(target = "attemptId", source = "id")

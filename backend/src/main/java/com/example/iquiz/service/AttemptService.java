@@ -16,6 +16,7 @@ import com.example.iquiz.repository.*;
 
 import com.example.iquiz.utility.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AttemptService {
 
     private final AttemptRepository attemptRepository;
@@ -36,6 +38,7 @@ public class AttemptService {
     private final ExerciseUtil exerciseUtil;
     private final ProgressUtil progressUtil;
     private final ParticipantProgressService participantProgressService;
+    private final EloService eloService;
 
     public AttemptDto save(Attempt attempt) {
         return attemptMapper.toDto(attemptRepository.save(attempt));
@@ -114,6 +117,13 @@ public class AttemptService {
 
         attemptDetailRepository.saveAll(result.getDetails());
 
+        // Update ELO ratings for each detail (per-user-per-exercise and exercise difficulty)
+        try {
+            eloService.updateRatingsForAttempt(attempt.getUser().getId(), result.getDetails());
+        } catch (Exception ex) {
+            log.warn("ELO update failed for attempt {}: {}", attempt.getId(), ex.getMessage(), ex);
+        }
+
         attempt.setScore(result.getFinalScore());
         attempt.setAttemptStatus(AttemptStatus.GRADED);
         attempt.setSubmittedAt(LocalDateTime.now());
@@ -127,14 +137,10 @@ public class AttemptService {
 
         participantProgressService.updateProgress(attempt, result);
 
-        return new AttemptResponseDto(
-                attempt.getId(),
-                attempt.getUser().getId(),
-                attempt.getLesson().getId(),
-                attempt.getScore(),
-                attempt.getAttemptStatus().name(),
-                attempt.getSubmittedAt(),
-                result.getResults()
-        );
+        AttemptResponseDto attemptResponseDto = attemptMapper.toResponseDto(attempt);
+        attemptResponseDto.setResults(result.getResults());
+        attemptResponseDto.setFeedback(result.getFeedback());
+
+        return attemptResponseDto;
     }
 }

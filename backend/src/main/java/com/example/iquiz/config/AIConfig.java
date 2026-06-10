@@ -1,6 +1,9 @@
 package com.example.iquiz.config;
 
 import com.google.genai.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -13,8 +16,10 @@ import java.util.concurrent.Executor;
 public class AIConfig {
 
     @Bean
-    public Client geminiClient() {
-        return new Client();
+    public Client geminiClient(@Value("${gemini.api.key}") String apiKey) {
+        return new Client().builder()
+                .apiKey(apiKey)
+                .build();
     }
 
     @Bean(name = "aiExecutor")
