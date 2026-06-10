@@ -27,10 +27,20 @@ export interface AttemptChildDto{
     score: number;
 }
 
+export interface AttemptFeedbackDTO {
+    overallFeedback: string;
+    strengths: string;
+    weaknesses: string;
+    recommendations: string;
+}
+
 export interface AttemptResponseDTO {
     attemptId: string;
+    userId: string;
+    lessonId: string;
     score: number;
-    feedback?: string;
-    feedbacks: AttemptChildDto[];
+    status: string;
+    results: AttemptChildDto[];
     submittedAt: string;
+    feedback: AttemptFeedbackDTO;
 }

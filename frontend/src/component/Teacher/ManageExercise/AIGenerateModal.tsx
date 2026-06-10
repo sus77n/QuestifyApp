@@ -132,12 +132,11 @@ const AIGenerateModal: React.FC<Props> = ({
                     const options = (ex.predefinedAnswers || []).map((opt: any) => ({
                         header: opt.header,
                         text: opt.text,
-                        side:
-                            opt.metadata === "left"
-                                ? "left"
-                                : opt.metadata === "right"
-                                    ? "right"
-                                    : null
+                        side: opt.metadata?.side === "left"
+                            ? "left"
+                            : opt.metadata?.side === "right"
+                                ? "right"
+                                : null
                     }));
 
                     const correctAnswers = JSON.stringify(
@@ -202,9 +201,7 @@ const AIGenerateModal: React.FC<Props> = ({
                         id: null,
                         text: o.text,
                         header: o.header,
-                        metadata: o.side
-                            ? { side: o.side }
-                            : null
+                        metadata: o.side ? { side: o.side } : null
                     })),
                     correctAnswerJson: {
                         correctAnswers: JSON.parse(ex.correctAnswers || "[]")
@@ -260,8 +257,7 @@ const AIGenerateModal: React.FC<Props> = ({
             if (!Array.isArray(parsedCorrect)) return false;
             // Nếu là mảng string (Multiple choice)
             if (typeof parsedCorrect[0] === 'string') return parsedCorrect.includes(header);
-            // Nếu là mảng object (Matching)
-            return false; // Matching hiển thị phức tạp hơn, ở đây demo simple
+            return false;
         };
 
         return (
@@ -303,20 +299,20 @@ const AIGenerateModal: React.FC<Props> = ({
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-gray-50 p-2 rounded">
                                 <span className="text-xs font-bold text-gray-400">LEFT</span>
-                                {ex.options?.filter(o => o.side === 'left').map(o => (
+                                {ex.options?.filter((o: any) => o.side === 'left').map((o: any) => (
                                     <div key={o.header} className="border-b py-1">{o.header}. {o.text}</div>
                                 ))}
                             </div>
                             <div className="bg-gray-50 p-2 rounded">
                                 <span className="text-xs font-bold text-gray-400">RIGHT</span>
-                                {ex.options?.filter(o => o.side === 'right').map(o => (
+                                {ex.options?.filter((o: any) => o.side === 'right').map((o: any) => (
                                     <div key={o.header} className="border-b py-1">{o.header}. {o.text}</div>
                                 ))}
                             </div>
                         </div>
                     ) : (
-                        // Standard types (Choice, etc)
-                        ex.options?.map((opt, oIdx) => (
+                        // Standard types (Choice, etc) - Không render nếu rỗng (như Short Answer, Essay, Fill-in-the-blank)
+                        ex.options?.map((opt: any, oIdx: number) => (
                             <div key={oIdx} className={`flex items-center gap-2 p-2 rounded ${!isEditing && isCorrect(opt.header as string) ? 'bg-green-50 border border-green-200' : 'bg-white border border-transparent'}`}>
                                 <Badge count={opt.header} style={{ backgroundColor: '#d9d9d9' }} />
                                 {isEditing ? (
@@ -335,6 +331,40 @@ const AIGenerateModal: React.FC<Props> = ({
                         ))
                     )}
                 </div>
+
+                {/* Correct Answers Preview */}
+                {parsedCorrect && parsedCorrect.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                        <p className="text-xs font-bold text-gray-500 mb-2">CORRECT ANSWERS:</p>
+                        {ex.type === 'MATCHING' ? (
+                            <div className="bg-green-50 p-2 rounded border border-green-200 text-sm">
+                                {Array.isArray(parsedCorrect) && parsedCorrect.length > 0 && typeof parsedCorrect[0] === 'object' ? (
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {parsedCorrect.map((pair: any, pIdx: number) => {
+                                            const leftText = ex.options?.find((o: any) => o.header === pair.leftHeader)?.text || pair.leftHeader;
+                                            const rightText = ex.options?.find((o: any) => o.header === pair.rightHeader)?.text || pair.rightHeader;
+                                            return (
+                                                <li key={pIdx} className="text-green-700">
+                                                    <span className="font-medium">{leftText}</span> → <span className="font-medium">{rightText}</span>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <p className="text-gray-600">No matching pairs</p>
+                                )}
+                            </div>
+                        ) : (ex.type === 'SHORT_ANSWER' || ex.type === 'ESSAY' || ex.type === 'FILL_IN_THE_BLANK') ? (
+                            <div className="bg-green-50 p-2 rounded border border-green-200 text-sm space-y-1">
+                                {Array.isArray(parsedCorrect) && parsedCorrect.map((ans: any, aIdx: number) => (
+                                    <p key={aIdx} className="text-green-700 whitespace-pre-wrap">
+                                        • {typeof ans === 'string' ? ans : JSON.stringify(ans)}
+                                    </p>
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
+                )}
             </Card>
         );
     };

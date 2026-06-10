@@ -10,7 +10,9 @@ import {
     Popconfirm,
     Select,
     message,
-    Badge
+    Badge,
+    Drawer,
+    Empty
 } from "antd";
 
 import {
@@ -55,7 +57,10 @@ import { InboxStackIcon, RectangleGroupIcon, SparklesIcon } from "@heroicons/rea
 import LessonConfigPanel from "./LessonConfigPanel";
 import {
     useGetLearningUnitDetailsByIdQuery,
-    useInitializeLessonConfigAndCateMutation
+    useInitializeLessonConfigAndCateMutation,
+    useCreateLearningUnitMutation,
+    useUpdateLearningUnitMutation,
+    useDeleteLearningUnitMutation
 } from "../../../API/service/learningUnit.service";
 import AIGenerateModal from "./AIGenerateModal";
 
@@ -80,7 +85,8 @@ export default function ManageExercises() {
 
     const {
         data: learningUnitData,
-        isLoading: isUnitLoading
+        isLoading: isUnitLoading,
+        refetch: refetchLessonDetails
     } = useGetLearningUnitDetailsByIdQuery(
         { id: learningUnitId! },
         {
@@ -172,6 +178,17 @@ export default function ManageExercises() {
     const [fillBlankValue, setFillBlankValue] = useState<FillInBlankValue>({
         correctAnswers: []
     });
+
+    // Exercise Categories Management State
+    const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false);
+    const [isExerciseCategoryModalOpen, setIsExerciseCategoryModalOpen] = useState(false);
+    const [categoryForm] = Form.useForm();
+    const [categoryModalMode, setCategoryModalMode] = useState<"add" | "edit">("add");
+    const [editingCategory, setEditingCategory] = useState<any>(null);
+
+    const [addUnit] = useCreateLearningUnitMutation();
+    const [editUnit] = useUpdateLearningUnitMutation();
+    const [deleteUnit] = useDeleteLearningUnitMutation();
 
     const searchInput = useRef(null);
 
@@ -617,6 +634,47 @@ const options: { header: string; text: string; metadata: { side: "left" | "right
                 );
         }
     };
+
+    // Exercise Categories Handlers
+    const handleCategorySubmit = async () => {
+        const values = await categoryForm.validateFields();
+
+        try {
+            if (categoryModalMode === "add") {
+                await addUnit({
+                    parentId: learningUnitId,
+                    name: values.name,
+                    description: values.description,
+                }).unwrap();
+                message.success("Category added successfully!");
+            } else {
+                await editUnit({
+                    id: editingCategory!.id,
+                    name: values.name,
+                    description: values.description,
+                }).unwrap();
+                message.success("Category updated successfully!");
+            }
+
+            setIsExerciseCategoryModalOpen(false);
+            refetch();
+            refetchLessonDetails();
+        } catch (err) {
+            message.error("Failed to save category.");
+        }
+    };
+
+    const handleDeleteCategory = async (categoryId: string) => {
+        try {
+            await deleteUnit(categoryId).unwrap();
+            message.success("Category deleted successfully!");
+            refetch();
+            refetchLessonDetails();
+        } catch (err) {
+            message.error("Failed to delete category.");
+        }
+    };
+
     return (
         <TeacherPage
             title={`${lessonName ?? ""}`}
@@ -631,9 +689,18 @@ const options: { header: string; text: string; metadata: { side: "left" | "right
         >
             <div className="grid grid-cols grid-cols-8 h-[30vh] gap-2 mb-4">
                 <div className="col-span-4 bg-white rounded-lg shadow-xl p-4 flex flex-col h-full overflow-hidden">
-                    <div className="flex gap-2 mb-2 shrink-0">
-                        <InboxStackIcon width={20} className="text-text-color" />
-                        <p className="text-text-color font-semibold">Exercise Categories</p>
+                    <div className="flex gap-2 mb-2 shrink-0 justify-between items-center">
+                        <div className="flex gap-2 items-center">
+                            <InboxStackIcon width={20} className="text-text-color" />
+                            <p className="text-text-color font-semibold">Exercise Categories</p>
+                        </div>
+                        <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => setIsCategoryDrawerOpen(true)}
+                        >
+                            Manage
+                        </Button>
                     </div>
 
                     <div className="overflow-y-auto flex-1 pr-2 flex flex-col gap-1">
@@ -824,6 +891,103 @@ const options: { header: string; text: string; metadata: { side: "left" | "right
                         </h3>
                         {renderBuilder()}
                     </div>
+                </Form>
+            </Modal>
+
+            {/* Drawer for Exercise Categories Management */}
+            <Drawer
+                title="Exercise Categories"
+                placement="right"
+                onClose={() => setIsCategoryDrawerOpen(false)}
+                open={isCategoryDrawerOpen}
+                width={500}
+                extra={
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            setCategoryModalMode("add");
+                            categoryForm.resetFields();
+                            setIsExerciseCategoryModalOpen(true);
+                        }}
+                    >
+                        Add Category
+                    </Button>
+                }
+            >
+                {categories && categories.length > 0 ? (
+                    <div className="space-y-3">
+                        {categories.map((category: any) => {
+                            const count = exercises.filter((e: any) => e.parentId === category.id).length;
+                            return (
+                                <div
+                                    key={category.id}
+                                    className="p-4 bg-white rounded border border-gray-200 hover:bg-gray-50"
+                                >
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-gray-800">{category.name}</p>
+                                            {category.description && (
+                                                <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                                            )}
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                Exercises: {count}
+                                            </p>
+                                        </div>
+                                        <Space>
+                                            <Button
+                                                icon={<EditOutlined />}
+                                                size="small"
+                                                onClick={() => {
+                                                    setCategoryModalMode("edit");
+                                                    setEditingCategory(category);
+                                                    categoryForm.setFieldsValue({ name: category.name, description: category.description });
+                                                    setIsExerciseCategoryModalOpen(true);
+                                                }}
+                                            />
+                                            <Popconfirm
+                                                title="Delete this category?"
+                                                onConfirm={() => handleDeleteCategory(category.id)}
+                                            >
+                                                <Button
+                                                    icon={<DeleteOutlined />}
+                                                    size="small"
+                                                    danger
+                                                />
+                                            </Popconfirm>
+                                        </Space>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <Empty description="No exercise categories found" />
+                )}
+            </Drawer>
+
+            {/* Modal Add/Edit Exercise Category */}
+            <Modal
+                title={categoryModalMode === "add" ? "Add Exercise Category" : "Edit Exercise Category"}
+                open={isExerciseCategoryModalOpen}
+                okText={categoryModalMode === "add" ? "Add" : "Save"}
+                onOk={handleCategorySubmit}
+                onCancel={() => setIsExerciseCategoryModalOpen(false)}
+            >
+                <Form form={categoryForm} layout="vertical">
+                    <Form.Item
+                        label="Category Name"
+                        name="name"
+                        rules={[{ required: true, message: "Please enter category name" }]}
+                    >
+                        <Input placeholder="e.g. Basic Operations, Advanced Concepts..." />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Description (Optional)"
+                        name="description"
+                    >
+                        <Input.TextArea rows={3} placeholder="Enter category description..." />
+                    </Form.Item>
                 </Form>
             </Modal>
         </TeacherPage>

@@ -73,9 +73,41 @@ export const AttemptResult = ({result, onBack}: { result: AttemptResponseDTO; on
 
             <hr className="mb-6"/>
 
+            {/* Overall Feedback Section */}
+            <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">Feedback</h2>
+
+                <div className="space-y-4">
+                    {/* Overall Feedback */}
+                    <div>
+                        <h3 className="font-semibold text-blue-800 text-lg mb-2">Overall Feedback</h3>
+                        <p className="text-gray-700 leading-relaxed">{result.feedback.overallFeedback}</p>
+                    </div>
+
+                    {/* Strengths */}
+                    <div>
+                        <h3 className="font-semibold text-green-700 text-lg mb-2">✓ Strengths</h3>
+                        <p className="text-gray-700 leading-relaxed">{result.feedback.strengths}</p>
+                    </div>
+
+                    {/* Weaknesses */}
+                    <div>
+                        <h3 className="font-semibold text-orange-700 text-lg mb-2">! Areas for Improvement</h3>
+                        <p className="text-gray-700 leading-relaxed">{result.feedback.weaknesses}</p>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div>
+                        <h3 className="font-semibold text-indigo-800 text-lg mb-2">→ Recommendations</h3>
+                        <p className="text-gray-700 leading-relaxed">{result.feedback.recommendations}</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Feedback list */}
             <div className="space-y-6">
-                {result.feedbacks.map((fb, i) => {
+                {result.results && result.results.length > 0 ? (
+                    result.results.map((fb, i) => {
 
                     //  Tính correct dựa trên score >= 50
                     const isCorrect = (fb.score ?? 0) >= 50;
@@ -143,7 +175,10 @@ export const AttemptResult = ({result, onBack}: { result: AttemptResponseDTO; on
                             </div>
                         </div>
                     );
-                })}
+                })
+                ) : (
+                    <p className="text-gray-500 text-center py-4">No exercise results available.</p>
+                )}
             </div>
 
             <div className="flex justify-end mt-8">

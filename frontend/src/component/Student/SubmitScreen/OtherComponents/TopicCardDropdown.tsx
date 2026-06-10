@@ -23,6 +23,7 @@ export const TopicCardDropdown = ({
     numberOfComplete: number | null;
     numberOfExercise: number | null;
 }) => {
+    
     const [isOpen, setIsOpen] = useState(false);
     const [lessons, setLessons] = useState<LearningUnitChildDto[]>([]);
     const [hasFetched, setHasFetched] = useState(false); 

@@ -21,4 +21,5 @@ export type ExerciseType =
     | "SHORT_ANSWER"
     | "MATCHING"
     | "REORDERING"
+    | "ESSAY"
     | "FILL_IN_THE_BLANK";

@@ -16,7 +16,6 @@ import {
     EditOutlined,
     DeleteOutlined,
     ApartmentOutlined,
-    TeamOutlined,    
     HistoryOutlined,
     ExperimentOutlined
 } from "@ant-design/icons";
@@ -25,7 +24,6 @@ import {
     useCreateLearningUnitMutation,
     useUpdateLearningUnitMutation,
     useDeleteLearningUnitMutation,
-    // NEW: Import hook mới
     useCreateCombinedLearningUnitMutation
 } from "../../API/service/learningUnit.service";
 import { LearningUnitWithChildren } from "../../model/LearningUnitDTO";
@@ -268,21 +266,23 @@ export default function ManageLearningUnits() {
 
                         {/* Manage Exercise Button */}
                         {isLeaf && (
-                            <MyButton
-                                text="Manage Exercise"
-                                height="h-[35px]"
-                                icon={<ApartmentOutlined />}
-                                onClick={() =>
-                                    navigate(`/teacher/learning-unit/${unit.id}/exercises`, {
-                                        state: {
-                                            lessonName: unit.name,
-                                            courseName: courseName,
-                                            courseId: courseId,
-                                            shouldInit: shouldInitializeFirst
-                                        }
-                                    })
-                                }
-                            />
+                            <>
+                                <MyButton
+                                    text="Manage Exercise"
+                                    height="h-[35px]"
+                                    icon={<ApartmentOutlined />}
+                                    onClick={() =>
+                                        navigate(`/teacher/learning-unit/${unit.id}/exercises`, {
+                                            state: {
+                                                lessonName: unit.name,
+                                                courseName: courseName,
+                                                courseId: courseId,
+                                                shouldInit: shouldInitializeFirst
+                                            }
+                                        })
+                                    }
+                                />
+                            </>
                         )}
                     </Space>
                 );

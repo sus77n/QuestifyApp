@@ -10,8 +10,8 @@ export default defineConfig({
     port: 3000,
     proxy: {
       "/api": {
-        // target: 'http://26.249.200.184:8404',
-        target: "http://localhost:8404",
+        target: 'http://26.249.200.184:8404',
+        // target: "http://localhost:8404",
         changeOrigin: true,
         secure: false,
       },
