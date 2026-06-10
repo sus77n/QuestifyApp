@@ -8,7 +8,7 @@
               class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n
+                %clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%thread]){magenta} %clr(%logger{36}){cyan} - %msg%n
             </pattern>
         </encoder>
     </appender>
