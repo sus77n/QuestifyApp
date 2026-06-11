@@ -31,4 +31,4 @@ jobs:
           docker rm iquiz-backend 2>$null
 
       - name: Run new container
-        run: docker run -d --name iquiz-backend -p 8404:8404 iquiz-backend:latest
+        run: docker run -d --name iquiz-backend -p 8405:8404 iquiz-backend:latest
