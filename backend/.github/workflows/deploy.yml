@@ -1,0 +1,29 @@
+name: Deploy Spring Boot App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build Spring Boot project
+        run: mvn clean package -DskipTests
+
+      - name: Build Docker image
+        run: docker build -t spring-app:latest .
+
+      - name: Stop old container
+        shell: powershell
+        run: |
+          docker stop spring-app 2>$null
+          docker rm spring-app 2>$null
+
+      - name: Run new container
+        run: docker run -d --name spring-app -p 8404:8404 spring-app:latest
