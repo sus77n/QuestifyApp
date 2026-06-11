@@ -22,3 +22,4 @@ frontend/vite.config.js
 frontend/package-lock.json
 frontend/package-lock.json
 frontend/package-lock.json
+backend/src/main/resources/.env
