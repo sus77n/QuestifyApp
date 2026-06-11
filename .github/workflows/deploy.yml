@@ -33,5 +33,5 @@ jobs:
       - name: Run new container
         run: docker run -d --name iquiz-backend `
               --env-file D:\QuestifyApp\backend\src\main\resources\.env `
-              -p 8405:8404 `
+              -p 8404:8404 `
               iquiz-backend:latest
