@@ -21,13 +21,14 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Build Docker image
-        run: docker build -t spring-backend:latest .
+        run: docker build -t iquiz-backend:latest .
 
       - name: Stop old container
+        continue-on-error: true
         shell: powershell
         run: |
-          docker stop spring-backend 2>$null
-          docker rm spring-backend 2>$null
+          docker stop iquiz-backend 2>$null
+          docker rm iquiz-backend 2>$null
 
       - name: Run new container
-        run: docker run -d --name spring-backend -p 8404:8404 spring-backend:latest
+        run: docker run -d --name iquiz-backend -p 8404:8404 iquiz-backend:latest
